@@ -8,7 +8,7 @@ import { Noticia } from '../Models/noticia';
 })
 export class NoticiaService {
 
-  private readonly apiUrl = 'http://localhost:8082/api/noticias';
+  private readonly apiUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/noticias';
 
   constructor(private http: HttpClient) {}
 

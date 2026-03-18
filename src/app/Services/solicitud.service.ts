@@ -28,7 +28,7 @@ export class Service {
     throw new Error('Method not implemented.');
   }
 
-  private api = 'http://localhost:8082/api/solicitudes';
+  private api = 'https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes';
   solicitud: ServiceModel[] = [];
 
   constructor(private http: HttpClient) {}

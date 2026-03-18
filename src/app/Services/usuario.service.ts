@@ -14,7 +14,7 @@ export class UsuarioService {
   // ============================================================
   //  URL BASE DEL BACKEND SPRINGBOOT
   // ============================================================
-  private apiUrlSpringboot = 'http://localhost:8082/api/personas';
+  private apiUrlSpringboot = 'https://ecosoftware-spring-boot.azurewebsites.net/api/personas';
 
   constructor(private http: HttpClient, private api: ApiService) {}
 

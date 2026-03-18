@@ -8,7 +8,7 @@ import { RutaParada } from '../Models/ruta-parada';
 })
 export class RutaParadaService {
 
-  private baseUrl = 'http://localhost:8082/api/paradas';
+  private baseUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/paradas';
 
   constructor(private http: HttpClient) {}
 
