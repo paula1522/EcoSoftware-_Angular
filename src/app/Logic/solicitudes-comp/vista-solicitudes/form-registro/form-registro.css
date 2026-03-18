@@ -1,0 +1,81 @@
+.form-container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 35px 30px;
+  background-color: #ffffff; /* Fondo blanco limpio */
+  border-radius: 15px;
+  border: 1.5px solid #4a90e2; /* Azul suave y elegante */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: left;
+  transition: transform 0.2s;
+}
+
+.form-container:hover {
+  transform: translateY(-3px); /* Sutil efecto hover */
+}
+
+.form-container h2 {
+  color: #2c6ab9; /* Azul elegante */
+  margin-bottom: 25px;
+  font-weight: 700;
+  font-size: 1.8rem;
+}
+
+.form-container label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #2c6ab9;
+}
+
+.form-container input,
+.form-container select,
+.form-container textarea {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  border: 1px solid #4a90e2; /* Borde azul suave */
+  border-radius: 10px;
+  font-size: 1rem;
+  background-color: #fefeff; /* Muy ligero */
+  transition: all 0.3s;
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+  outline: none;
+  border-color: #2c6ab9;
+  box-shadow: 0 0 8px rgba(44,106,185,0.3);
+}
+
+.form-container button {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(90deg, #4a90e2, #2c6ab9);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.form-container button:hover {
+  background: linear-gradient(90deg, #2c6ab9, #1b4f8b);
+  transform: scale(1.03);
+}
+
+.mensaje {
+  color: #2c6ab9;
+  margin-top: 15px;
+  font-weight: 600;
+}
+
+.error {
+  color: #f05757;
+  margin-top: 15px;
+  font-weight: 600;
+}

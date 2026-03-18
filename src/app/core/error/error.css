@@ -1,0 +1,32 @@
+h1 {
+  font-size: 10rem;
+}
+
+h2 {
+  font-size: 2.5rem;
+  color: #3e7d3c; 
+}
+
+p.lead {
+  font-size: 1.25rem;
+  color: #3e7d3c; 
+}
+
+.btn-inicio {
+  padding: 0.75rem 2rem;
+  font-size: 1.25rem;
+  background: #eaf6ea; 
+  color: #3e7d3c;
+  border: none;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.btn-inicio:hover {
+  background: #d0edcf;
+  transform: scale(1.05);
+  color: #2b5c27;
+}
+
+.text-404 {
+    color: #3e7d3c;
+}

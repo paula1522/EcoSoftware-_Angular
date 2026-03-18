@@ -1,0 +1,52 @@
+<form [formGroup]="form" (ngSubmit)="onFormSubmit()" class="form-general">
+  <div *ngFor="let field of fields" class="form-group">
+    <!-- 📌 Campo PASSWORD con botón para mostrar/ocultar -->
+<div *ngIf="field.type === 'password'" class="input-group">
+  
+  <input
+    [type]="passwordVisible ? 'text' : 'password'"
+    [formControlName]="field.name"
+    [placeholder]="field.placeholder"
+    class="form-control"
+    (change)="onFieldChange.emit({ name: field.name, value: form.get(field.name)?.value })"
+  />
+
+  <button type="button" class="btn btn-outline-secondary" (click)="togglePassword()">
+    <i class="bi" [ngClass]="passwordVisible ? 'bi-eye-slash' : 'bi-eye'"></i>
+  </button>
+</div>
+
+<!-- 📌 Campo TEXT, EMAIL, NUMBER normales -->
+<input
+  *ngIf="field.type !== 'password' && (field.type === 'text' || field.type === 'email' || field.type === 'number')"
+  [attr.type]="field.type"
+  [formControlName]="field.name"
+  [placeholder]="field.placeholder"
+  class="form-control"
+  (change)="onFieldChange.emit({ name: field.name, value: form.get(field.name)?.value })"
+/>
+
+
+    <!-- Validaciones -->
+    <small *ngIf="form.get(field.name)?.hasError('required') && form.get(field.name)?.touched">
+      Este campo es obligatorio.
+    </small>
+    <small *ngIf="form.get(field.name)?.hasError('email') && form.get(field.name)?.touched">
+      Correo electrónico no válido.
+    </small>
+    <small *ngIf="form.get(field.name)?.hasError('minlength') && form.get(field.name)?.touched">
+      Mínimo {{ field.minLength }} caracteres.
+    </small>
+    <small *ngIf="form.get(field.name)?.hasError('maxlength') && form.get(field.name)?.touched">
+      Máximo {{ field.maxLength }} caracteres.
+    </small>
+    <small *ngIf="form.get(field.name)?.hasError('min') && form.get(field.name)?.touched">
+      El valor mínimo permitido es {{ field.min }}.
+    </small>
+    <small *ngIf="form.get(field.name)?.hasError('max') && form.get(field.name)?.touched">
+      El valor máximo permitido es {{ field.max }}.
+    </small>
+  </div>
+<button type="submit" class="btn-submit">Enviar</button>
+ 
+</form>

@@ -1,0 +1,17 @@
+<h3>Solicitudes de Recolección</h3>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Descripción</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let s of solicitudes">
+      <td>{{ s.id }}</td>
+      <td>{{ s.descripcion }}</td>
+      <td>{{ s.estado }}</td>
+    </tr>
+  </tbody>
+</table>

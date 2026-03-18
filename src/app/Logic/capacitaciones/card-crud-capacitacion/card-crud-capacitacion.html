@@ -1,0 +1,77 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let cap of capacitaciones">
+
+      <div class="capacitacion-card">
+
+        <!-- Imagen -->
+        <div class="capacitacion-image">
+          <img
+            [src]="cap.imagen || 'assets/capacitacion-default.jpg'"
+            alt="Imagen capacitación"
+            loading="lazy"
+          />
+
+          <span class="capacitacion-badge disponible">
+            <i class="fas fa-leaf"></i> Disponible
+          </span>
+        </div>
+
+        <!-- Contenido -->
+        <div class="capacitacion-content">
+
+          <h3 class="capacitacion-title">
+            {{ cap.nombre }}
+          </h3>
+
+          <p class="capacitacion-desc">
+            {{ cap.descripcion }}
+          </p>
+
+          <div class="capacitacion-info">
+            <div>
+              <i class="bi bi-clipboard"></i>
+              {{ cap.numeroDeClases }} clases
+            </div>
+
+            <div>
+              <i class="bi bi-clock"></i>
+              {{ cap.duracion }}
+            </div>
+
+            <div *ngIf="cap.modulos">
+              <i class="bi bi-layer-group"></i>
+              {{ cap.modulos.length }} módulos
+            </div>
+          </div>
+
+          <button 
+  class="capacitacion-btn"
+  (click)="inscribirse(cap)">
+  <i class="bi bi-person-plus"></i> Inscribirme
+</button>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<app-modal
+  [isOpen]="modalOpen"
+  [title]="modalTitle"
+  size="md"
+  headerColor="#16a34a"
+  (closed)="cerrarModal()"
+>
+
+  <p>{{ modalMessage }}</p>
+
+  <div modal-footer>
+    <button class="btn btn-success" (click)="cerrarModal()">
+      Aceptar
+    </button>
+  </div>
+
+</app-modal>

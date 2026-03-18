@@ -1,0 +1,212 @@
+<div class="container-cards">
+
+
+  <div class="row" *ngIf="recolecciones.length > 0; else sinRecolecciones">
+    <div class="col-12 mb-4" *ngFor="let reco of recolecciones">
+      <div class="solicitud-card">
+        <div class="card-accent"></div>
+        <div class="card-content">
+          <!-- Header -->
+          <div class="card-header-row">
+            <div class="solicitud-id">
+              <div class="icon-wrapper">
+                <i class="bi bi-truck"></i>
+              </div>
+              <div>
+                <p class="id-text">#REC-{{ reco.idRecoleccion }}</p>
+                <p class="id-subtext">{{ reco.fechaCreacionRecoleccion | date:'dd MMM, yyyy' }}</p>
+              </div>
+            </div>
+            <span class="status-badge" 
+                  [ngClass]="{
+                    'status-pendiente': reco.estado === 'Pendiente',
+                    'status-progreso': reco.estado === 'En_Progreso',
+                    'status-fallida': reco.estado === 'Fallida',
+                    'status-cancelada': reco.estado === 'Cancelada',
+                    'status-aceptada': reco.estado === 'Completada'
+                  }">
+              <i class="bi" [ngClass]="{
+                'bi-clock': reco.estado === 'Pendiente',
+                'bi-truck': reco.estado === 'En_Progreso',
+                'bi-x-circle': reco.estado === 'Fallida',
+                'bi-x-square': reco.estado === 'Cancelada',
+                'bi-check-circle': reco.estado === 'Completada'
+              }"></i>
+              {{ reco.estado }}
+            </span>
+          </div>
+
+          <!-- Info Grid -->
+          <div class="card-info-grid">
+            <div class="info-box">
+              <div class="info-icon-circle">
+                <i class="bi bi-calendar-week"></i>
+              </div>
+              <div class="info-text">
+                <div class="info-label">Fecha Programada</div>
+                <div class="info-value">{{ reco.fechaRecoleccion | date:'dd MMM - HH:mm' }}</div>
+              </div>
+            </div>
+
+            <div class="info-box" *ngIf="reco.observaciones">
+              <div class="info-icon-circle">
+                <i class="bi bi-chat-dots"></i>
+              </div>
+              <div class="info-text">
+                <div class="info-label">Observaciones</div>
+                <div class="info-value">{{ reco.observaciones }}</div>
+              </div>
+            </div>
+
+            <div class="info-box" *ngIf="reco.evidencia">
+              <div class="info-icon-circle">
+                <i class="bi bi-image"></i>
+              </div>
+              <div class="info-text">
+                <div class="info-label">Evidencia</div>
+                <div class="info-value">{{ reco.evidencia }}</div>
+              </div>
+            </div>
+
+            
+          </div>
+
+          <!-- Footer -->
+          <div class="card-footer-row text-right">
+            
+            <div class="action-btns" *ngIf="mostrarBotones(reco.estado)">
+              <app-boton
+    icono="bi-pencil"
+    color="pastel-success"
+    [tipo]="'button'"
+    (click)="abrirModalEdicion(reco)"
+    title="Editar">
+  </app-boton>
+
+  <app-boton
+    icono="bi-eye"
+    color="pastel-info"
+    [tipo]="'button'"
+    (click)="abrirModalVerRecoleccion(reco)"
+    title="Ver detalles">
+  </app-boton>
+  <app-boton
+    icono="bi-x-circle"
+    color="pastel-danger"
+    [tipo]="'button'"
+    (click)="abrirModalCancelar(reco)"
+    title="Cancelar">
+  </app-boton>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sin recolecciones -->
+  <ng-template #sinRecolecciones>
+    <div class="sin-recolecciones text-center mt-5">
+      <i class="fas fa-inbox fa-2x mb-2"></i>
+      <p>No tienes recolecciones asignadas.</p>
+    </div>
+  </ng-template>
+</div>
+
+
+<!-- Modal ver detalles -->
+<app-modal #modalVerRecoleccion
+           [title]="'Detalles de la Recolección'"
+           [headerColor]="'#4f69d9'"
+           [isOpen]="false">
+  <div class="p-3 modal-perfil-container">
+    <div class="text-center mb-4">
+      <h3>Recolección #{{ recoleccionSeleccionada?.idRecoleccion || '---' }}</h3>
+      <small class="text-muted">Solicitud ID: {{ recoleccionSeleccionada?.solicitudId || '---' }}</small>
+    </div>
+
+    <h5 class="section-title">Información general</h5>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Estado:</label>
+        <div>{{ recoleccionSeleccionada?.estado || 'Pendiente' }}</div>
+      </div>
+      <div class="col-6">
+        <label class="fw-bold">Observaciones:</label>
+        <div>{{ recoleccionSeleccionada?.observaciones || 'Sin observaciones' }}</div>
+      </div>
+    </div>
+
+    <h5 class="section-title">Fechas</h5>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Fecha de creación:</label>
+        <div>{{ recoleccionSeleccionada?.fechaCreacionRecoleccion || 'No registrada' }}</div>
+      </div>
+      <div class="col-6">
+        <label class="fw-bold">Fecha programada:</label>
+        <div>{{ recoleccionSeleccionada?.fechaRecoleccion || 'No definida' }}</div>
+      </div>
+    </div>
+
+    <h5 class="section-title">Evidencia</h5>
+    <div class="mb-3">
+      <ng-container *ngIf="recoleccionSeleccionada?.evidencia; else noEvidencia">
+        <a [href]="recoleccionSeleccionada?.evidencia" target="_blank" class="text-primary">Ver evidencia</a>
+      </ng-container>
+      <ng-template #noEvidencia>Sin evidencia adjunta</ng-template>
+    </div>
+
+    <h5 class="section-title">Recolección</h5>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Recolector ID:</label>
+        <div>{{ recoleccionSeleccionada?.recolectorId || 'Sin asignar' }}</div>
+      </div>
+      <div class="col-6">
+        <label class="fw-bold">Ruta ID:</label>
+        <div>{{ recoleccionSeleccionada?.rutaId || 'Sin asignar' }}</div>
+      </div>
+    </div>
+
+  </div>
+</app-modal>
+
+<!-- Modal edición -->
+<app-modal #modalEdicion
+           [title]="'Editar Recolección'"
+           [headerColor]="'#4f69d9'"
+           [isOpen]="false">
+  <div class="p-3">
+    <div class="mb-3">
+      <label class="form-label fw-bold">Estado</label>
+      <select class="form-select" [(ngModel)]="estadoEditable">
+        <option *ngFor="let estado of (EstadoRecoleccion | keyvalue)" [value]="estado.value">{{ estado.value }}</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Fecha Programada</label>
+      <input type="datetime-local" class="form-control" [(ngModel)]="fechaProgramadaEditable">
+    </div>
+    <div class="d-flex justify-content-end gap-2">
+      <app-boton texto="Cancelar" color="secondary" (click)="cerrarModalEdicion()"></app-boton>
+      <app-boton texto="Guardar" color="success" (click)="guardarEdicion()"></app-boton>
+    </div>
+  </div>
+</app-modal>
+
+<!-- Modal cancelar -->
+<app-modal #modalCancelar
+           [title]="'Cancelar Recolección'"
+           [headerColor]="'#d9534f'"
+           [isOpen]="false">
+  <div class="p-3">
+    <p>¿Estás seguro que deseas cancelar la recolección <strong>#REC-{{ recoleccionSeleccionada?.idRecoleccion }}</strong>?</p>
+    <div class="d-flex justify-content-end gap-2">
+      <app-boton texto="No" color="secondary" (click)="cerrarModalCancelar()"></app-boton>
+      <app-boton texto="Sí, cancelar" color="danger" (click)="confirmarCancelar()"></app-boton>
+    </div>
+  </div>
+</app-modal>
+
+

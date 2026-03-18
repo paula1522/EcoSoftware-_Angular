@@ -1,0 +1,45 @@
+.services-section {
+    padding: 80px 0;
+    background-color: #f5f3ed;
+}.services-header {
+    text-align: center;
+    margin-bottom: 100px;
+}
+
+.services-main-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #15803d;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+/* Línea decorativa debajo del título */
+.services-main-title::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 4px;
+    background-color: #22c55e;
+    margin: 15px auto 0;
+    border-radius: 5px;
+}
+
+.services-subtitle {
+    font-size: 1.2rem;
+    color: #6b6b6b;
+    max-width: 650px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .services-main-title {
+        font-size: 2.2rem;
+    }
+
+    .services-subtitle {
+        font-size: 1rem;
+    }
+}

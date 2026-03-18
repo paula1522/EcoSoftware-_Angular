@@ -1,0 +1,165 @@
+<div class="auth-container">
+  <!-- Formulario -->
+  <div class="form-section">
+    <div class="auth-card">
+
+      <div class="auth-header">
+        <h2>Registrar Nuevo Usuario</h2>
+        <p class="form-subtitle">Complete los datos del usuario</p>
+      </div>
+
+      <!-- Mensajes de éxito/error -->
+      <div *ngIf="mensajeExito" class="alert alert-success">
+        {{ mensajeExito }}
+      </div>
+      
+      <div *ngIf="mensajeError" class="alert alert-danger">
+        {{ mensajeError }}
+      </div>
+
+      <form #registroForm="ngForm" (ngSubmit)="registrar()" class="auth-form">
+
+        <!-- Tipo de Usuario -->
+        <div class="form-group">
+          <label>Tipo de Usuario *</label>
+          <select [(ngModel)]="usuario.rolId" name="rolId" required #rol="ngModel" class="form-input">
+            <option value="1">Administrador</option>
+            <option value="2">Ciudadano</option>
+            <option value="3">Empresa</option>
+            <option value="4">Reciclador</option>
+          </select>
+          <div class="error" *ngIf="rol.invalid && rol.touched">Selecciona el tipo de usuario</div>
+        </div>
+
+        <!-- Mensaje especial para administrador -->
+        <div *ngIf="esAdministrador()" class="role-section">
+          <p>Acceso total al sistema</p>
+        </div>
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" [(ngModel)]="usuario.nombre" name="nombre" required minlength="2" #nombre="ngModel"
+            class="form-input" placeholder="Ingresa el nombre completo">
+          <div class="error" *ngIf="nombre.invalid && nombre.touched">
+            <span *ngIf="nombre.errors?.['required']">El nombre es requerido</span>
+            <span *ngIf="nombre.errors?.['minlength']">Mínimo 2 caracteres</span>
+          </div>
+        </div>
+
+        <!-- Correo -->
+        <div class="form-group">
+          <label>Correo Electrónico *</label>
+          <input type="email" [(ngModel)]="usuario.correo" name="correo" required email #correo="ngModel"
+            class="form-input" placeholder="ejemplo@correo.com">
+          <div class="error" *ngIf="correo.invalid && correo.touched">
+            <span *ngIf="correo.errors?.['required']">El correo es requerido</span>
+            <span *ngIf="correo.errors?.['email']">Formato de correo inválido</span>
+          </div>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input type="password" [(ngModel)]="usuario.contrasena" name="contrasena" required minlength="6"
+            #contrasena="ngModel" class="form-input" placeholder="Ingrese la contraseña">
+          <div class="error" *ngIf="contrasena.touched">
+            <span *ngIf="contrasena.errors?.['required']">La contraseña es requerida</span>
+            <span *ngIf="contrasena.errors?.['minlength']">Mínimo 6 caracteres</span>
+            <span *ngIf="!contrasena.errors?.['required'] && !contrasena.errors?.['minlength'] && !validarFuerte(usuario.contrasena)">
+              Debe tener mayúscula, minúscula, número y carácter especial
+            </span>
+          </div>
+        </div>
+
+        <!-- Verificar Contraseña -->
+        <div class="form-group">
+          <label>Verificar Contraseña *</label>
+          <input type="password" [(ngModel)]="verificarContrasena" name="verificarContrasena" required 
+            #verificarContrasenaInput="ngModel" class="form-input" placeholder="Repite la contraseña">
+          <div class="error" *ngIf="verificarContrasenaInput.touched && !contrasenasCoinciden()">
+            Las contraseñas no coinciden
+          </div>
+        </div>
+
+        <!-- Cedula y Teléfono -->
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Cédula *</label>
+            <input type="text" [(ngModel)]="usuario.cedula" name="cedula" required minlength="5" #cedula="ngModel"
+              class="form-input" placeholder="Número de cédula">
+            <div class="error" *ngIf="cedula.invalid && cedula.touched">
+              <span *ngIf="cedula.errors?.['required']">La cédula es requerida</span>
+              <span *ngIf="cedula.errors?.['minlength']">Mínimo 5 caracteres</span>
+            </div>
+          </div>
+
+          <div class="form-group half">
+            <label>Teléfono *</label>
+            <input type="text" [(ngModel)]="usuario.telefono" name="telefono" required minlength="7" #telefono="ngModel"
+              class="form-input" placeholder="Número de contacto">
+            <div class="error" *ngIf="telefono.invalid && telefono.touched">
+              <span *ngIf="telefono.errors?.['required']">El teléfono es requerido</span>
+              <span *ngIf="telefono.errors?.['minlength']">Mínimo 7 caracteres</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos adicionales SOLO si NO es administrador -->
+        <div *ngIf="requiereCamposAdicionales()">
+          <div class="form-group">
+            <label>Dirección *</label>
+            <input type="text" [(ngModel)]="usuario.direccion" name="direccion" required #direccion="ngModel"
+              class="form-input" placeholder="Dirección completa">
+            <div class="error" *ngIf="direccion.invalid && direccion.touched">La dirección es requerida</div>
+          </div>
+
+          <div class="form-group">
+            <label>Localidad *</label>
+            <select [(ngModel)]="usuario.localidad" name="localidad" required #localidad="ngModel" class="form-input">
+              <option value="">Selecciona la localidad</option>
+              <option *ngFor="let loc of localidades" [value]="loc">{{loc | localidadNombre}}</option>
+            </select>
+            <div class="error" *ngIf="localidad.invalid && localidad.touched">Selecciona la localidad</div>
+          </div>
+
+          <!-- Campos por rol -->
+          <div *ngIf="usuario.rolId == 3" class="role-section">
+            <h3>Información de Empresa</h3>
+            <div class="form-group">
+              <label>NIT *</label>
+              <input type="text" [(ngModel)]="usuario.nit" name="nit" required #nit="ngModel" class="form-input"
+                placeholder="NIT de la empresa">
+              <div class="error" *ngIf="nit.invalid && nit.touched">El NIT es requerido</div>
+            </div>
+            <div class="form-group">
+              <label>Representante Legal *</label>
+              <input type="text" [(ngModel)]="usuario.representanteLegal" name="representanteLegal" required
+                #representante="ngModel" class="form-input" placeholder="Nombre del representante legal">
+              <div class="error" *ngIf="representante.invalid && representante.touched">El representante legal es requerido</div>
+            </div>
+          </div>
+
+          <div *ngIf="usuario.rolId == 4" class="role-section">
+            <h3>Información de Reciclador</h3>
+            <div class="form-group">
+              <label>Zona de Trabajo *</label>
+              <select [(ngModel)]="usuario.zona_de_trabajo" name="zona_de_trabajo" required #zona="ngModel"
+                class="form-input">
+                <option value="">Selecciona la zona de trabajo</option>
+                <option *ngFor="let loc of localidades" [value]="loc">{{loc}}</option>
+              </select>
+              <div class="error" *ngIf="zona.invalid && zona.touched">Selecciona la zona de trabajo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón Registrar -->
+        <button type="submit" [disabled]="!registroForm.valid || enviando || !contrasenasCoinciden()" class="submit-btn">
+          {{ enviando ? 'Registrando...' : 'Registrar Usuario' }}
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>

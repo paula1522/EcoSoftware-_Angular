@@ -1,0 +1,21 @@
+<div class="waste-carousel">
+  <div class="container">
+    <h2 class="section-title">Tipos de Residuos Aprovechables</h2>
+  </div>
+
+  <!-- Wrapper que controla el overflow -->
+  <div class="waste-slider-wrapper">
+    <div class="waste-slider">
+      <div class="waste-item" *ngFor="let waste of wasteTypes">
+        <div class="waste-icon-box">{{ waste.icon }}</div>
+        <h5>{{ waste.name }}</h5>
+      </div>
+
+      <!-- Duplicado automático para efecto infinito -->
+      <div class="waste-item" *ngFor="let waste of wasteTypes">
+        <div class="waste-icon-box">{{ waste.icon }}</div>
+        <h5>{{ waste.name }}</h5>
+      </div>
+    </div>
+  </div>
+</div>

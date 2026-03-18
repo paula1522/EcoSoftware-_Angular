@@ -1,0 +1,36 @@
+<div class="form-container">
+  <h2>Registrar Solicitud de Recolección</h2>
+  <form [formGroup]="registroForm" (ngSubmit)="onSubmit()">
+
+    <label>Tipo de Residuo</label>
+    <select formControlName="tipoResiduo">
+      <option value="" disabled selected>Seleccione...</option>
+      <option *ngFor="let tipo of tiposResiduo" [value]="tipo">{{ tipo }}</option>
+    </select>
+
+    <label>Cantidad</label>
+    <input type="text" formControlName="cantidad" placeholder="Ej: 5 kg">
+
+    <label>Descripción</label>
+    <textarea formControlName="descripcion" placeholder="Detalle de la solicitud"></textarea>
+
+    <label>Localidad</label>
+    <select formControlName="localidad">
+      <option value="" disabled selected>Seleccione...</option>
+      <option *ngFor="let loc of localidades" [value]="loc">{{ loc | localidadNombre}}</option>
+    </select>
+
+    <label>Ubicación</label>
+    <input type="text" formControlName="ubicacion" placeholder="Dirección completa">
+
+
+
+    <label>Fecha Programada</label>
+    <input type="date" formControlName="fechaProgramada">
+
+    <button type="submit">Registrar Solicitud</button>
+  </form>
+
+  <div class="mensaje" *ngIf="mensaje">{{ mensaje }}</div>
+  <div class="error" *ngIf="error">{{ error }}</div>
+</div>

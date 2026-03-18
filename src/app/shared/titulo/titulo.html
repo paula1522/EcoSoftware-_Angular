@@ -1,0 +1,17 @@
+<div class="seccion-header mb-4 pb-2">
+  <div class="textos">
+    <h3 class="fw-bold verde-principal mb-1">{{ titulo }}</h3>
+    <p class="text-muted mb-0">{{ subtitulo }}</p>
+  </div>
+
+<div class="boton" *ngIf="mostrarBoton">
+  <app-boton
+    [texto]="textoBoton"
+    [icono]="iconoBoton"
+    [color]="colorBoton"
+    [hoverColor]="hoverColorBoton"
+    (click)="clickBoton.emit()">
+  </app-boton>
+</div>
+
+</div>

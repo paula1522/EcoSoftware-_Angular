@@ -1,0 +1,59 @@
+<div class="sidebar" [class.collapsed]="!menuAbierto">
+
+  <!-- LOGO -->
+  <div class="sidebar-logo mb-4 text-center">
+    <a routerLink="/" class="d-flex align-items-center justify-content-center gap-2">
+      <i class="bi bi-recycle fs-3"></i>
+      <span *ngIf="menuAbierto" class="ms-2 fw-bold fs-4 verde-principal"><a href="/">EcoSoftware</a></span>
+    </a>
+  </div>
+
+  <!-- Botón toggle -->
+  <button class="btn btn-outline-success mb-3 w-100" (click)="toggleMenu()">
+    <i class="bi" [ngClass]="menuAbierto ? 'bi-x-lg' : 'bi-list'"></i>
+    <span *ngIf="menuAbierto" class="ms-2">Menú</span>
+  </button>
+
+  <!-- Menú dinámico -->
+  <ul class="nav flex-column mt-2">
+    <li class="nav-item mb-2"
+        *ngFor="let item of menu">
+      <a class="nav-link d-flex align-items-center"
+         [ngClass]="{'active-link': vistaActual===item.vista}"
+         (click)="seleccionarVista(item.vista)">
+        <i [class]="item.icon"></i>
+        <span *ngIf="menuAbierto" class="ms-2">{{ item.label }}</span>
+      </a>
+    </li>
+  </ul>
+
+  <!-- PERFIL -->
+  <div class="sidebar-perfil mt-auto text-center position-relative">
+    <button class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+            (click)="togglePerfilMenu()">
+      <i class="bi bi-person-circle fs-3"></i>
+
+      <span *ngIf="menuAbierto">{{ nombreUsuario }}</span>
+
+      <i *ngIf="menuAbierto" class="bi ms-auto"
+         [ngClass]="perfilMenuAbierto ? 'bi-caret-up-fill' : 'bi-caret-down-fill'"></i>
+    </button>
+
+    <ul *ngIf="perfilMenuAbierto" class="perfil-menu list-unstyled shadow rounded">
+      <li>
+        <button class="dropdown-item d-flex align-items-center justify-content-center text-warning w-100"
+                (click)="edit.emit()">
+          <i class="bi bi-pencil"></i>
+          <span *ngIf="menuAbierto" class="ms-2">Editar Perfil</span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex align-items-center justify-content-center text-danger w-100"
+                (click)="logout.emit()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span *ngIf="menuAbierto" class="ms-2">Cerrar Sesión</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

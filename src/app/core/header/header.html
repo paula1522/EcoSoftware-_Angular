@@ -1,0 +1,91 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom fixed-top">
+  <div class="container px-4">
+
+    <!-- Logo -->
+<a class="navbar-brand d-flex align-items-center" routerLink="/">
+  <img 
+    src="https://res.cloudinary.com/dhl2ixdsr/image/upload/v1772936563/favicon_jdnslr.png"
+    alt="Logo EcoSoftware"
+    class="logo-navbar">
+
+  <span class="fw-bold fs-2 verde-principal texto-logo">
+    EcoSoftware
+  </span>
+</a>
+
+    <!-- Botón hamburguesa -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Contenido -->
+    <div class="collapse navbar-collapse" id="navbarContent">
+
+      <!-- Menú -->
+      <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/capacitaciones" routerLinkActive="active">Capacitación</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/puntos-reciclaje" routerLinkActive="active">Puntos de Reciclaje</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/inicio" routerLinkActive="active">Solicitudes</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/noticias" routerLinkActive="active">Noticias</a>
+        </li>
+      </ul>
+
+      <!-- Botones -->
+      <div class="d-flex align-items-center gap-2">
+
+  <!-- Si NO está logueado -->
+  <ng-container *ngIf="!authService.isLoggedIn(); else loggedUser">
+
+  <app-boton
+  class="btn-navbar"
+  texto="Login"
+  icono="bi bi-box-arrow-in-right"
+  color="pastel-success"
+  routerLink="/login"
+  title="Login">
+</app-boton>
+
+<app-boton
+  class="btn-navbar"
+  texto="Registrarse"
+  icono="bi bi-person-plus"
+  color="pastel-danger"
+  routerLink="/registro"
+  title="Registrarse">
+</app-boton>
+
+  </ng-container>
+
+  <!-- Si está logueado -->
+  <ng-template #loggedUser>
+
+   <app-boton
+  class="btn-navbar"
+  texto="Perfil"
+  icono="bi bi-person-circle"
+  color="pastel-success"
+  (click)="goToPerfil()">
+</app-boton>
+
+<app-boton
+  class="btn-navbar"
+  texto="Cerrar sesión"
+  icono="bi bi-box-arrow-right"
+  color="pastel-danger"
+  (click)="logout()">
+</app-boton>
+
+  </ng-template>
+
+</div>
+
+    </div>
+  </div>
+</nav>

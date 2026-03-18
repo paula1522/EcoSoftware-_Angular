@@ -1,0 +1,8 @@
+<div class="grafica-container">
+        <h2 class="grafica-title"></h2>
+        <!-- Mantener canvas presente siempre para que Chart.js pueda inicializarse -->
+        <canvas id="usuariosLocalidadChart"></canvas>
+
+        <!-- Mensaje cuando no hay datos -->
+        <div *ngIf="!localidades || localidades.length === 0" class="alert alert-secondary text-center w-100 mt-2">Sin datos para mostrar.</div>
+</div>

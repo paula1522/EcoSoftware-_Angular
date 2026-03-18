@@ -1,0 +1,68 @@
+
+/* Contenedor de filtros */
+.filtros-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 20px; /* reducido para móviles */
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* FormComp ocupa todo el espacio disponible */
+.form-wrapper {
+  flex: 1 1 100%;      /* permite crecer y encoger según contenedor */
+  min-width: 200px;     /* mínimo razonable para inputs */
+  max-width: 100%;      /* nunca más ancho que el contenedor */
+}
+
+/* Asegurarse que los inputs internos ocupen 100% */
+.form-wrapper app-form-comp,
+.form-wrapper app-form-comp .form-control,
+.form-wrapper app-form-comp .form-select {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* Botones */
+.botones-wrapper {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;      /* permite apilar botones en móvil */
+  flex-shrink: 0;
+  margin: 0 -10px; /* compensa el gap para que los botones no se desplacen */
+}
+
+.botones-wrapper app-boton {
+  flex: 1 1 auto;       /* se ajusta al contenedor */
+  min-width: 80px;      /* ancho mínimo del botón */
+  height: 40px !important;
+}
+
+/* Responsive */
+@media (max-width: 400px) {  /* iPhone SE ~375px */
+  .filtros-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 20px 25px; /* más pequeño para móviles */
+  }
+
+  .botones-wrapper {
+    justify-content: flex-start;
+    padding: 10px;
+    margin-bottom: 10px;
+    
+  }
+
+  .botones-wrapper app-boton span {
+    display: none !important; /* solo icono en móvil */
+  }
+
+  .botones-wrapper app-boton i {
+    font-size: 1.3rem;
+  }
+}

@@ -1,0 +1,41 @@
+<div class="card">
+
+  <h2>📂 Subir Documentos</h2>
+
+  <p class="info">
+    Tu cuenta está en estado <strong>PENDIENTE_DOCUMENTACION</strong>.
+    Para continuar debes subir los documentos requeridos.
+  </p>
+
+  <div class="requisitos" *ngIf="documentosRequeridos.length > 0">
+    <h4>Documentos requeridos para {{ rol }}:</h4>
+    <ul>
+      <li *ngFor="let doc of documentosRequeridos">
+        ✔ {{ doc }}
+      </li>
+    </ul>
+  </div>
+
+  <div class="form-group">
+    <label>Tipo de documento</label>
+    <select [(ngModel)]="tipo">
+  <option value="">Selecciona tipo</option>
+  <option *ngFor="let t of tiposPermitidos" [value]="t.value">
+    {{ t.label }}
+  </option>
+</select>
+  </div>
+
+  <div class="form-group">
+    <label>Seleccionar archivo (PDF, JPG o PNG - Máx 5MB)</label>
+    <input type="file"
+           (change)="seleccionarArchivo($event)"
+           accept=".pdf,.jpg,.png" />
+  </div>
+
+  <button (click)="subir()">Subir Documento</button>
+
+  <p class="success" *ngIf="mensaje">{{ mensaje }}</p>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+</div>

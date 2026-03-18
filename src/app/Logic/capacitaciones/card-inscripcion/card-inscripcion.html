@@ -1,0 +1,71 @@
+<div class="container mt-4">
+  <div class="row">
+
+    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let cap of capacitaciones">
+
+      <div class="capacitacion-card">
+
+        <!-- Imagen -->
+        <div class="capacitacion-image">
+          <img
+            [src]="cap.imagen || 'assets/capacitacion-default.jpg'"
+            alt="Imagen capacitación"
+            loading="lazy"
+          />
+
+          <!-- BADGE DIFERENTE -->
+          <span class="capacitacion-badge inscrito">
+            <i class="bi bi-check-circle"></i> Inscrito
+          </span>
+
+        </div>
+
+        <!-- Contenido -->
+        <div class="capacitacion-content">
+
+          <h3 class="capacitacion-title">
+            {{ cap.nombre }}
+          </h3>
+
+          <p class="capacitacion-desc">
+            {{ cap.descripcion }}
+          </p>
+
+          <div class="capacitacion-info">
+
+            <div>
+              <i class="bi bi-clipboard"></i>
+              {{ cap.numeroDeClases }} clases
+            </div>
+
+            <div>
+              <i class="bi bi-clock"></i>
+              {{ cap.duracion }}
+            </div>
+
+          </div>
+
+          <button class="capacitacion-btn">
+            <i class="bi bi-play-circle"></i>
+            Continuar capacitación
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Si no tiene capacitaciones -->
+  <div *ngIf="capacitaciones.length === 0" class="text-center mt-5">
+
+    <i class="bi bi-emoji-frown" style="font-size:40px;"></i>
+
+    <p class="mt-3">
+      Aún no estás inscrito en ninguna capacitación.
+    </p>
+
+  </div>
+
+</div>

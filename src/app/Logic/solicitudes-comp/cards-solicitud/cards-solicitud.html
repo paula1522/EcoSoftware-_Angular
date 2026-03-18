@@ -1,0 +1,115 @@
+<div class="container-cards">
+
+
+  <div class="cards-grid">
+
+    <div class="solicitud-card" *ngFor="let s of solicitudes">
+      <div class="card-accent"></div>
+
+      <div class="card-content">
+
+        <!-- CABECERA -->
+        <div class="card-header-row">
+
+          <!-- ID E ICONO -->
+          <div class="solicitud-id">
+            <div class="icon-wrapper">
+              <i class="bi bi-recycle"></i>
+            </div>
+
+            <div>
+              <p class="id-text">#SOL-{{ s.idSolicitud }}</p>
+              <p class="id-subtext">
+                {{ s.fechaCreacionSolicitud | date:'dd MMM, yyyy' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- ESTADO -->
+
+
+          <span class="status-badge" [ngClass]="{
+    'status-pendiente': s.estadoPeticion === 'Pendiente',
+    'status-aceptada': s.estadoPeticion === 'Aceptada',
+    'status-cancelada': s.estadoPeticion === 'Cancelada',
+    'status-rechazada': s.estadoPeticion === 'Rechazada'
+  }">
+            <i class="bi bi-clock" *ngIf="s.estadoPeticion === 'Pendiente'"></i>
+            <i class="bi bi-check-circle" *ngIf="s.estadoPeticion === 'Aceptada'"></i>
+            <i class="bi bi-x-circle" *ngIf="s.estadoPeticion === 'Cancelada'"></i>
+            <i class="bi bi-slash-circle" *ngIf="s.estadoPeticion === 'Rechazada'"></i>
+            {{ s.estadoPeticion | titlecase }}
+          </span>
+
+        </div>
+
+        <!-- INFORMACIÓN -->
+        <div class="card-info-grid ">
+
+          <!-- DIRECCIÓN / UBICACIÓN -->
+          <div class="info-box">
+            <div class="info-icon-circle"><i class="bi bi-geo-alt"></i></div>
+            <div class="info-text">
+              <div class="info-label">Dirección</div>
+              <div class="info-value">{{ s.ubicacion }}</div>
+              <div class="info-value">{{ s.localidad | localidadNombre }}</div>
+            </div>
+          </div>
+
+          <!-- FECHA PROGRAMADA -->
+          <div class="info-box">
+            <div class="info-icon-circle"><i class="bi bi-calendar"></i></div>
+            <div class="info-text">
+              <div class="info-label">Programado</div>
+              <div class="info-value">
+                {{ s.fechaProgramada | date:'dd MMM - hh:mm a' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- CANTIDAD -->
+          <div class="info-box">
+            <div class="info-icon-circle"><i class="bi bi-basket"></i></div>
+            <div class="info-text">
+              <div class="info-label">Cantidad</div>
+              <div class="info-value">{{ s.cantidad }}</div>
+            </div>
+          </div>
+
+          <!-- DESCRIPCIÓN -->
+          <div class="info-box full-width">
+            <div class="info-icon-circle"><i class="bi bi-card-text"></i></div>
+            <div class="info-text">
+              <div class="info-label">Descripción</div>
+              <div class="info-value">{{ s.descripcion }}</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="card-footer-row">
+
+          <!-- MATERIAL -->
+          <div class="material-tag">
+            <i class="fas fa-box"></i> {{ s.tipoResiduo }}
+          </div>
+
+          <!-- BOTONES -->
+          <div class="action-btns">
+            <button class="btn-icon btn-edit" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-icon btn-view" title="Ver detalles">
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+          
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

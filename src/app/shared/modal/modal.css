@@ -1,0 +1,33 @@
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+}
+
+.modal {
+  z-index: 1050;
+}
+
+.modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Animación suave */
+.animate {
+  animation: fadeIn 0.25s ease-out;
+}
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

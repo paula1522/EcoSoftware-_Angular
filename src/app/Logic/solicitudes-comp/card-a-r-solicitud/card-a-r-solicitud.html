@@ -1,0 +1,133 @@
+<!-- ALERTA -->
+<app-alerta 
+  [tipo]="tipoAlerta" 
+  [mensaje]="mensajeAlerta" 
+  [mostrar]="mostrarAlerta">
+</app-alerta>
+
+<div class="container-cards">
+  <div class="cards-grid">
+    <div class="solicitud-card" *ngFor="let s of solicitudes">
+
+      <!-- TOP -->
+      <div class="card-top">
+        <div class="card-number">
+          <i class="bi bi-hashtag"></i>
+          <span>#SOL-{{ s.idSolicitud }}</span>
+        </div>
+        <div class="card-date">
+          <i class="bi bi-calendar-event me-1"></i>
+          {{ s.fechaCreacionSolicitud | date:'longDate' }}
+        </div>
+      </div>
+
+      <!-- BODY -->
+      <div class="card-body-content">
+        <!-- STATUS -->
+        <div class="status-container pb-3">
+          <span class="status-badge"
+                [ngClass]="{'status-pendiente': s.estadoPeticion === 'Pendiente'}">
+            <i class="bi" [ngClass]="{'bi-clock': s.estadoPeticion === 'Pendiente'}"></i>
+            {{ s.estadoPeticion }}
+          </span>
+        </div>
+
+        <!-- SOLICITANTE -->
+        <div class="info-item">
+          <div class="info-icon"><i class="bi bi-person"></i></div>
+          <div class="info-details">
+            <div class="info-label">Solicitante</div>
+            <div class="info-value">{{ s.usuarioId }}</div>
+          </div>
+        </div>
+
+        <!-- DIRECCIÓN -->
+        <div class="info-item">
+          <div class="info-icon"><i class="bi bi-geo-alt"></i></div>
+          <div class="info-details">
+            <div class="info-label">Dirección</div>
+            <div class="info-value">{{ s.ubicacion }}</div>
+            <div class="info-value">{{ s.localidad  | localidadNombre}}</div>
+          </div>
+        </div>
+
+        <!-- FECHA PROGRAMADA -->
+        <div class="info-item">
+          <div class="info-icon"><i class="bi bi-clock"></i></div>
+          <div class="info-details">
+            <div class="info-label">Programado</div>
+            <div class="info-value">{{ s.fechaProgramada }}</div>
+          </div>
+        </div>
+
+        <!-- PESO -->
+        <div class="info-item">
+          <div class="info-icon"><i class="bi bi-weight-hanging"></i></div>
+          <div class="info-details">
+            <div class="info-label">Peso Estimado</div>
+            <div class="info-value">{{ s.cantidad }} kg</div>
+          </div>
+        </div>
+
+        <!-- DESCRIPCION -->
+        <div class="info-item">
+          <div class="info-icon"><i class="bi bi-card-text"></i></div>
+          <div class="info-details">
+            <div class="info-label">Descripción</div>
+            <div class="info-value">{{ s.descripcion }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="card-footer-area">
+        <div class="material-badge">
+          <i class="fas fa-box"></i>
+          {{ s.tipoResiduo }}
+        </div>
+
+        <div class="action-buttons d-flex align-items-center gap-2">
+          <app-boton *ngIf="s.estadoPeticion === 'Pendiente'"
+                     [icono]="'bi-eye'" [color]="'pastel-info'" [size]="'sm'" 
+                     (click)="ver(s)"></app-boton>
+
+          <app-boton [icono]="'bi-check-lg'" [color]="'pastel-success'" [size]="'sm'" 
+                     (click)="aceptarSolicitud(s)"></app-boton>
+
+          <app-boton [icono]="'bi-x-lg'" [color]="'pastel-danger'" [size]="'sm'" 
+                     (click)="abrirModalRechazo(s)"></app-boton>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIN DATOS -->
+  <div *ngIf="solicitudes.length === 0" class="no-data">
+    No hay solicitudes para mostrar.
+  </div>
+</div>
+
+<!-- MODAL DE RECHAZO -->
+<app-modal #modalRechazo [title]="'Rechazar Solicitud'" [headerColor]="'#d9534f'" [isOpen]="false">
+  <div class="p-2">
+    <p>¿Estás seguro que deseas rechazar la solicitud
+      <strong>#SOL-{{ selectedSolicitud?.idSolicitud }}</strong>?
+    </p>
+    <p *ngIf="selectedSolicitud && getSelectedMotivo(selectedSolicitud.idSolicitud)">
+      Motivo seleccionado: <strong>{{ getSelectedMotivo(selectedSolicitud.idSolicitud) }}</strong>
+    </p>
+  </div>
+
+  <select class="form-select form-select-sm" style="width:220px"
+          [ngModel]="selectedSolicitud ? getSelectedMotivo(selectedSolicitud.idSolicitud) : ''"
+          (ngModelChange)="selectedSolicitud && setSelectedMotivo(selectedSolicitud.idSolicitud, $event)">
+    <option value="">Motivo de rechazo...</option>
+    <option *ngFor="let m of motivosDisponibles" [value]="m">{{ m }}</option>
+  </select>
+
+  <div class="modal-footer mt-3 d-flex justify-content-end gap-2">
+    <app-boton texto="Cancelar" color="secondary" (click)="cerrarModalRechazo()"></app-boton>
+    <app-boton texto="Rechazar" color="danger" (click)="confirmarRechazo()"
+               [deshabilitado]="!selectedSolicitud || !getSelectedMotivo(selectedSolicitud.idSolicitud)"></app-boton>
+  </div>
+</app-modal>

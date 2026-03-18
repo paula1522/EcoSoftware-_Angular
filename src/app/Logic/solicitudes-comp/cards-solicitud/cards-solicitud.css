@@ -1,0 +1,242 @@
+
+
+
+body {
+    background: #f5f7fa;
+    min-height: 100vh;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container-cards {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-title {
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.solicitud-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+@media (max-width: 1400px) {
+    .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.solicitud-card:hover {
+    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.15);
+    transform: translateY(-3px);
+    border-color: #22c55e;
+}
+
+.card-accent {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.card-content {
+    padding: 20px 20px 20px 25px;
+}
+
+/* HEADER */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 18px;
+}
+
+.solicitud-id {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-wrapper {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.id-text {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 16px;
+    margin: 0;
+}
+
+.id-subtext {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0;
+}
+
+
+
+
+/* INFO */
+.card-info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.info-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-icon-circle {
+    width: 36px;
+    height: 36px;
+    background: #f0fdf4;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #22c55e;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.info-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.info-label {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.info-value {
+    font-size: 13px;
+    color: #334155;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+/* FOOTER */
+.card-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.material-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f0fdf4;
+    color: #166534;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.action-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.btn-edit:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.btn-view {
+    background: #22c55e;
+    color: white;
+}
+
+.btn-view:hover {
+    background: #16a34a;
+    transform: scale(1.05);
+}
+
+/* EVITAR TEXTO CENTRADO EN TODA LA SECCIÓN */
+.container-cards, 
+.cards-grid, 
+.solicitud-card, 
+.card-content, 
+.info-text, 
+.card-header-row {
+    text-align: left !important;
+}
+
+@media (max-width: 768px) {
+    .card-info-grid {
+        grid-template-columns: 1fr;
+    }
+}

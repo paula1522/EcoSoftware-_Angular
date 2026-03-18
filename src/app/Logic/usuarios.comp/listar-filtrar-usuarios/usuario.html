@@ -1,0 +1,318 @@
+<!-- =============================== -->
+<!-- ALERTAS FIJAS ARRIBA A LA DERECHA -->
+<!-- =============================== -->
+<div class="alertas-container">
+  <app-alerta [tipo]="tipoAlerta" [mensaje]="mensajeAlerta" [mostrar]="mostrarAlerta">
+  </app-alerta>
+</div>
+
+
+
+
+<!-- =============================== -->
+<!-- FILTROS CON FormComp Y BOTÓN LIMPIAR -->
+<!-- =============================== -->
+<div class="filtros-container p-3">
+  <div class="d-flex flex-wrap align-items-end gap-2">
+
+    <!-- Nombre -->
+    <div class="flex-grow-1" style="min-width: 150px;">
+      <label for="nombreFilter" class="form-label">Nombre</label>
+      <input type="text" id="nombreFilter" class="form-control" [(ngModel)]="nombreFilter" placeholder="Ingrese nombre">
+    </div>
+
+    <!-- Correo -->
+    <div class="flex-grow-1" style="min-width: 150px;">
+      <label for="correoFilter" class="form-label">Correo</label>
+      <input type="text" id="correoFilter" class="form-control" [(ngModel)]="correoFilter" placeholder="Ingrese correo">
+    </div>
+
+    <!-- Documento -->
+    <div class="flex-grow-1" style="min-width: 150px;">
+      <label for="documentoFilter" class="form-label">Documento</label>
+      <input type="text" id="documentoFilter" class="form-control" [(ngModel)]="documentoFilter"
+        placeholder="Ingrese documento">
+    </div>
+
+    <!-- Rol -->
+    <div class="flex-grow-1" style="min-width: 150px;">
+      <label for="rolFilter" class="form-label">Rol</label>
+      <select id="rolFilter" class="form-select" [(ngModel)]="rolFilter">
+        <option value="">Todos</option>
+        <option *ngFor="let r of roles" [value]="r.id">{{ r.nombre }}</option>
+      </select>
+    </div>
+
+    <!-- Estado -->
+    <div class="flex-grow-1" style="min-width: 150px;">
+      <label for="estadoFilter" class="form-label">Estado</label>
+      <select id="estadoFilter" class="form-select" [(ngModel)]="estadoFilter">
+        <option value="">Todos</option>
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+
+    <!-- Botones de acción alineados a la derecha -->
+    <div class="d-flex gap-2" style="min-width: 150px;">
+      <app-boton icono="bi bi-funnel" color="custom-success-filled" (click)="aplicarFiltros()">
+
+      </app-boton>
+      <app-boton icono="bi bi-x-circle" color="custom-gray-filled" (click)="limpiarFiltro()">
+      </app-boton>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- =============================== -->
+<!-- TABLA DE USUARIOS -->
+<!-- =============================== -->
+<app-tabla [columnas]="columnasUsuarios" [data]="usuarios" [cellTemplates]="cellTemplatesUsuarios" titulo="Usuarios"
+  (descargar)="abrirModalReportes()" (eliminar)="abrirModalEliminar($event)" (ver)="abrirModalVer($event)"
+  (editar)="abrirModalEditar($event)">
+</app-tabla>
+
+<!-- MENSAJE CUANDO NO HAY USUARIOS -->
+<div *ngIf="usuarios.length === 0 && !cargando" class="mensaje info">
+  No hay usuarios registrados.
+</div>
+
+
+
+<!-- =============================== -->
+<!-- MODAL DE REPORTES -->
+<!-- =============================== -->
+<app-modal #modalReportes [title]="'Reportes de usuarios'" [headerColor]="'#6c757d'" [isOpen]="false">
+
+  <div class="mb-3">
+    Seleccione el formato de reporte a descargar:
+  </div>
+
+  <div class="d-flex gap-2 justify-content-center flex-wrap">
+    <app-boton *ngFor="let btn of botonesReporte" [texto]="btn.texto" [icono]="btn.icono" [color]="btn.color"
+      (click)="btn.accion()">
+    </app-boton>
+  </div>
+
+</app-modal>
+
+<!-- =============================== -->
+<!-- MODAL ELIMINAR USUARIO -->
+<!-- =============================== -->
+<app-modal #modalEliminar [title]="'Eliminar usuario'" [headerColor]="'#d9534f'" [isOpen]="false">
+
+  <div class="p-2">
+    <p>
+      ¿Estás seguro que deseas realizar una de estas acciones para el usuario
+      <strong>{{ usuarioSeleccionado?.nombre }}</strong>?
+    </p>
+
+    <!-- Información adicional del usuario -->
+    <div class="user-info mt-3 p-2 bg-light rounded">
+      <div><strong>Correo:</strong> {{ usuarioSeleccionado?.correo }}</div>
+      <div><strong>Teléfono:</strong> {{ usuarioSeleccionado?.telefono }}</div>
+      <div>
+        <strong>Rol:</strong>
+        {{ usuarioSeleccionado && usuarioSeleccionado.rolId ? obtenerNombreRol(usuarioSeleccionado.rolId) : 'No
+        especificado' }}
+      </div>
+      <div>
+        <strong>Estado:</strong>
+        <span [class]="usuarioSeleccionado?.estado ? 'text-success' : 'text-danger'">
+          {{ usuarioSeleccionado?.estado ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Explicación de las opciones -->
+    <div class="mt-3">
+      <div class="alert alert-warning">
+        <i class="bi bi-info-circle"></i>
+        <strong>Inactivar:</strong> Cambia el estado del usuario a "Inactivo". Podrá ser reactivado posteriormente.
+      </div>
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>Eliminar:</strong> Elimina permanentemente el usuario del sistema. Esta acción no se puede deshacer.
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER CON BOTONES DINÁMICOS -->
+  <ng-container footer>
+    <div class="d-flex justify-content-end gap-2">
+      <app-boton *ngFor="let btn of accionesEliminar" [texto]="btn.texto" [icono]="btn.icono" [color]="btn.color"
+        size="sm" (click)="btn.accion()">
+      </app-boton>
+    </div>
+  </ng-container>
+
+</app-modal>
+<!-- =============================== -->
+<!-- MODAL DE VER PERFIL COMPLETO -->
+<!-- =============================== -->
+
+<app-modal #modalVerPerfil [title]="'Perfil del Usuario'" [headerColor]="'#4f69d9'" [isOpen]="false">
+
+  <div class="p-3 modal-perfil-container">
+
+    <!-- ENCABEZADO VISUAL -->
+    <div class="text-center mb-4">
+      <h3 class="mt-2 mb-0">{{ usuarioSeleccionado?.nombre || 'Sin nombre' }}</h3>
+      <small class="text-muted">ID: {{ usuarioSeleccionado?.idUsuario }}</small>
+    </div>
+
+
+    <!-- SECCIÓN 2: Datos personales -->
+    <h5 class="section-title">Datos personales</h5>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Nombre:</label>
+        <div>{{ usuarioSeleccionado?.nombre || 'Sin especificar' }}</div>
+      </div>
+
+      <div class="col-6">
+        <label class="fw-bold">Teléfono:</label>
+        <div>{{ usuarioSeleccionado?.telefono || 'Sin especificar' }}</div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Documento:</label>
+        <div>{{ usuarioSeleccionado?.cedula || 'Sin especificar' }}</div>
+      </div>
+      <div class="col-6">
+        <label class="fw-bold">Correo:</label>
+        <div>{{ usuarioSeleccionado?.correo || 'Sin especificar' }}</div>
+      </div>
+
+    </div>
+
+    <!-- SECCIÓN 3: Ubicación -->
+    <h5 class="section-title">Ubicación</h5>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Dirección:</label>
+        <div>{{ usuarioSeleccionado?.direccion || 'Sin especificar' }}</div>
+      </div>
+
+      <div class="col-6">
+        <label class="fw-bold">Barrio:</label>
+        <div>{{ usuarioSeleccionado?.barrio || 'Sin especificar' }}</div>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Localidad:</label>
+        <div>{{ usuarioSeleccionado?.localidad || 'Sin especificar' }}</div>
+      </div>
+
+
+    </div>
+
+    <!-- SECCIÓN 4: Rol -->
+    <h5 class="section-title">Rol del sistema</h5>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Rol:</label>
+        <div>{{ obtenerNombreRol(usuarioSeleccionado?.rolId) }}</div>
+      </div>
+      <div class="col-6">
+        <label class="fw-bold">Estado:</label>
+        <div>
+          <span [class]="usuarioSeleccionado?.estado ? 'text-success' : 'text-danger'">
+            {{ usuarioSeleccionado?.estado ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+    <div class="row mb-3">
+      <div class="col-12">
+        <label class="fw-bold">Fecha de Registro:</label>
+        <div>{{ usuarioSeleccionado?.fechaCreacion || 'Sin especificar' }}</div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 5: Empresa -->
+    <div *ngIf=" usuarioSeleccionado?.rolId == 3 ">
+
+      <h5 class="section-title">Información de empresa </h5>
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="fw-bold">NIT:</label>
+          <div>{{ usuarioSeleccionado?.nit || 'Sin especificar' }}</div>
+        </div>
+
+        <div class="col-6">
+          <label class="fw-bold">Representante Legal:</label>
+          <div>{{ usuarioSeleccionado?.representanteLegal || 'Sin especificar' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 6: Materiales -->
+    <div *ngIf="usuarioSeleccionado?.rolId === 3 || usuarioSeleccionado?.rolId === 4">
+
+      <h5 class="section-title">Materiales asociados</h5>
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="fw-bold">Tipo de material:</label>
+          <div>
+            {{ usuarioSeleccionado?.tipoMaterial || 'Sin especificar' }}
+          </div>
+        </div>
+
+        <div class="col-6">
+          <label class="fw-bold">Cantidad mínima:</label>
+          <div>{{ usuarioSeleccionado?.cantidad_minima || 'Sin especificar' }}</div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-12">
+          <label class="fw-bold">Otros materiales:</label>
+          <div>{{ usuarioSeleccionado?.otrosMateriales || 'Sin especificar' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 7: Información adicional -->
+    <div *ngIf="usuarioSeleccionado?.rolId === 3 || usuarioSeleccionado?.rolId === 4">
+
+      <h5 class="section-title">Información adicional</h5>
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="fw-bold">Horario:</label>
+          <div>{{ usuarioSeleccionado?.horario || 'Sin especificar' }}</div>
+        </div>
+
+        <div class="col-6">
+          <label class="fw-bold">Zona de trabajo:</label>
+          <div>{{ usuarioSeleccionado?.zona_de_trabajo || 'Sin especificar' }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</app-modal>
+
+<!-- =============================== -->
+<!-- MODAL DE EDITAR USUARIO -->
+<!-- =============================== -->
+<app-modal #modalEditarUsuario [title]="'Editar usuario'" [headerColor]="'#ffc107'" [isOpen]="false">
+  <div class="p-3">
+    <app-form-comp *ngIf="usuarioSeleccionado" [formGroup]="formEditarUsuario" [fields]="fieldsEditarUsuario"
+      [submitButtonText]="'Actualizar'" [submitButtonIcon]="'bi bi-save'" [submitButtonColor]="'custom-success-filled'"
+      (submitForm)="actualizarUsuario()" [showSubmitButton]="true">
+    </app-form-comp>
+  </div>
+  <ng-container modal-footer>
+
+  </ng-container>
+</app-modal>

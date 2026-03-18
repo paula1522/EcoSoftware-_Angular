@@ -1,0 +1,158 @@
+/* =============================== */
+/* CONTENEDOR DEL FORMULARIO */
+/* =============================== */
+.form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #f7fafc;
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h2 {
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.form-subtitle {
+  color: #718096;
+  font-size: 14px;
+}
+
+/* =============================== */
+/* FORMULARIO */
+/* =============================== */
+.auth-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 100%;
+}
+
+.form-group.full {
+  flex: 1 1 100%;
+}
+
+.form-group.half {
+  flex: 1 1 48%;
+}
+
+.form-group.third {
+  flex: 1 1 30%;
+}
+
+/* Inputs, textarea, select */
+.form-group .form-input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #f7fafc;
+}
+
+.form-group .form-input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #38ca6d;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.form-input.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+  border-color: #fc8181;
+}
+
+label {
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+/* Error */
+.error {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* =============================== */
+/* Links */
+/* =============================== */
+.auth-link {
+  color: #38ca6d;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.form-footer-container {
+  flex: 1 1 100%;    /* Ocupa todo el ancho del formulario */
+  margin-top: 1rem;
+  text-align: center;
+}
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper i {
+  position: absolute;
+  right: 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.password-wrapper i:hover {
+  color: #334155;
+}
+
+
+
+
+
+/* =============================== */
+/* RESPONSIVE */
+/* =============================== */
+@media (max-width: 768px) {
+  .form-section {
+    padding: 30px 20px;
+  }
+
+  .form-group.half,
+  .form-group.third {
+    flex: 1 1 100%;
+  }
+}

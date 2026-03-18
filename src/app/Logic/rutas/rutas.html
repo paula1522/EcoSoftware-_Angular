@@ -1,0 +1,103 @@
+<div class="container mt-4">
+
+  <!-- BOTÓN CREAR RUTA -->
+  <button class="btn btn-success mb-3" (click)="abrirCrearRuta()">
+    Crear Nueva Ruta
+  </button>
+
+  <!-- LISTA DE RUTAS (cards) -->
+  <div class="row">
+    <div class="col-md-4 mb-3" *ngFor="let ruta of rutas">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ ruta.nombre }}</h5>
+          <p class="card-text">
+            <strong>Zonas cubiertas:</strong> {{ ruta.zonasCubiertas || 'No definida' }}<br>
+            <strong>Número de paradas:</strong> {{ ruta.paradas?.length || 0 }}<br>
+            <strong>Fecha creación:</strong> {{ ruta.fechaCreacion | date:'short' }}<br>
+            <strong>Estado:</strong> {{ ruta.estado || 'Pendiente' }}
+          </p>
+          <button class="btn btn-primary me-2" (click)="operarRuta(ruta)">Operar</button>
+          <button class="btn btn-warning" (click)="asignarRuta(ruta)">Asignar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CREAR RUTA -->
+  <app-modal #modalCrearRuta [title]="'Crear Nueva Ruta'" [headerColor]="'#198754'" [isOpen]="false">
+
+    <div class="p-3">
+
+      <h5 class="section-title">Datos de la Ruta</h5>
+
+      <div class="mb-3">
+        <label class="fw-bold">Nombre de la ruta</label>
+        <input 
+          type="text"
+          class="form-control"
+          [(ngModel)]="rutaForm.nombre"
+          placeholder="Ej: Ruta Zona Norte">
+      </div>
+
+      <div class="mb-3">
+        <label class="fw-bold">Descripción</label>
+        <textarea
+          class="form-control"
+          [(ngModel)]="rutaForm.descripcion"
+          placeholder="Descripción breve de la ruta">
+        </textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="fw-bold">Zonas cubiertas</label>
+        <input 
+          type="text"
+          class="form-control"
+          [(ngModel)]="rutaForm.zonasCubiertas"
+          placeholder="Ej: Suba, Engativá, Usaquén">
+      </div>
+
+      <hr>
+
+      <h5 class="section-title">Seleccionar Paradas</h5>
+
+      <div class="text-muted mb-2">
+        Estas paradas corresponden a solicitudes aceptadas y activas.
+      </div>
+
+      <div *ngIf="paradasDisponibles.length === 0" class="text-danger">
+        No tienes paradas disponibles para crear una ruta.
+      </div>
+
+      <div class="lista-paradas mt-3">
+        <div 
+          class="form-check mb-2"
+          *ngFor="let parada of paradasDisponibles">
+
+          <input 
+            class="form-check-input"
+            type="checkbox"
+            [value]="parada.id"
+            (change)="toggleParada(parada.id, $event)">
+
+          <label class="form-check-label">
+            {{ parada.direccion || 'Sin dirección' }}  
+            <span class="text-muted">({{ parada.solicitudId }})</span>
+          </label>
+
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-secondary me-2" (click)="modalCrearRuta.close()">Cancelar</button>
+        <button class="btn btn-success" (click)="crearRuta()">Crear Ruta</button>
+      </div>
+
+    </div>
+
+  </app-modal>
+
+</div>

@@ -1,0 +1,114 @@
+@import 'leaflet/dist/leaflet.css';
+
+/*css para dashboard*/
+.dashboard {
+  height: 100vh;
+  overflow-y: auto;
+}
+/* EVITAR TEXTO CENTRADO EN TODA LA SECCIÓN */
+.container-cards, 
+.cards-grid, 
+.solicitud-card, 
+.card-content, 
+.info-text, 
+.card-header-row {
+    text-align: left !important;
+}
+/* ESTADOS */
+.status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+.status-pendiente {
+    background: #fef3c7;
+    color: #92400e;
+}
+.status-progreso {
+  background: #cff4fc;
+  color: #055160;
+}
+
+.status-fallida {
+  background: #f8d7da;
+  color: #842029;
+}
+
+
+
+.status-aceptada {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.status-rechazada {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.status-cancelada {
+  background: #e2e3e5;
+  color: #41464b;
+}
+
+.auth-container {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+
+.leaflet-container {
+  height: 100vh;
+  width: 100%;
+}
+/*modal de ver*/
+
+
+/* Contenedor del contenido del modal */
+.modal-perfil-container {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+
+/* Títulos de secciones */
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4f69d9;
+  margin-bottom: 10px;
+  margin-top: 20px;
+  border-bottom: 1px solid #dbe2ea;
+  padding-bottom: 4px;
+}
+
+/* Mejor separación visual */
+label.fw-bold {
+  color: #374151;
+}
+
+.perfil-card div {
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+/* Scroll suave */
+.modal-perfil-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-perfil-container::-webkit-scrollbar-thumb {
+  background: #cdcdcd;
+  border-radius: 10px;
+}
+
+.modal-perfil-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}

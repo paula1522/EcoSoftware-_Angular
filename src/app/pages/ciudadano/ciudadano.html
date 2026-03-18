@@ -1,0 +1,169 @@
+<div class="d-flex">
+
+  <!-- SIDEBAR -->
+  <app-barra-lateral
+    [menu]="menu"
+    [vistaActual]="vistaActual"
+    [nombreUsuario]="nombreUsuario"
+    (vistaChange)="cambiarVista($event)"
+    (logout)="cerrarSesion()"
+    (edit)="editarPerfil()">
+  </app-barra-lateral>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="dashboard administrador flex-fill p-4">
+
+    <!-- PANEL -->
+    <ng-container *ngIf="vistaActual === 'panel'">
+      <app-titulo
+        titulo="Panel de Control"
+        subtitulo="Toda la información relevante de un vistazo"
+        iconoBoton="bi bi-bell"
+        colorBoton="outline-custom-success"
+        hoverColorBoton="custom-success-filled">
+      </app-titulo>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-people fs-1 text-primary"></i>
+              <h5 class="mt-2">Usuarios activos</h5>
+              <p class="fs-4 fw-bold">128</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-recycle fs-1 text-primary"></i>
+              <h5 class="mt-2">Kg reciclados</h5>
+              <p class="fs-4 fw-bold">1.245</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card text-center shadow-sm">
+            <div class="card-body">
+              <i class="bi bi-graph-up-arrow fs-1 text-primary"></i>
+              <h5 class="mt-2">Campañas activas</h5>
+              <p class="fs-4 fw-bold">6</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- EDITAR PERFIL -->
+    <ng-container *ngIf="vistaActual === 'editar-perfil'">
+      <app-titulo
+        titulo="Editar Perfil"
+        subtitulo="Actualiza tu información personal"
+        iconoBoton="bi bi-eye"
+        colorBoton="outline-custom-success">
+      </app-titulo>
+
+      <app-editar-usuario></app-editar-usuario>
+    </ng-container>
+
+    <!-- SOLICITUDES -->
+    <ng-container *ngIf="vistaActual === 'solicitudes'">
+      <app-titulo
+        titulo="Solicitudes"
+        subtitulo="Consulta tus solicitudes"
+        [textoBoton]="mostrarNuevaSolicitud ? 'Mostrar solicitudes' : 'Hacer nueva solicitud'"
+        iconoBoton="bi bi-plus-circle"
+        colorBoton="outline-custom-success"
+        hoverColorBoton="custom-success-filled"
+        (clickBoton)="toggleVista()">
+      </app-titulo>
+
+      <div class="contenedor-toggle">
+        <ng-container *ngIf="mostrarNuevaSolicitud">
+          <div class="contenido-solicitud">
+            <app-form-registro></app-form-registro>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="!mostrarNuevaSolicitud">
+          <div class="contenido-solicitud">
+            <app-cards-solicitud></app-cards-solicitud>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+
+    <!-- RECOLECCIONES -->
+    <ng-container *ngIf="vistaActual === 'recolecciones'">
+      <app-titulo
+        titulo="Recolecciones"
+        subtitulo="Gestión de tus recolecciones">
+      </app-titulo>
+
+      <app-cards-recoleccion-ciudadano></app-cards-recoleccion-ciudadano>
+    </ng-container>
+
+    <!-- CAPACITACIONES -->
+    <ng-container *ngIf="vistaActual === 'capacitaciones'">
+      <app-titulo
+        titulo="Capacitaciones"
+        subtitulo="Consulta tus capacitaciones">
+      </app-titulo>
+
+      <app-card-inscripcion></app-card-inscripcion>
+    </ng-container>
+
+    <!-- NOTICIAS -->
+    <ng-container *ngIf="vistaActual === 'noticias'">
+      <app-titulo
+        titulo="Noticias"
+        subtitulo="Entérate de las últimas novedades">
+      </app-titulo>
+
+      <cards-noticias></cards-noticias>
+    </ng-container>
+
+    <!-- PUNTOS DE RECICLAJE -->
+    <ng-container *ngIf="vistaActual === 'puntos'">
+      <div class="contenido-solicitud">
+        <app-titulo
+          titulo="Puntos de Reciclaje"
+          subtitulo="Consulta el mapa y el listado de puntos disponibles"
+          [mostrarBoton]="false">
+        </app-titulo>
+
+        <div class="puntos-admin-toolbar mt-3">
+          <div class="puntos-admin-actions">
+            <button
+              class="btn btn-outline-success"
+              [class.active]="vistaPuntos === 'todos'"
+              (click)="mostrarTodosLosPuntos()"
+              type="button">
+              Todos los puntos
+            </button>
+            <button
+              class="btn btn-success"
+              (click)="irAPaginaMapa()"
+              type="button">
+              Mapa
+            </button>
+          </div>
+        </div>
+
+        <div class="puntos-admin-list mt-3">
+          <app-tabla
+            [columnas]="columnasPuntos"
+            [data]="puntosFiltrados"
+            [cellTemplates]="puntosCellTemplates"
+            [mostrarAcciones]="false"
+            titulo="Todos los puntos">
+          </app-tabla>
+        </div>
+
+      </div>
+    </ng-container>
+
+  </main>
+</div>

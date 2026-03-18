@@ -1,0 +1,136 @@
+<div *ngIf="cargando">Cargando recolecciones...</div>
+<div *ngIf="error">{{ error }}</div>
+
+<app-tabla
+  *ngIf="!cargando && data.length > 0"
+  [titulo]="'Listado de Recolecciones'"
+  [iconosAcciones]="{
+    descargar: 'bi-plus-circle'
+  }"
+  [columnas]="columnas"
+  [data]="data"
+  (ver)="onVer($event)"
+  (editar)="onEditar($event)"
+  (eliminar)="onEliminar($event)">
+</app-tabla>
+<app-modal
+  #modalVerRecoleccion
+  [title]="'Detalles de la Recolección'"
+  [headerColor]="'#4f69d9'"
+  [isOpen]="false"
+>
+  <div class="p-3 modal-perfil-container">
+
+    <!-- ENCABEZADO -->
+    <div class="text-center mb-4">
+      <h3 class="mt-2 mb-0">Recolección #{{ selectedRecoleccion?.idRecoleccion || '---' }}</h3>
+      <small class="text-muted">Solicitud ID: {{ selectedRecoleccion?.solicitudId }}</small>
+    </div>
+
+    <!-- SECCIÓN 1: Información general -->
+    <h5 class="section-title">Información general</h5>
+
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Estado:</label>
+        <div>{{ selectedRecoleccion?.estado || 'Sin estado' }}</div>
+      </div>
+
+      <div class="col-6">
+        <label class="fw-bold">Fecha de recolección:</label>
+        <div>{{ selectedRecoleccion?.fechaRecoleccion || 'No definida' }}</div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="fw-bold">Observaciones:</label>
+      <div>{{ selectedRecoleccion?.observaciones || 'Sin observaciones' }}</div>
+    </div>
+
+    <!-- SECCIÓN 2: Asignaciones -->
+    <h5 class="section-title">Asignaciones</h5>
+
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Recolector ID:</label>
+        <div>{{ selectedRecoleccion?.recolectorId || 'No asignado' }}</div>
+      </div>
+
+      <div class="col-6">
+        <label class="fw-bold">Ruta ID:</label>
+        <div>{{ selectedRecoleccion?.rutaId || 'Sin ruta' }}</div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 3: Evidencia -->
+    <h5 class="section-title">Evidencia</h5>
+
+    <div>
+      <ng-container *ngIf="selectedRecoleccion?.evidencia; else noEvidencia">
+        <a 
+          [href]="selectedRecoleccion?.evidencia" 
+          target="_blank" 
+          class="text-primary">
+          Ver evidencia adjunta
+        </a>
+      </ng-container>
+
+      <ng-template #noEvidencia>
+        <div class="text-muted fst-italic">
+          Sin evidencia registrada
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- SECCIÓN 4: Fechas -->
+    <h5 class="section-title">Fechas</h5>
+
+    <div class="row mb-3">
+      <div class="col-12">
+        <label class="fw-bold">Fecha de creación:</label>
+        <div>{{ selectedRecoleccion?.fechaCreacionRecoleccion || 'No registrada' }}</div>
+      </div>
+    </div>
+
+  </div>
+</app-modal>
+
+<app-modal
+  #modalEditarRecoleccion
+  [title]="'Editar Recolección'"
+  [headerColor]="'#ffc107'"
+  [isOpen]="false"
+>
+  <div class="p-3">
+    <app-form-comp
+      *ngIf="selectedRecoleccion"
+      [formGroup]="formEditarRecoleccion"
+      [fields]="fieldsEditarRecoleccion"
+      [submitButtonText]="'Actualizar'"
+      [submitButtonIcon]="'bi bi-save'"
+      [submitButtonColor]="'custom-success-filled'"
+      (submitForm)="actualizarRecoleccion()"
+      [showSubmitButton]="true">
+    </app-form-comp>
+  </div>
+  <ng-container modal-footer>
+    
+  </ng-container>
+</app-modal>
+
+<app-modal
+  #modalEliminarRecoleccion
+  [title]="'Eliminar Recolección'"
+  [headerColor]="'#dc3545'"
+  [isOpen]="false"
+>
+  <div class="p-3">
+    <p>¿Está seguro que desea eliminar la recolección <strong>#{{ selectedRecoleccion?.idRecoleccion }}</strong>?</p>
+  </div>
+  <ng-container modal-footer>
+    <div class="d-flex justify-content-end gap-2">
+      <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled" (click)="cerrarModalEliminarRecoleccion()"></app-boton>
+      <app-boton texto="Eliminar" icono="bi bi-trash" color="custom-danger-filled" (click)="confirmarEliminarRecoleccion()"></app-boton>
+    </div>
+  </ng-container>
+</app-modal>

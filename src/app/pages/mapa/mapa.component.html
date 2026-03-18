@@ -1,0 +1,129 @@
+<section class="mapa-shell" [class.mapa-shell--bloqueado]="requiereInicioSesion">
+  <button class="mapa-back-btn" type="button" (click)="volverAtras()">← Volver</button>
+
+  <div class="mapa-shell__map">
+    <div class="map-wrapper" [id]="mapContainerId"></div>
+
+    <div class="route-overlay" *ngIf="mostrarPasosOverlay && pasosVisibles.length">
+      <div class="overlay-header">
+        <strong>{{ rutasCalculadas[rutaSeleccionadaIndex]?.etiqueta }}</strong>
+        <button type="button" (click)="mostrarPasosOverlay = false">✕</button>
+      </div>
+      <ol>
+        <li *ngFor="let step of pasosVisibles; let idx = index" (click)="irAPaso(step)">
+          <span class="step-index">{{ idx + 1 }}.</span>
+          <span>{{ step.texto }}</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <aside class="mapa-shell__sidebar">
+    <h1>Puntos de Reciclaje</h1>
+
+    <section class="panel panel-rutas">
+      <div class="panel-field">
+        <label for="origen-input">Origen</label>
+        <div class="input-with-action">
+          <input
+            id="origen-input"
+            type="text"
+            placeholder="Escribe la dirección de partida (ej. carrera 59 #22b-31, Bogotá)"
+            [(ngModel)]="origenInput"
+          />
+          <button type="button" class="ghost" (click)="usarMiUbicacion()">Ubicación actual</button>
+        </div>
+      </div>
+
+      <div class="panel-field">
+        <label for="destino-select">Destino</label>
+        <select id="destino-select" [(ngModel)]="destinoSeleccionadoId" (change)="onDestinoChange()">
+          <option [ngValue]="null">Selecciona un punto...</option>
+          <option [ngValue]="-1">Otra dirección...</option>
+          <option
+            *ngFor="let punto of puntos"
+            [ngValue]="punto.id ?? null"
+          >
+            {{ punto.nombre }}
+          </option>
+        </select>
+      </div>
+      <div class="panel-field" *ngIf="destinoSeleccionadoId === -1">
+        <label for="destino-input"></label>
+        <input
+          id="destino-input"
+          type="text"
+          placeholder="Escribe la dirección de destino"
+          [(ngModel)]="destinoInput"
+        />
+      </div>
+
+      <button class="primary" type="button" (click)="calcularRuta()" [disabled]="rutaCalculando">
+        {{ rutaCalculando ? 'Calculando...' : 'Calcular rutas' }}
+      </button>
+
+      <p class="status error" *ngIf="rutaError">{{ rutaError }}</p>
+
+      <div class="route-options" *ngIf="rutasCalculadas.length">
+        <article
+          class="route-card"
+          *ngFor="let ruta of rutasCalculadas; let i = index"
+          [class.active]="rutaSeleccionadaIndex === i"
+          (click)="seleccionarRuta(i)"
+        >
+          <header>
+            <span>{{ ruta.etiqueta }}</span>
+            <strong>{{ ruta.distanciaKm }} km</strong>
+          </header>
+          <p>{{ ruta.duracionMin }} min estimados</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel panel-puntos" *ngIf="!requiereInicioSesion">
+      <div class="panel-header">
+        <h2>Listado de puntos</h2>
+        <span>{{ puntos.length }} activos</span>
+      </div>
+
+      <div class="puntos-lista">
+        <article
+          class="punto-card"
+          *ngFor="let punto of puntosDecorados"
+          (click)="centrarEnPunto(punto)"
+          [style.background]="punto.cardColor"
+          [style.borderColor]="punto.borderColor"
+        >
+          <div class="card-head">
+            <h3>{{ punto.nombre }}</h3>
+            <span
+              class="chip"
+              [style.background]="punto.chipBg"
+              [style.color]="punto.chipColor"
+            >
+              {{ punto.tipoResiduo || 'General' }}
+            </span>
+          </div>
+          <p> {{ punto.direccion }}</p>
+          <p>{{ punto.horario || 'Horario no informado' }}</p>
+          <p>{{ punto.descripcion || 'Sin descripción' }}</p>
+        </article>
+
+        <p class="placeholder" *ngIf="!puntos.length">
+          Cargando puntos desde la API...
+        </p>
+      </div>
+    </section>
+  </aside>
+
+  <div class="mapa-auth-overlay" *ngIf="requiereInicioSesion">
+    <div class="mapa-auth-modal">
+      <h2>Inicia sesión para continuar</h2>
+      <p>
+        Para ver las ubicaciones de los puntos de reciclaje y sus respectivas rutas,
+        debes iniciar sesión.
+      </p>
+      <a class="mapa-auth-btn btn-ecosoft" href="/login">Iniciar sesión</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,66 @@
+/* ==== Waste Carousel ==== */
+.waste-carousel {
+  background: #f8f9fa;
+  padding: 80px 0;
+}
+
+/* Este contenedor evita que se muestre la barra de desplazamiento */
+.waste-slider-wrapper {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Contenedor del carrusel */
+.waste-slider {
+  display: flex;
+  gap: 30px;
+  width: max-content;
+  padding: 20px 0;
+  animation: scroll 25s linear infinite;
+}
+
+.waste-slider:hover {
+  animation-play-state: paused;
+}
+
+/* Animación del desplazamiento continuo */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Ítem del carrusel */
+.waste-item {
+  min-width: 150px;
+  text-align: center;
+}
+
+/* Caja del ícono */
+.waste-icon-box {
+  width: 100px;
+  height: 100px;
+  background: white;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  margin: 0 auto 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  transition: transform 0.3s ease;
+}
+
+.waste-item:hover .waste-icon-box {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.waste-item h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a2332;
+}

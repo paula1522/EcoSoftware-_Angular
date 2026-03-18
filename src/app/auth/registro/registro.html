@@ -1,0 +1,185 @@
+<div class="auth-container">
+  <!-- Sección Izquierda: Mensaje -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1>Bienvenido a EcoSoftware</h1>
+      <p class="welcome-subtitle">
+        Conecta, gestiona y transforma tu entorno de manera sostenible
+      </p>
+      <div class="welcome-message">
+        <ul class="benefits-list">
+          <li> Gestiona tus puntos de reciclaje</li>
+          <li>Monitorea tu impacto ambiental</li>
+          <li>Conecta con recicladores locales</li>
+          <li>Contribuye a un planeta más verde</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección Derecha: Formulario -->
+  <div class="form-section">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h2>Crear Cuenta</h2>
+        <p class="form-subtitle">Completa tus datos para empezar</p>
+      </div>
+
+      <form #registroForm="ngForm" (ngSubmit)="registrar()" class="auth-form">
+
+        <div class="form-group">
+          <label>Tipo de Usuario *</label>
+          <select [(ngModel)]="usuario.rolId" name="rolId" required #rol="ngModel" class="form-input">
+            <option value="2">Ciudadano</option>
+            <option value="3">Empresa</option>
+            <option value="4">Reciclador</option>
+          </select>
+          <div class="error" *ngIf="rol.invalid && rol.touched">Selecciona tu tipo de usuario</div>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre Completo *</label>
+          <input type="text" [(ngModel)]="usuario.nombre" name="nombre" required minlength="2" #nombre="ngModel"
+            class="form-input" placeholder="Ingresa tu nombre completo">
+          <div class="error" *ngIf="nombre.invalid && nombre.touched">
+            <span *ngIf="nombre.errors?.['required']">El nombre es requerido</span>
+            <span *ngIf="nombre.errors?.['minlength']">Mínimo 2 caracteres</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico *</label>
+          <input type="email" [(ngModel)]="usuario.correo" name="correo" required email #correo="ngModel"
+            class="form-input" placeholder="ejemplo@correo.com">
+          <div class="error" *ngIf="correo.invalid && correo.touched">
+            <span *ngIf="correo.errors?.['required']">El correo es requerido</span>
+            <span *ngIf="correo.errors?.['email']">Formato de correo inválido</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña *</label>
+          <input type="password" [(ngModel)]="usuario.contrasena" name="contrasena" required minlength="6"
+            #contrasena="ngModel" class="form-input" placeholder="Ingrese su contraseña">
+
+          <!-- Mensajes de error dinámicos -->
+          <div class="error" *ngIf="contrasena.touched">
+            <!-- 1️⃣ Si no ha escrito nada -->
+            <span *ngIf="contrasena.errors?.['required']">
+              La contraseña es requerida
+            </span>
+
+            <!-- 2️⃣ Si tiene menos de 6 caracteres -->
+            <span *ngIf="!contrasena.errors?.['required'] && contrasena.errors?.['minlength']">
+              La contraseña debe tener mínimo 6 caracteres
+            </span>
+
+            <!-- 3️⃣ Si cumple el mínimo pero falla las reglas fuertes -->
+            <span *ngIf="!contrasena.errors?.['required']
+             && !contrasena.errors?.['minlength']
+             && !validarFuerte(usuario.contrasena)">
+              Debe tener al menos una mayúscula, una minúscula, un número y un carácter especial
+            </span>
+          </div>
+        </div>
+
+        <!-- Nuevo campo: Verificar Contraseña -->
+        <div class="form-group">
+          <label>Verificar Contraseña *</label>
+          <input type="password" [(ngModel)]="verificarContrasena" name="verificarContrasena" required
+            #verificarContrasenaInput="ngModel" class="form-input" placeholder="Repite tu contraseña">
+
+          <div class="error" *ngIf="verificarContrasenaInput.touched">
+            <span *ngIf="verificarContrasenaInput.errors?.['required']">
+              Verificar contraseña es requerido
+            </span>
+            <span *ngIf="!verificarContrasenaInput.errors?.['required'] && !contrasenasCoinciden()">
+              Las contraseñas no coinciden
+            </span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Cédula *</label>
+            <input type="number" [(ngModel)]="usuario.cedula" name="cedula" required minlength="5" #cedula="ngModel"
+              class="form-input" placeholder="Número de cédula">
+            <div class="error" *ngIf="cedula.invalid && cedula.touched">
+              <span *ngIf="cedula.errors?.['required']">La cédula es requerida</span>
+              <span *ngIf="cedula.errors?.['minlength']">Mínimo 5 caracteres</span>
+            </div>
+          </div>
+
+          <div class="form-group half">
+            <label>Teléfono *</label>
+            <input type="number" [(ngModel)]="usuario.telefono" name="telefono" required minlength="7"
+              #telefono="ngModel" class="form-input" placeholder="Número de contacto">
+            <div class="error" *ngIf="telefono.invalid && telefono.touched">
+              <span *ngIf="telefono.errors?.['required']">El teléfono es requerido</span>
+              <span *ngIf="telefono.errors?.['minlength']">Mínimo 7 caracteres</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Dirección *</label>
+          <input type="text" [(ngModel)]="usuario.direccion" name="direccion" required #direccion="ngModel"
+            class="form-input" placeholder="Dirección completa">
+          <div class="error" *ngIf="direccion.invalid && direccion.touched">La dirección es requerida</div>
+        </div>
+
+        <div class="form-group">
+          <label>Localidad *</label>
+          <select [(ngModel)]="usuario.localidad" name="localidad" required #localidad="ngModel" class="form-input">
+            <option value="">Selecciona tu localidad</option>
+            <option *ngFor="let loc of localidades" [value]="loc">
+              {{ loc |
+              localidadNombre }}
+            </option>
+
+          </select>
+          <div class="error" *ngIf="localidad.invalid && localidad.touched">Selecciona tu localidad</div>
+        </div>
+
+        <!-- Campos Específicos por Rol -->
+        <div *ngIf="usuario.rolId == 3" class="role-section">
+          <h3>Información de Empresa</h3>
+          <div class="form-group">
+            <label>NIT *</label>
+            <input type="text" [(ngModel)]="usuario.nit" name="nit" required #nit="ngModel" class="form-input"
+              placeholder="NIT de la empresa">
+            <div class="error" *ngIf="nit.invalid && nit.touched">El NIT es requerido</div>
+          </div>
+          <div class="form-group">
+            <label>Representante Legal *</label>
+            <input type="text" [(ngModel)]="usuario.representanteLegal" name="representanteLegal" required
+              #representante="ngModel" class="form-input" placeholder="Nombre del representante legal">
+            <div class="error" *ngIf="representante.invalid && representante.touched">El representante legal es
+              requerido</div>
+          </div>
+        </div>
+
+        <div *ngIf="usuario.rolId == 4" class="role-section">
+          <h3>Información de Reciclador</h3>
+          <div class="form-group">
+            <label>Zona de Trabajo *</label>
+            <select [(ngModel)]="usuario.zona_de_trabajo" name="zona_de_trabajo" required #zona="ngModel"
+              class="form-input">
+              <option value="">Selecciona tu zona de trabajo</option>
+              <option *ngFor="let loc of localidades" [value]="loc">{{loc}}</option>
+            </select>
+            <div class="error" *ngIf="zona.invalid && zona.touched">Selecciona tu zona de trabajo</div>
+          </div>
+        </div>
+
+        <button type="submit" [disabled]="!registroForm.valid || enviando || !contrasenasCoinciden() || !validarFuerte(usuario.contrasena)"
+          class="submit-btn"> {{ enviando ? 'Creando tu cuenta...' : 'Crear mi cuenta' }}
+        </button>
+
+        <div class="auth-footer">
+          <p>¿Ya tienes una cuenta? <a routerLink="/login" class="auth-link">Inicia sesión aquí</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

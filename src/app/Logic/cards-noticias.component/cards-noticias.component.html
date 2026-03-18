@@ -1,0 +1,47 @@
+<section class="noticias-container animate">
+
+  
+  
+
+  <div *ngIf="cargando" class="loading">
+    Cargando noticias...
+  </div>
+
+  <article
+    class="noticia-card"
+    *ngFor="let noticia of noticias"
+    (click)="abrirNoticia(noticia.url)"
+  >
+
+    <img
+      class="noticia-imagen"
+      [src]="noticia.imagen"
+      [alt]="noticia.titulo"
+    />
+
+    <div class="noticia-contenido">
+
+      <div class="noticia-meta">
+        <span class="fuente">{{ noticia.fuente }}</span>
+        <span class="fecha">
+          {{ noticia.fecha | date:'medium' }}
+        </span>
+      </div>
+
+      <h3 class="noticia-titulo">
+        {{ noticia.titulo }}
+      </h3>
+
+      <p class="noticia-descripcion">
+        {{ noticia.descripcion }}
+      </p>
+
+      <span class="leer-mas">
+        Leer noticia →
+      </span>
+
+    </div>
+
+  </article>
+
+</section>

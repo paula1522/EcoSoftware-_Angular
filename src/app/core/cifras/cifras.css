@@ -1,0 +1,33 @@
+/* Stats Section */
+        .stats {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), #495057ab), url(https://res.cloudinary.com/dhl2ixdsr/image/upload/v1765483682/top-view-diversity-people-hands-taking-care-of-young-baby-plants-growing-in-fertile-soil-world-environment-day-reforestation-nature-ecology-and-save-the-world-concept-generative-ai-illustration-photo_mrkld7.jpg) center / cover fixed;
+            padding: 80px 0;
+            position: relative;
+        }
+
+       
+
+        .stat-card {
+            text-align: center;
+            padding: 40px 30px;
+            transition: all 0.4s ease;
+            border-radius: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
+            display: block;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+        }

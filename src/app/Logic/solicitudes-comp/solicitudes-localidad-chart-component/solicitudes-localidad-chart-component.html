@@ -1,0 +1,25 @@
+<div class="chart-container">
+  <div *ngIf="errorMessage" class="alert alert-warning w-100 text-center" role="alert">
+    {{ errorMessage }}
+  </div>
+  <div *ngIf="chartOptions.series && chartOptions.series[0] && chartOptions.series[0].data && chartOptions.series[0].data.length > 0" class="chart-wrapper">
+    <apx-chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [plotOptions]="chartOptions.plotOptions"
+      [dataLabels]="chartOptions.dataLabels"
+      [xaxis]="chartOptions.xaxis"
+      [colors]="chartOptions.colors"
+      [title]="chartOptions.title"
+      [tooltip]="chartOptions.tooltip">
+    </apx-chart>
+  </div>
+  <div *ngIf="chartOptions.series && (!chartOptions.series[0] || !chartOptions.series[0].data || chartOptions.series[0].data.length === 0)" class="alert alert-secondary text-center w-100">
+    Sin datos para mostrar.
+  </div>
+  <div *ngIf="!chartOptions.series" class="loading">
+    Cargando gráfico...
+  </div>
+</div>
+
+<!-- debug eliminado -->

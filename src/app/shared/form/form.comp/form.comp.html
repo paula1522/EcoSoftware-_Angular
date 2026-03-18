@@ -1,0 +1,138 @@
+<form [formGroup]="formGroup" (ngSubmit)="onSubmit()" class="auth-form">
+
+  <ng-container *ngFor="let field of fields">
+    <ng-container *ngIf="shouldShow(field)">
+
+      <!-- SEPARADOR -->
+      <div *ngIf="field.type === 'separator'" class="form-separator">
+        {{ field.label }}
+      </div>
+
+      <!-- CAMPOS -->
+      <div *ngIf="field.type !== 'separator'"
+           class="form-group"
+           [ngClass]="{
+             'full': !field.cols || field.cols === 12,
+             'half': field.cols === 6,
+             'third': field.cols === 4
+           }">
+
+        <label>{{ field.label }}</label>
+
+        <!-- === INPUT CON ÍCONO OPCIONAL (LEFT / RIGHT) === -->
+<div class="input-icon-wrapper" *ngIf="field.icon && field.type !== 'password'">
+
+  <!-- Ícono a la izquierda -->
+  <i *ngIf="!field.iconPosition || field.iconPosition === 'left'"
+     class="bi"
+     [ngClass]="field.icon + ' left-icon'">
+  </i>
+
+  <!-- Ícono a la derecha -->
+  <i *ngIf="field.iconPosition === 'right'"
+     class="bi"
+     [ngClass]="field.icon + ' right-icon'">
+  </i>
+
+  <input
+    [type]="field.type"
+    class="form-input"
+    [ngClass]="{
+      'with-left-icon': !field.iconPosition || field.iconPosition === 'left',
+      'with-right-icon': field.iconPosition === 'right'
+    }"
+    [formControlName]="field.name!"
+    [placeholder]="field.placeholder || ''"
+  />
+</div>
+
+
+        <!-- === INPUT NORMAL (SIN ÍCONO) === -->
+        <input *ngIf="!field.icon && field.type !== 'password' && 
+                      (field.type === 'text' || field.type === 'email')"
+               [type]="field.type"
+               class="form-input"
+               [formControlName]="field.name!"
+               [placeholder]="field.placeholder || ''" />
+
+        <!-- === PASSWORD CON OJO === -->
+        <div *ngIf="field.type === 'password'" class="password-wrapper">
+
+          <input
+            [type]="showPasswordMap[field.name!] ? 'text' : 'password'"
+            class="form-input"
+            [formControlName]="field.name!"
+            [placeholder]="field.placeholder || ''"
+          />
+
+          <i *ngIf="field.showToggle"
+             class="bi"
+             [ngClass]="showPasswordMap[field.name!] ? 'bi-eye-slash' : 'bi-eye'"
+             (click)="togglePassword(field.name!)">
+          </i>
+        </div>
+
+        <!-- SELECT -->
+        <select *ngIf="field.type === 'select'"
+                class="form-input"
+                [formControlName]="field.name!">
+          <option value="" disabled selected>Seleccione una opción</option>
+          <option *ngFor="let opt of field.options!" [value]="opt.value">
+            {{ opt.text }}
+          </option>
+        </select>
+
+        <!-- TEXTAREA -->
+        <textarea *ngIf="field.type === 'textarea'"
+                  class="form-input"
+                  rows="3"
+                  [formControlName]="field.name!"></textarea>
+
+        <!-- DATE -->
+        <input *ngIf="field.type === 'date'"
+               type="date"
+               class="form-input"
+               [formControlName]="field.name!" />
+
+        <!-- RADIO -->
+        <div *ngIf="field.type === 'radio'" class="form-radio-group">
+          <div *ngFor="let opt of field.options!" class="radio-option">
+            <input type="radio"
+                   [value]="opt.value"
+                   [id]="field.name! + opt.value"
+                   [formControlName]="field.name!" />
+            <label [for]="field.name! + opt.value">{{ opt.text }}</label>
+          </div>
+        </div>
+
+        <!-- ERROR -->
+        <div class="error"
+             *ngIf="formGroup.get(field.name!)?.invalid &&
+                    formGroup.get(field.name!)?.touched">
+          Campo inválido
+        </div>
+
+      </div>
+
+    </ng-container>
+  </ng-container>
+
+  <!-- BOTÓN -->
+  <div class="form-button" *ngIf="showSubmitButton">
+    <app-boton
+      [texto]="submitButtonText"
+      [icono]="submitButtonIcon"
+      [color]="submitButtonColor"
+      [ngClass]="submitButtonClass"
+      size="md"
+      tipo="submit"
+      [deshabilitado]="formGroup.invalid || disableSubmit">
+    </app-boton>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="form-footer-container">
+    <ng-content select="[form-footer]"></ng-content>
+  </div>
+
+</form>

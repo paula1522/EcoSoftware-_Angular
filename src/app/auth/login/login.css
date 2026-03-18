@@ -1,0 +1,114 @@
+.login-principal {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: stretch;
+}
+
+.login-wrapper {
+  display: flex;
+  flex: 1;
+}
+
+/* IZQUIERDA */
+.left-section {
+  flex: 1;
+  position: relative;
+  background-image: url("https://res.cloudinary.com/dhl2ixdsr/image/upload/v1765483682/top-view-diversity-people-hands-taking-care-of-young-baby-plants-growing-in-fertile-soil-world-environment-day-reforestation-nature-ecology-and-save-the-world-concept-generative-ai-illustration-photo_mrkld7.jpg");
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; 
+  padding-left: 50px; /* espacio desde el borde izquierdo */
+}
+
+.overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* overlay semitransparente */
+}
+
+.text-overlay {
+  position: relative;
+  color: white;
+  text-align: left;
+  max-width: 700px;
+}
+
+.text-overlay h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.text-overlay p {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+/* DERECHA */
+.form-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #f7fafc;
+}
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 450px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h2 {
+  color: #2d3748;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.form-subtitle {
+  color: #718096;
+  font-size: 14px;
+}
+
+.auth-link {
+  color: #38ca6d;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-wrapper {
+    flex-direction: column;
+  }
+  
+  .left-section, .form-section {
+    flex: unset;
+    width: 100%;
+    height: 300px;
+  }
+
+  .text-overlay {
+    max-width: 90%;
+    padding: 0 20px;
+  }
+
+  .form-section {
+    height: auto;
+    padding: 30px 20px;
+  }
+}

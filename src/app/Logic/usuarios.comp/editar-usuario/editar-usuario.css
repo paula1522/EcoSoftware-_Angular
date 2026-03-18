@@ -1,0 +1,79 @@
+.form-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  background-color: #fff;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Botón Darse de baja */
+.btn-baja {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #dc3545;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.btn-baja:hover {
+  background-color: #c82333;
+}
+
+/* Botón Actualizar */
+.btn-actualizar {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.btn-actualizar:hover {
+  background-color: #218838;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  text-transform: capitalize;
+}
+
+input {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.mensaje {
+  margin-top: 1rem;
+  color: green;
+  font-weight: bold;
+  text-align: center;
+}
+
+.error {
+  margin-top: 1rem;
+  color: red;
+  font-weight: bold;
+  text-align: center;
+}

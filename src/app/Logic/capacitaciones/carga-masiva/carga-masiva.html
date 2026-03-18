@@ -1,0 +1,106 @@
+<div class="container mt-4">
+
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <button class="btn btn-success" (click)="descargarPlantilla()">
+      📥 Descargar plantilla Excel
+    </button>
+
+    <label class="btn btn-primary mb-0">
+      📤 Seleccionar archivo Excel
+      <input type="file" accept=".xlsx, .xls" hidden (change)="onFileSelected($event)">
+    </label>
+
+    <button class="btn btn-outline-primary" (click)="validarYMostrar()" [disabled]="!archivoSeleccionado || cargando">
+      🔎 Validar y previsualizar
+    </button>
+
+    <div *ngIf="cargando" class="ms-3 text-muted">Procesando...</div>
+  </div>
+
+  <div *ngIf="mensaje" class="alert alert-info">
+    {{ mensaje }}
+  </div>
+
+  <!-- Tabla ejemplo (opcional) para mostrar errores/avisos breves -->
+  <div *ngIf="errores.length > 0" class="mb-3">
+    <h5>Errores detectados (bloqueantes)</h5>
+    <ul>
+      <li *ngFor="let e of errores">{{ e.nombre }} — {{ e.observacion }}</li>
+    </ul>
+  </div>
+
+  <div *ngIf="avisos.length > 0" class="mb-3">
+    <h5>Advertencias (warnings)</h5>
+    <ul>
+      <li *ngFor="let a of avisos">{{ a.nombre }} — {{ a.observacion }}</li>
+    </ul>
+  </div>
+
+  <!-- ---------------- MODAL ERRORES (bloqueantes) ---------------- -->
+  <ng-template #modalErrores let-modal>
+    <div class="modal-header bg-danger text-white">
+      <h5 class="modal-title">Capacitaciones repetidas (ERROR)</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('close')"></button>
+    </div>
+
+    <div class="modal-body">
+      <p>Se encontraron capacitaciones que ya existen en el sistema. Corrige el archivo antes de intentar subir.</p>
+
+      <table class="table table-sm table-bordered">
+        <thead class="table-dark">
+          <tr>
+            <th>Nombre (intentando cargar)</th>
+            <th>Descripción</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of errores">
+            <td>{{ e.nombre }}</td>
+            <td>{{ e.descripcion }}</td>
+            <td>{{ e.observacion }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="modal.close()">Cerrar</button>
+    </div>
+  </ng-template>
+
+  <!-- ---------------- MODAL AVISOS (warnings) ---------------- -->
+  <ng-template #modalAvisos let-modal>
+    <div class="modal-header bg-warning">
+      <h5 class="modal-title">Advertencias encontradas</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('close')"></button>
+    </div>
+
+    <div class="modal-body">
+      <p>Se encontraron advertencias. Puedes revisar o continuar de todos modos.</p>
+
+      <table class="table table-sm table-bordered">
+        <thead class="table-secondary">
+          <tr>
+            <th>Nombre (intentando cargar)</th>
+            <th>Descripción</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of avisos">
+            <td>{{ a.nombre }}</td>
+            <td>{{ a.descripcion }}</td>
+            <td>{{ a.observacion }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="modal.dismiss('cancel'); abortarCarga()">Cancelar</button>
+      <button class="btn btn-warning" (click)="modal.dismiss('ok'); continuarConWarnings()">Continuar de todos modos</button>
+    </div>
+  </ng-template>
+
+</div>

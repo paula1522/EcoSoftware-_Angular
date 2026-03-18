@@ -1,0 +1,89 @@
+<div class="container-table">
+
+ <!-- HEADER -->
+  <div class="table-header">
+    
+    <h2 class="table-title">
+      <i class="fas fa-table"></i>
+      {{ titulo }}
+    </h2>
+ <app-boton
+  *ngFor="let d of Header"
+  [icono]="d.icon"
+  [texto]="d.texto"
+  [color]="d.color"
+  [hoverColor]="d.hover"
+  size="sm"
+  (click)="d.evento()">
+</app-boton>
+
+    
+    </div>
+
+  <!-- TABLA -->
+  <div class="table-wrapper">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th *ngFor="let col of columnas" (click)="ordenar(col.campo)">
+            {{ col.titulo }}
+            <i *ngIf="orden === col.campo" [class]="ascendente ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+          </th>
+          <th *ngIf="mostrarAcciones" style="text-align: right;">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of datosPaginados">
+          <td *ngFor="let col of columnas">
+  <span [innerHTML]="cellTemplates[col.campo] ? cellTemplates[col.campo](item) : item[col.campo]"></span>
+</td>
+
+
+            <td class="table-actions-cell" *ngIf="mostrarAcciones">
+  <app-boton
+  *ngFor="let a of acciones"
+  [icono]="a.icon"
+  [texto]="a.texto"
+  [color]="a.color"
+  [hoverColor]="a.hover"
+  size="sm"
+  (click)="a.evento(item)">
+</app-boton>
+
+</td>
+
+        </tr>
+
+        <tr *ngIf="data.length === 0">
+          <td [attr.colspan]="mostrarAcciones ? (columnas.length + 1) : columnas.length" style="text-align: center; padding: 20px;">
+            No hay datos disponibles
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="table-footer">
+    <div class="pagination-info">
+      Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong> de <strong>{{ data.length }}</strong> registros
+    </div>
+
+    <div class="pagination-controls">
+      <select class="pagination-select" [(ngModel)]="porPagina" (change)="pagina = 1">
+        <option [value]="10">10 por página</option>
+        <option [value]="20">20 por página</option>
+        <option [value]="50">50 por página</option>
+      </select>
+
+      <div class="pagination-buttons">
+        <button *ngFor="let p of paginasAMostrar"
+                [class.active]="p === pagina"
+                (click)="cambiarPagina(p)">
+          {{ p }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="chart-container">
+  <ng-container *ngIf="chartOptions && chartOptions.series && chartOptions.series.length > 0 && chartOptions.labels && chartOptions.labels.length > 0; else nodataRechazadas">
+    <apx-chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [labels]="chartOptions.labels"
+      [responsive]="chartOptions.responsive"
+      [colors]="chartOptions.colors"
+      [title]="chartOptions.title"
+      [plotOptions]="chartOptions.plotOptions"
+      [dataLabels]="chartOptions.dataLabels"
+      [legend]="chartOptions.legend">
+    </apx-chart>
+  </ng-container>
+  <ng-template #nodataRechazadas>
+    <div class="alert alert-secondary text-center w-100">sin datos para mostrar</div>
+  </ng-template>
+</div>
+
+<div *ngIf="errorMessage" class="mt-2 alert alert-warning text-center">{{ errorMessage }}</div>
+
+<!-- debug eliminado -->

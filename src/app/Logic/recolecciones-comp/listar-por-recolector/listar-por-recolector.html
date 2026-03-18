@@ -1,0 +1,35 @@
+<div class="container">
+  <h2>Mis Recolecciones</h2>
+  
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="cargando">
+    <div class="spinner"></div>
+    <p>Cargando recolecciones...</p>
+  </div>
+  
+  <!-- Mensaje de error -->
+  <div *ngIf="!cargando && error" class="error-alert">
+    <p>{{ error }}</p>
+    <button (click)="reintentar()" class="btn-reintentar">
+      Reintentar
+    </button>
+  </div>
+  
+  <!-- Tabla de recolecciones -->
+  <div *ngIf="!cargando && !error && data.length > 0">
+    <app-tabla
+      [titulo]="'Listado de Recolecciones'"
+      [columnas]="columnas"
+      [data]="data"
+      
+      (ver)="ver($event)"
+      (editar)="editar($event)"
+      (eliminar)="eliminar($event)">
+    </app-tabla>
+  </div>
+  
+  <!-- Mensaje cuando no hay datos -->
+  <div *ngIf="!cargando && !error && data.length === 0" class="sin-datos">
+    <p>No tienes recolecciones asignadas.</p>
+  </div>
+</div>

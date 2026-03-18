@@ -1,0 +1,322 @@
+<div class="d-flex">
+
+  <!-- BARRA LATERAL -->
+  <app-barra-lateral [menu]="menu" [vistaActual]="vistaActual" [nombreUsuario]="nombreUsuario"
+    (vistaChange)="cambiarVista($event)" (logout)="logout()" (edit)="editarPerfil()">
+  </app-barra-lateral>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="dashboard administrador flex-fill p-4">
+
+    <!-- PANEL DE CONTROL -->
+    <ng-container *ngIf="vistaActual === 'panel'">
+
+      <app-titulo titulo="Panel de Control" subtitulo="Resumen de análisis y métricas de la plataforma"
+        iconoBoton="bi bi-bell" textoBoton="Pendientes" colorBoton="outline-custom-success"
+        hoverColorBoton="custom-success-filled">
+      </app-titulo>
+
+      <!-- Auth status removed -->
+
+      <!-- FILA DE BOTONES DE REPORTES -->
+      <div class="reportes-buttons-row mb-4">
+        <button class="btn btn-success me-2" (click)="generarReporteUsuarios()" [disabled]="cargandoReporte">
+          <i class="bi bi-file-pdf me-2"></i>
+          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte de Usuarios' }}
+        </button>
+        <button class="btn btn-success" (click)="generarReporteSolicitudes()" [disabled]="cargandoReporte">
+          <i class="bi bi-file-pdf me-2"></i>
+          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte de Solicitudes' }}
+        </button>
+      </div>
+
+      <!-- FILA 1: Gráficos principales -->
+      <div class="analytics-grid">
+
+        <!-- Gráfico 1: Usuarios por Localidad (Línea/Barras) -->
+        <div class="analytics-card">
+          <h6 class="card-title">Usuarios por Localidad</h6>
+          <div class="chart-container" #usuariosGrafico>
+            <app-grafico-usuarios-localidad></app-grafico-usuarios-localidad>
+          </div>
+        </div>
+
+        <!-- (Removed) Distribución por Barrio - usuario solicitó eliminar -->
+
+        <!-- Gráfico 3: Solicitudes por Localidad -->
+        <div class="analytics-card">
+          <h6 class="card-title">Solicitudes por Localidad</h6>
+          <div class="chart-container" #solicitudesLocalidadGrafico>
+            <app-solicitudes-localidad-chart></app-solicitudes-localidad-chart>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FILA 2: Indicadores complementarios -->
+      <div class="analytics-grid mt-4">
+
+        <!-- Rechazadas por Motivo -->
+        <div class="analytics-card">
+          <h6 class="card-title">Solicitudes Rechazadas</h6>
+          <div class="chart-container" #rechazadasGrafico>
+            <app-rechazadas-motivo-chart></app-rechazadas-motivo-chart>
+          </div>
+        </div>
+
+        <!-- Pendientes vs Aceptadas -->
+        <div class="analytics-card">
+          <h6 class="card-title">Estado de Solicitudes</h6>
+          <div class="chart-container" #estadoGrafico>
+            <app-pendientes-aceptadas-chart></app-pendientes-aceptadas-chart>
+          </div>
+        </div>
+
+      </div>
+
+    </ng-container>
+    <ng-container *ngIf="vistaActual === 'editar-perfil'">
+      <app-titulo titulo="Editar Perfil" subtitulo="Actualiza tu información personal" iconoBoton="bi bi-plus"
+        colorBoton="outline-custom-success">
+
+      </app-titulo>
+      <app-editar-usuario></app-editar-usuario>
+    </ng-container>
+
+    <!-- USUARIOS -->
+
+    <ng-container *ngIf="vistaActual === 'usuarios'">
+
+      <app-titulo titulo="Usuarios" subtitulo="Gestión de usuarios del sistema"
+        [textoBoton]="mostrarNuevoUsuario ? 'Mostrar usuarios' : 'Agregar nuevo usuario'"
+        [iconoBoton]="'bi bi-plus-circle'" [colorBoton]="'outline-custom-success'"
+        [hoverColorBoton]="'custom-success-filled'" (clickBoton)="toggleNuevoUsuario()">
+      </app-titulo>
+
+
+
+
+      <div class="contenedor-toggle">
+
+        <!-- Agregar usuario -->
+        <ng-container *ngIf="mostrarNuevoUsuario">
+          <div class="contenido-solicitud">
+            <!-- En cualquier template -->
+            <!-- En el dashboard de administrador -->
+            <div class="row g-4">
+              <!-- Card Registrar Usuario -->
+              <div class="col-12 col-md-6">
+                <div class="card text-center shadow-sm h-100">
+                  <div class="card-body d-flex flex-column align-items-center justify-content-between">
+                    <i class="bi bi-people fs-1 text-success mb-3"></i>
+                    <h5 class="mb-3">Registrar Usuario</h5>
+                    <app-boton texto="Registrar" [icono]="'bi bi-plus-circle'" color="outline-custom-success"
+                      (click)="modalRegistroOpen = true" title="Registrar">
+                    </app-boton>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Carga Masiva -->
+              <div class="col-12 col-md-6">
+                <div class="card text-center shadow-sm h-100">
+                  <div class="card-body d-flex flex-column align-items-center justify-content-between">
+                    <i class="bi bi-file-earmark-plus fs-1 text-success mb-3"></i>
+                    <h5 class="mb-3">Carga Masiva</h5>
+                    <app-boton texto="Subir archivo" [icono]="'bi bi-upload'" color="outline-custom-success"
+                      (click)="modalCargaMasivaOpen = true" title="Carga Masiva">
+                    </app-boton>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- MODAL REGISTRO -->
+            <app-modal [isOpen]="modalRegistroOpen" title="" size="md" headerColor="white"
+              (closed)="modalRegistroOpen = false">
+              <app-registro-admin></app-registro-admin>
+            </app-modal>
+
+            <!-- MODAL CARGA MASIVA -->
+            <app-modal [isOpen]="modalCargaMasivaOpen" title="Carga Masiva de Usuarios" size="md"
+              (closed)="modalCargaMasivaOpen = false">
+              <div class="text-center">
+                <p>Selecciona el archivo CSV o Excel con los usuarios.</p>
+                <input type="file" (change)="procesarArchivo($event)" accept=".csv, .xlsx" />
+
+                <!-- Botón personalizado de subir -->
+                <app-boton [texto]="'Subir'" [icono]="'bi bi-check-circle'" [color]="'custom-success-filled'"
+                  [hoverColor]="'custom-success-hover'" (click)="subirArchivo()" class="mt-3"></app-boton>
+              </div>
+            </app-modal>
+          </div>
+        </ng-container>
+        <!-- Lista de usuarios -->
+        <ng-container *ngIf="!mostrarNuevoUsuario">
+          <div class="contenido-solicitud">
+            <app-usuario-tabla></app-usuario-tabla>
+
+            <div *ngIf="!cargando && usuarios.length === 0" class="alert alert-warning text-center shadow-sm py-2 mt-3">
+              No se encontraron usuarios registrados.
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </ng-container>
+
+    <!-- SOLICITUDES -->
+    <ng-container *ngIf="vistaActual === 'solicitudes'">
+      <app-titulo titulo="Solicitudes de Recolección" subtitulo="Gestión de solicitudes de recolección"
+        [mostrarBoton]="false">
+      </app-titulo>
+      <app-solcitudes></app-solcitudes>
+    </ng-container>
+
+    <!-- RECOLECCIONES -->
+    <ng-container *ngIf="vistaActual === 'recolecciones'">
+      <app-titulo titulo="Recolecciones" subtitulo="Gestión de recolecciones" [mostrarBoton]="false">
+      </app-titulo>
+
+      <app-listar-tabla></app-listar-tabla>
+    </ng-container>
+
+    <!-- PUNTOS DE RECICLAJE -->
+    <ng-container *ngIf="vistaActual === 'puntos'">
+      <app-titulo titulo="Puntos de Reciclaje" subtitulo="Consulta y filtra los puntos registrados"
+        [mostrarBoton]="false">
+      </app-titulo>
+
+      <div class="puntos-admin-toolbar mt-3">
+        <div class="puntos-admin-actions">
+          <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'mis'" (click)="mostrarMisPuntos()"
+            type="button">
+            Mis puntos
+          </button>
+          <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'todos'"
+            (click)="mostrarTodosLosPuntos()" type="button">
+            Todos los puntos
+          </button>
+          <button class="btn btn-success" (click)="irAPaginaMapa()" type="button">
+            Mapa
+          </button>
+        </div>
+
+        <button class="btn btn-success" type="button" (click)="abrirModalRegistrarPunto()">
+          Registrar punto
+        </button>
+      </div>
+
+      <div class="puntos-admin-list mt-3">
+        <div class="punto-item" *ngFor="let punto of puntosFiltrados">
+          <h6>{{ punto.nombre }}</h6>
+          <p><strong>Dirección:</strong> {{ punto.direccion }}</p>
+          <p><strong>Horario:</strong> {{ punto.horario || 'No informado' }}</p>
+          <p><strong>Residuo:</strong> {{ $any(punto).tipo_residuo || $any(punto).tipoResiduo || 'General' }}</p>
+        </div>
+
+        <div class="alert alert-warning" *ngIf="!puntosFiltrados.length">
+          No hay puntos para mostrar en esta vista.
+        </div>
+      </div>
+
+      <app-modal [isOpen]="mostrarModalRegistrarPunto" title="Registrar punto de reciclaje" size="lg"
+        [headerColor]="'#198754'" (closed)="cerrarModalRegistrarPunto()">
+
+        <form class="puntos-form-grid" (ngSubmit)="registrarPunto()">
+          <div class="form-group">
+            <label for="puntoNombre">Nombre</label>
+            <input id="puntoNombre" class="form-control" type="text" [(ngModel)]="nuevoPunto.nombre" name="nombre"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="puntoDireccion">Dirección</label>
+            <input id="puntoDireccion" class="form-control" type="text" [(ngModel)]="nuevoPunto.direccion"
+              name="direccion" required>
+          </div>
+
+          <div class="form-group">
+            <label for="puntoTipoResiduo">Tipo de residuo</label>
+            <input id="puntoTipoResiduo" class="form-control" type="text" [(ngModel)]="nuevoPunto.tipoResiduo"
+              name="tipoResiduo" required>
+          </div>
+
+          <div class="form-group">
+            <label for="puntoHorario">Horario</label>
+            <input id="puntoHorario" class="form-control" type="text" [(ngModel)]="nuevoPunto.horario" name="horario"
+              required>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="puntoDescripcion">Descripción</label>
+            <textarea id="puntoDescripcion" class="form-control" rows="3" [(ngModel)]="nuevoPunto.descripcion"
+              name="descripcion" required></textarea>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="puntoImagen">Imagen del punto</label>
+            <input id="puntoImagen" class="form-control" type="file" accept="image/*">
+          </div>
+
+          <p class="text-danger mb-0 form-group-full" *ngIf="errorRegistroPunto">{{ errorRegistroPunto }}</p>
+          <p class="text-success mb-0 form-group-full" *ngIf="guardandoPunto && estadoRegistroPunto">
+            {{ estadoRegistroPunto }}
+          </p>
+        </form>
+
+        <div modal-footer class="d-flex justify-content-end gap-2 w-100">
+          <button class="btn btn-outline-secondary" type="button"
+            (click)="cerrarModalRegistrarPunto()">Cancelar</button>
+          <button class="btn btn-success" type="button" [disabled]="guardandoPunto" (click)="registrarPunto()">
+            {{ guardandoPunto ? 'Guardando...' : 'Registrar punto' }}
+          </button>
+        </div>
+      </app-modal>
+
+    </ng-container>
+
+    <!-- CAPACITACIONES -->
+    <ng-container *ngIf="vistaActual === 'capacitaciones'">
+      <app-titulo titulo="Capacitaciones y Módulos" subtitulo="Gestión de capacitaciones y módulos"
+        iconoBoton="bi bi-plus-circle" colorBoton="outline-custom-success" textoBoton="Nueva Capacitacion"
+        hoverColorBoton="custom-success-filled" (clickBoton)="toggleVista()">
+      </app-titulo>
+
+      <div class="contenedor-toggle">
+
+        <!-- Lista de capacitaciones -->
+        <ng-container *ngIf="capacitaciones">
+          <div class="contenido-solicitud">
+            <h3 class="fw-bold verde-principal mb-1">Capacitaciones</h3>
+            <p class="text-muted mb-0">Consulta tus capacitaciones</p>
+          </div>
+        </ng-container>
+
+        <!-- Módulos -->
+        <ng-container *ngIf="!capacitaciones">
+          <div class="contenido-solicitud">
+            <app-carga-masiva-capacitacion></app-carga-masiva-capacitacion>
+            <app-listar-capacitaciones></app-listar-capacitaciones>
+          </div>
+        </ng-container>
+
+      </div>
+    </ng-container>
+
+    <!-- NOTICIAS -->
+    <ng-container *ngIf="vistaActual === 'noticias'">
+      <app-titulo titulo="Noticias" subtitulo="Gestión de noticias y novedades" [mostrarBoton]="false">
+      </app-titulo>
+      <!-- <app-rutas></app-rutas> -->
+      <cards-noticias></cards-noticias>
+    </ng-container>
+
+    <ng-container *ngIf="vistaActual === 'Aceptar-Rechazar-Usuarios'">
+
+      <app-aceptar-rechazar-usuarios></app-aceptar-rechazar-usuarios>
+    </ng-container>
+
+  </main>
+
+</div>

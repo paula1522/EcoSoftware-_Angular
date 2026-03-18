@@ -1,0 +1,145 @@
+/* Contenedor de alertas */
+.alertas-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.alertas-container .alert {
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: 400px;
+}
+
+/* Diseño minimalista de alerta */
+.alerta {
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+  animation: aparecer 0.3s ease-out;
+}
+
+/* Iconos según tipo */
+.alerta::before {
+  content: '';
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.success {
+  border-color: #22c55e;
+  color: #1a1a1a;
+}
+
+.success::before {
+  content: '✓';
+  color: #22c55e;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f0fdf4;
+}
+
+.error {
+  border-color: #ef4444;
+  color: #1a1a1a;
+}
+
+.error::before {
+  content: '✕';
+  color: #ef4444;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fef2f2;
+}
+
+.warning {
+  border-color: #f59e0b;
+  color: #1a1a1a;
+}
+
+.warning::before {
+  content: '⚠';
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fffbeb;
+}
+
+.info {
+  border-color: #3b82f6;
+  color: #1a1a1a;
+}
+
+.info::before {
+  content: 'ⓘ';
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #eff6ff;
+}
+
+/* Contenedor del mensaje */
+.alerta-contenido {
+  flex: 1;
+  line-height: 1.5;
+}
+
+/* Botón cerrar minimalista */
+.cerrar {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.cerrar:hover {
+  color: #4b5563;
+}
+
+/* Animación de entrada */
+@keyframes aparecer {
+  from { 
+    opacity: 0; 
+    transform: translateX(20px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0);
+  }
+}

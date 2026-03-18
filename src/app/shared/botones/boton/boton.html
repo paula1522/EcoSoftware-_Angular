@@ -1,0 +1,17 @@
+<button 
+  [attr.type]="tipo"
+  class="btn custom-btn d-flex align-items-center justify-content-center gap-2"
+  [ngClass]="[
+    'btn-' + color,
+    size ? 'btn-' + size : '',
+    hoverColor ? 'hover-' + hoverColor : ''
+  ]"
+  [disabled]="deshabilitado">
+
+  <!-- Ícono opcional -->
+  <i *ngIf="icono" [ngClass]="icono"></i>
+
+  <!-- Texto opcional -->
+  <span *ngIf="texto">{{ texto }}</span>
+
+</button>

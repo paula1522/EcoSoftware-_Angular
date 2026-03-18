@@ -1,0 +1,51 @@
+<!-- BACKDROP -->
+<div class="modal-backdrop-custom" *ngIf="isOpen"></div>
+
+<!-- MODAL -->
+<div 
+  class="modal fade show d-block"
+  *ngIf="isOpen"
+  (click)="closeOnBackdrop($event)"
+>
+
+  <div 
+    class="modal-dialog"
+    [ngClass]="{
+      'modal-sm': size === 'sm',
+      'modal-md': size === 'md',
+      'modal-lg': size === 'lg'
+    }"
+  >
+    <div class="modal-content shadow-lg animate">
+
+      <!-- HEADER -->
+      <div 
+        class="modal-header text-white"
+        [ngStyle]="{ 'background': headerColor }"
+      >
+        <h5 class="modal-title">{{ title }}</h5>
+
+        <button 
+          *ngIf="showCloseButton" 
+          type="button" 
+          class="btn-close" 
+          (click)="close()"
+          [ngStyle]="{'color': 'grey'}"
+        ></button>
+      </div>
+
+      <!-- BODY (dinámico) -->
+      <div class="modal-body">
+        <ng-content></ng-content>
+      </div>
+      
+
+       <!-- FOOTER LIBRE -->
+      <div class="modal-footer">
+        <ng-content select="[modal-footer]"></ng-content>
+      </div>
+
+
+    </div>
+  </div>
+</div>
