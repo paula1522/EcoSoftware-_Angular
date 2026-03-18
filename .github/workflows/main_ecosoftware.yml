@@ -60,5 +60,5 @@ jobs:
         with:
           app-name: 'EcoSoftware'
           slot-name: 'Production'
-          package: dist/EscosoftwareAngular/browser
+          package: browser
           
