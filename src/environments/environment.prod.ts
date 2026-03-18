@@ -10,5 +10,5 @@
  */
 export const environment = {
   production: true,
-  apiUrl: 'https://api.ecosoftware.com/api'
+  apiUrl: 'https://ecosoftware-spring-boot.azurewebsites.net'
 };
