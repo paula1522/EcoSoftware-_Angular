@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, tap } from 'rxjs';
+import { Observable, Subject, tap, shareReplay } from 'rxjs';
 
 export interface PuntoReciclaje {
   id?: number;
@@ -27,16 +27,27 @@ export class PuntosReciclajeService {
   private readonly baseUrl = '/api/puntos';
   private readonly refreshSubject = new Subject<void>();
   readonly refresh$ = this.refreshSubject.asObservable();
+  private puntosCache$?: Observable<PuntosResponse>;
 
   constructor(private readonly http: HttpClient) {}
 
   private emitRefresh(): void {
     this.refreshSubject.next();
+    this.invalidarCachePuntos();
   }
 
-  /** Obtiene todos los puntos de reciclaje disponibles. */
+  private invalidarCachePuntos(): void {
+    this.puntosCache$ = undefined;
+  }
+
+  /** Obtiene todos los puntos de reciclaje disponibles (con caché). */
   getPuntos(): Observable<PuntosResponse> {
-    return this.http.get<PuntosResponse>(this.baseUrl);
+    if (!this.puntosCache$) {
+      this.puntosCache$ = this.http.get<PuntosResponse>(this.baseUrl).pipe(
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+    }
+    return this.puntosCache$;
   }
 
   /** Crea un nuevo punto en el backend. */

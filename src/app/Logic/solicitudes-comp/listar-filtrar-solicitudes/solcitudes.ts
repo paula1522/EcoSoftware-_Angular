@@ -6,20 +6,20 @@ import { COMPARTIR_IMPORTS } from '../../../shared/imports';
 import { ColumnaTabla, Tabla } from '../../../shared/tabla/tabla';
 import { Modal } from "../../../shared/modal/modal";
 import { Boton } from "../../../shared/botones/boton/boton";
-import { LocalidadNombrePipe } from "../../../core/pipes/LocalidadNombrePipe";
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { FieldConfig, FormComp } from '../../../shared/form/form.comp/form.comp';
 
 @Component({
   selector: 'app-solcitudes',
   standalone: true,
-  imports: [COMPARTIR_IMPORTS, Tabla, Modal, Boton, LocalidadNombrePipe, FormComp],
+  imports: [COMPARTIR_IMPORTS, Tabla, Modal, Boton, FormComp],
   templateUrl: './solcitudes.html',
   styleUrls: ['./solcitudes.css']
 })
 export class Solcitudes implements OnInit {
 
   solicitudes: ServiceModel[] = [];
+  todasLasSolicitudes: ServiceModel[] = [];
   selectedSolicitud: ServiceModel | null = null;
   motivoRechazo: string = '';
   selectedMotivo: string = '';
@@ -92,7 +92,10 @@ export class Solcitudes implements OnInit {
 
   listarSolicitudes(): void {
     this.solicitudesService.listar().subscribe({
-      next: (lista: ServiceModel[]) => this.solicitudes = lista || [],
+      next: (lista: ServiceModel[]) => {
+        this.todasLasSolicitudes = [...(lista || [])];
+        this.solicitudes = [...this.todasLasSolicitudes];
+      },
       error: (err) => console.error('❌ Error al listar solicitudes', err)
     });
   }
@@ -286,27 +289,22 @@ export class Solcitudes implements OnInit {
   // FILTROS
   // ========================
   aplicarFiltros(): void {
-    this.solicitudesService.listar().subscribe({
-      next: (lista: ServiceModel[]) => {
-        let resultados = lista || [];
-        if (this.estadoFilter) resultados = resultados.filter(r => r.estadoPeticion === this.estadoFilter);
-        if (this.localidadFilter) {
-          const loc = this.localidadFilter.trim().toLowerCase();
-          resultados = resultados.filter(r => (r.localidad || '').toLowerCase().includes(loc));
-        }
-        if (this.fechaDesde) {
-          const desde = new Date(this.fechaDesde);
-          resultados = resultados.filter(r => r.fechaCreacionSolicitud ? new Date(r.fechaCreacionSolicitud) >= desde : false);
-        }
-        if (this.fechaHasta) {
-          const hasta = new Date(this.fechaHasta);
-          hasta.setHours(23,59,59,999);
-          resultados = resultados.filter(r => r.fechaCreacionSolicitud ? new Date(r.fechaCreacionSolicitud) <= hasta : false);
-        }
-        this.solicitudes = resultados;
-      },
-      error: (err) => console.error(err)
-    });
+    let resultados = [...this.todasLasSolicitudes];
+    if (this.estadoFilter) resultados = resultados.filter(r => r.estadoPeticion === this.estadoFilter);
+    if (this.localidadFilter) {
+      const loc = this.localidadFilter.trim().toLowerCase();
+      resultados = resultados.filter(r => (r.localidad || '').toLowerCase().includes(loc));
+    }
+    if (this.fechaDesde) {
+      const desde = new Date(this.fechaDesde);
+      resultados = resultados.filter(r => r.fechaCreacionSolicitud ? new Date(r.fechaCreacionSolicitud) >= desde : false);
+    }
+    if (this.fechaHasta) {
+      const hasta = new Date(this.fechaHasta);
+      hasta.setHours(23,59,59,999);
+      resultados = resultados.filter(r => r.fechaCreacionSolicitud ? new Date(r.fechaCreacionSolicitud) <= hasta : false);
+    }
+    this.solicitudes = resultados;
   }
 
   limpiarFiltros(): void {
@@ -314,7 +312,7 @@ export class Solcitudes implements OnInit {
     this.localidadFilter = '';
     this.fechaDesde = '';
     this.fechaHasta = '';
-    this.listarSolicitudes();
+    this.solicitudes = [...this.todasLasSolicitudes];
   }
 
   // ========================
@@ -372,6 +370,4 @@ export class Solcitudes implements OnInit {
   onVerSolicitud = (item: ServiceModel) => this.abrirModalVerSolicitud(item);
   onEditarSolicitud = (item: ServiceModel) => this.abrirModalEdicion(item);
   onEliminarSolicitud = (item: ServiceModel) => this.eliminarSolicitud(item);
-
-  
 }

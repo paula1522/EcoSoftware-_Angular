@@ -33,20 +33,59 @@
           />
           <button type="button" class="ghost" (click)="usarMiUbicacion()">Ubicación actual</button>
         </div>
+
+        <div class="nearby-toolbar" [class.nearby-toolbar--active]="mostrarPuntosCercanos">
+          <button
+            type="button"
+            class="nearby-btn nearby-btn--find"
+            [disabled]="mostrarPuntosCercanos"
+            (click)="filtrarPuntosCercanos()">
+            Buscar cercanos
+          </button>
+
+          <button
+            type="button"
+            class="nearby-btn nearby-btn--reset"
+            [disabled]="!mostrarPuntosCercanos"
+            (click)="limpiarPuntosCercanos()">
+            Quitar filtro
+          </button>
+        </div>
+
+        <div class="nearby-status" *ngIf="mostrarPuntosCercanos">
+          <span class="nearby-status__dot"></span>
+          <span>{{ puntosFiltroCercano.length }} puntos cercanos activos</span>
+        </div>
       </div>
 
       <div class="panel-field">
         <label for="destino-select">Destino</label>
-        <select id="destino-select" [(ngModel)]="destinoSeleccionadoId" (change)="onDestinoChange()">
-          <option [ngValue]="null">Selecciona un punto...</option>
-          <option [ngValue]="-1">Otra dirección...</option>
-          <option
-            *ngFor="let punto of puntos"
-            [ngValue]="punto.id ?? null"
-          >
-            {{ punto.nombre }}
-          </option>
-        </select>
+        <div class="destino-dropdown" [class.destino-dropdown--open]="destinoDropdownAbierto">
+          <button
+            id="destino-select"
+            type="button"
+            class="destino-dropdown__trigger"
+            (click)="toggleDestinoDropdown()">
+            <span>{{ destinoSeleccionadoTexto }}</span>
+            <span class="destino-dropdown__arrow">▾</span>
+          </button>
+
+          <div class="destino-dropdown__menu" *ngIf="destinoDropdownAbierto">
+            <button type="button" class="destino-dropdown__item" (click)="seleccionarDestino(null)">
+              Selecciona un punto...
+            </button>
+            <button type="button" class="destino-dropdown__item" (click)="seleccionarDestino(-1)">
+              Otra dirección...
+            </button>
+            <button
+              type="button"
+              class="destino-dropdown__item"
+              *ngFor="let punto of puntos"
+              (click)="seleccionarDestino(punto.id ?? null)">
+              {{ punto.nombre }}
+            </button>
+          </div>
+        </div>
       </div>
       <div class="panel-field" *ngIf="destinoSeleccionadoId === -1">
         <label for="destino-input"></label>

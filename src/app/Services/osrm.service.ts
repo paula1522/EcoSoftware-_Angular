@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface OsrmNearestResponse {
   waypoints?: Array<{ location: [number, number] }>;
@@ -10,6 +11,8 @@ export interface OsrmNearestResponse {
   providedIn: 'root',
 })
 export class OsrmService {
+  private readonly baseApiUrl = environment.apiUrl;
+
   constructor(private readonly http: HttpClient) {}
 
   public calcularRuta<T>(
@@ -25,7 +28,7 @@ export class OsrmService {
       .set('steps', 'true')
       .set('alternatives', String(alternatives));
 
-    return this.http.get<T>('/api/route', { params });
+    return this.http.get<T>(`${this.baseApiUrl}/route`, { params });
   }
 
   public nearest(lat: number, lng: number, number = 1): Observable<OsrmNearestResponse> {
@@ -34,6 +37,6 @@ export class OsrmService {
       .set('lng', String(lng))
       .set('number', String(number));
 
-    return this.http.get<OsrmNearestResponse>('/api/nearest', { params });
+    return this.http.get<OsrmNearestResponse>(`${this.baseApiUrl}/nearest`, { params });
   }
 }

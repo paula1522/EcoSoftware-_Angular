@@ -30,7 +30,7 @@ import { AceptarRechazarUsuarios } from '../../Logic/usuarios.comp/aceptar-recha
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
 import { MapaComponent } from '../mapa/mapa.component';
 import { firstValueFrom } from 'rxjs';
-import { Boton } from '../../shared/botones/boton/boton';
+import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 
 
 @Component({
@@ -38,7 +38,7 @@ import { Boton } from '../../shared/botones/boton/boton';
   imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
     RechazadasMotivoChartComponent, PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla, Solcitudes,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Boton],
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -56,18 +56,30 @@ export class Administrador {
   mensaje: string = '';
   cargandoReporte: boolean = false;
 
-  modalRegistroOpen = false;
-  modalCargaMasivaOpen = false;
   vistaActual: 'panel' | 'editar-perfil' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'Aceptar-Rechazar-Usuarios' | 'puntos' | 'capacitaciones' | 'noticias' = 'noticias';
 
   menuAbierto = true;
   perfilMenuAbierto = false;
   puntos: PuntoReciclaje[] = [];
-  vistaPuntos: 'mis' | 'todos' = 'mis';
+  puntosFiltrados: PuntoReciclaje[] = [];
+  vistaPuntos: 'mis' | 'todos' = 'todos';
+  filtroTipoResiduo: string = ''; // Nuevo filtro
+  tiposResiduoDisponibles: string[] = [
+    'Plástico',
+    'Papel',
+    'Vidrio',
+    'Metal',
+    'Orgánico',
+    'Electrónico',
+    'Mixto',
+    'Otro'
+  ];
   mostrarModalRegistrarPunto = false;
   guardandoPunto = false;
   estadoRegistroPunto = '';
   errorRegistroPunto = '';
+  editandoPunto = false;
+  puntoEditandoId: number | null = null;
   nuevoPunto = {
     nombre: '',
     direccion: '',
@@ -76,10 +88,23 @@ export class Administrador {
     descripcion: '',
   };
 
+  columnasPuntos: ColumnaTabla[] = [
+    { campo: 'nombre', titulo: 'Nombre' },
+    { campo: 'direccion', titulo: 'Dirección' },
+    { campo: 'horario', titulo: 'Horario' },
+    { campo: 'tipoResiduo', titulo: 'Tipo de residuo' },
+  ];
+
+  puntosCellTemplates: { [campo: string]: (item: any) => string } = {
+    horario: (item: any) => item?.horario || 'No informado',
+    tipoResiduo: (item: any) => item?.tipoResiduo || item?.tipo_residuo || 'General',
+  };
+
   // botones de alternar vistas
   mostrarNuevoUsuario = false;
   capacitaciones = false;
   registro: any;
+  private readonly habilitarDebugSolicitudes = false;
 
   // Referencias a gráficos para captura
   @ViewChild('usuariosGrafico') usuariosGrafico!: ElementRef;
@@ -111,35 +136,74 @@ export class Administrador {
           latitud: p.latitud !== null && p.latitud !== undefined ? parseFloat(String(p.latitud)) : null,
           longitud: p.longitud !== null && p.longitud !== undefined ? parseFloat(String(p.longitud)) : null
         }));
+        this.actualizarPuntosFiltrados();
       },
       error: (err: unknown) => {
         console.error('Error al cargar puntos:', err);
+        this.puntosFiltrados = [];
       }
     });
   }
 
-  get puntosFiltrados(): PuntoReciclaje[] {
-    if (this.vistaPuntos === 'todos') {
-      return this.puntos;
+  private actualizarPuntosFiltrados(): void {
+    let resultado = [...this.puntos];
+
+    // Filtrar por vista (mis puntos vs todos)
+    if (this.vistaPuntos === 'mis') {
+      const userId = this.authService.getUserId();
+      if (userId == null) {
+        this.puntosFiltrados = [];
+        return;
+      }
+      resultado = resultado.filter((punto: any) => {
+        const ownerId = punto?.usuario_id ?? punto?.usuarioId ?? punto?.idUsuario ?? null;
+        return Number(ownerId) === Number(userId);
+      });
     }
 
-    const userId = this.authService.getUserId();
-    if (userId == null) {
-      return [];
+    // Filtrar por tipo de residuo si está seleccionado
+    if (this.filtroTipoResiduo.trim()) {
+      resultado = resultado.filter((punto: any) => {
+        const tipoActual = (punto?.tipoResiduo || punto?.tipo_residuo || '').toString().toLowerCase();
+        return tipoActual.includes(this.filtroTipoResiduo.toLowerCase());
+      });
     }
 
-    return this.puntos.filter((punto: any) => {
-      const ownerId = punto?.usuario_id ?? punto?.usuarioId ?? punto?.idUsuario ?? null;
-      return Number(ownerId) === Number(userId);
-    });
+    this.puntosFiltrados = resultado;
   }
 
   mostrarMisPuntos(): void {
     this.vistaPuntos = 'mis';
+    this.actualizarPuntosFiltrados();
   }
 
   mostrarTodosLosPuntos(): void {
     this.vistaPuntos = 'todos';
+    this.actualizarPuntosFiltrados();
+  }
+
+  filtrarPorTipoResiduo(): void {
+    this.actualizarPuntosFiltrados();
+  }
+
+  limpiarFiltroResiduo(): void {
+    this.filtroTipoResiduo = '';
+    this.actualizarPuntosFiltrados();
+  }
+
+  /**
+   * Calcula la distancia en km entre dos puntos usando la fórmula de Haversine
+   */
+  private calcularDistancia(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLng = (lng2 - lng1) * (Math.PI / 180);
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   }
 
   irAPaginaMapa(): void {
@@ -149,6 +213,9 @@ export class Administrador {
   abrirModalRegistrarPunto(): void {
     this.errorRegistroPunto = '';
     this.estadoRegistroPunto = '';
+    this.editandoPunto = false;
+    this.puntoEditandoId = null;
+    this.reiniciarFormularioPunto();
     this.mostrarModalRegistrarPunto = true;
   }
 
@@ -156,6 +223,8 @@ export class Administrador {
     this.mostrarModalRegistrarPunto = false;
     this.errorRegistroPunto = '';
     this.estadoRegistroPunto = '';
+    this.editandoPunto = false;
+    this.puntoEditandoId = null;
   }
 
   async registrarPunto(): Promise<void> {
@@ -188,18 +257,39 @@ export class Administrador {
         usuario_id: usuarioId,
       };
 
-      this.estadoRegistroPunto = 'Guardando punto...';
+      this.estadoRegistroPunto = this.editandoPunto ? 'Actualizando punto...' : 'Guardando punto...';
 
-      this.puntosService.crearPunto(payload).subscribe({
-        next: () => {
+      const request$ = this.editandoPunto && this.puntoEditandoId != null
+        ? this.puntosService.actualizarPunto(this.puntoEditandoId, payload)
+        : this.puntosService.crearPunto(payload);
+
+      request$.subscribe({
+        next: (response: any) => {
           this.guardandoPunto = false;
           this.estadoRegistroPunto = '';
-          this.cargarPuntos();
+          
+          // Si es creación de nuevo punto, agregarlo inmediatamente a la tabla
+          if (!this.editandoPunto) {
+            const datosPunto = response?.data || response;
+            if (datosPunto) {
+              const nuevoPunto: PuntoReciclaje = {
+                ...datosPunto,
+                latitud: datosPunto.latitud !== null && datosPunto.latitud !== undefined ? parseFloat(String(datosPunto.latitud)) : null,
+                longitud: datosPunto.longitud !== null && datosPunto.longitud !== undefined ? parseFloat(String(datosPunto.longitud)) : null
+              };
+              this.puntos = [...this.puntos, nuevoPunto];
+              this.actualizarPuntosFiltrados();
+            }
+          } else {
+            // Si es actualización, recargar desde servidor
+            this.cargarPuntos();
+          }
+          
           this.reiniciarFormularioPunto();
           this.cerrarModalRegistrarPunto();
         },
         error: (err) => {
-          console.error('Error al registrar punto', err);
+          console.error(this.editandoPunto ? 'Error al actualizar punto' : 'Error al registrar punto', err);
           this.guardandoPunto = false;
           this.estadoRegistroPunto = '';
           const detalle =
@@ -208,9 +298,9 @@ export class Administrador {
             (typeof err?.error === 'string' ? err.error : '') ||
             err?.message ||
             '';
-          this.errorRegistroPunto = detalle
-            ? `No se pudo registrar el punto: ${detalle}`
-            : 'No se pudo registrar el punto. Intenta nuevamente.';
+          this.errorRegistroPunto = this.editandoPunto
+            ? (detalle ? `No se pudo actualizar el punto: ${detalle}` : 'No se pudo actualizar el punto. Intenta nuevamente.')
+            : (detalle ? `No se pudo registrar el punto: ${detalle}` : 'No se pudo registrar el punto. Intenta nuevamente.');
         }
       });
     } catch (error: any) {
@@ -220,6 +310,73 @@ export class Administrador {
       const detalle = typeof error?.message === 'string' ? error.message : '';
       this.errorRegistroPunto = detalle || 'No se pudo convertir la dirección. Intenta con una dirección más específica.';
     }
+  }
+
+  editarPuntoDesdeTabla(punto: any): void {
+    const id = this.obtenerIdPunto(punto);
+    if (id == null) {
+      this.errorRegistroPunto = 'No se pudo identificar el punto a editar.';
+      return;
+    }
+
+    this.editandoPunto = true;
+    this.puntoEditandoId = id;
+    this.errorRegistroPunto = '';
+    this.estadoRegistroPunto = '';
+    this.nuevoPunto = {
+      nombre: punto?.nombre || '',
+      direccion: punto?.direccion || punto?.ubicacion || '',
+      tipoResiduo: punto?.tipoResiduo || punto?.tipo_residuo || '',
+      horario: punto?.horario || '',
+      descripcion: punto?.descripcion || '',
+    };
+    this.mostrarModalRegistrarPunto = true;
+  }
+
+  eliminarPuntoDesdeTabla(punto: any): void {
+    const id = this.obtenerIdPunto(punto);
+    if (id == null) {
+      return;
+    }
+
+    const nombre = punto?.nombre || 'este punto';
+    const confirmado = window.confirm(`¿Deseas eliminar ${nombre}? Esta acción no se puede deshacer.`);
+    if (!confirmado) {
+      return;
+    }
+
+    this.puntosService.eliminarPunto(id).subscribe({
+      next: () => {
+        this.cargarPuntos();
+      },
+      error: (err) => {
+        console.error('Error al eliminar punto:', err);
+      }
+    });
+  }
+
+  verPuntoDesdeTabla(punto: any): void {
+    const lat = Number(punto?.latitud);
+    const lng = Number(punto?.longitud);
+
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      this.router.navigate(['/puntos-reciclaje'], {
+        queryParams: { lat, lng, nombre: punto?.nombre || '' }
+      });
+      return;
+    }
+
+    this.irAPaginaMapa();
+  }
+
+  private obtenerIdPunto(punto: any): number | null {
+    const raw = punto?.id ?? punto?.idPunto ?? punto?.id_punto ?? null;
+    if (raw == null) {
+      return null;
+    }
+
+    const id = Number(raw);
+    return Number.isNaN(id) ? null : id;
   }
 
   private normalizeAddress(termino: string): string {
@@ -458,8 +615,10 @@ export class Administrador {
 
     }
 
-    // DEBUGGING: Cargar datos reales de la API para verificar
-    this.cargarDatosRealesParaDebug();
+    // DEBUGGING opcional (puede impactar rendimiento si hay muchos registros)
+    if (this.habilitarDebugSolicitudes) {
+      this.cargarDatosRealesParaDebug();
+    }
   }
 
   private cargarDatosRealesParaDebug(): void {
@@ -565,6 +724,10 @@ export class Administrador {
   // ========================
   cambiarVista(vista: 'panel' | 'editar-perfil' | 'Aceptar-Rechazar-Usuarios' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias') {
     this.vistaActual = vista;
+    // Cargar puntos cuando se abre la vista de puntos
+    if (vista === 'puntos') {
+      this.cargarPuntos();
+    }
   }
 
   // ========================
@@ -637,27 +800,4 @@ export class Administrador {
   editarPerfil(): void {
     this.vistaActual = 'editar-perfil';
   }
-
-  abrirModalRegistro() {
-    this.modalRegistroOpen = true;
-  }
-
-  abrirModalCargaMasiva() {
-    this.modalCargaMasivaOpen = true;
-  }
-
-  procesarArchivo(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const archivo = input.files[0];
-      console.log('Archivo seleccionado:', archivo);
-      // Aquí puedes procesarlo o guardarlo en una variable para subirlo
-    }
-  }
-
-  subirArchivo() {
-    console.log('Subiendo archivo...');
-    // Aquí va la lógica para enviar el archivo al backend
-  }
 }
-

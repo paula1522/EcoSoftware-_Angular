@@ -77,6 +77,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private markerIndex = new Map<number, Marker>();
   private routeLine?: Polyline;
   private origenMarker?: Marker;
+  private destinoMarker?: Marker;
   private cursorMarker?: Marker;
   private origenCoords?: { lat: number; lng: number };
   private puntosSub?: Subscription;
@@ -95,6 +96,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   public pasosVisibles: RutaPaso[] = [];
   public rutaCalculando = false;
   public rutaError = '';
+  public mostrarPuntosCercanos = false;
+  public puntosFiltroCercano: PuntoReciclaje[] = [];
+  public destinoDropdownAbierto = false;
 
   constructor(
     private readonly puntosService: PuntosReciclajeService,
@@ -137,6 +141,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.refreshSub?.unsubscribe();
     this.routeLine?.remove();
     this.origenMarker?.remove();
+    this.destinoMarker?.remove();
     this.cursorMarker?.remove();
     this.limpiarMarcadores();
     this.mapInstance?.remove();
@@ -234,6 +239,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       async (position) => {
         const { latitude, longitude } = position.coords;
         this.origenCoords = { lat: latitude, lng: longitude };
+        
+        // Guardar ubicación actual en localStorage
+        localStorage.setItem('ubicacionActual', JSON.stringify({
+          lat: latitude,
+          lng: longitude,
+          timestamp: new Date().toISOString()
+        }));
+        
         this.rutaError = '';
         this.mapInstance?.setView([latitude, longitude], 15);
         await this.actualizarDireccionDesdeCoordenadas(latitude, longitude);
@@ -251,6 +264,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.mostrarPasosOverlay = false;
     this.pasosVisibles = [];
     this.routeLine?.remove();
+    this.destinoMarker?.remove();
 
     let origen: { lat: number; lng: number };
     try {
@@ -360,6 +374,12 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.pasosVisibles = ruta.pasos;
     this.mostrarPasosOverlay = true;
     this.dibujarRuta(ruta.geometria);
+
+    const ultimoPunto = ruta.geometria[ruta.geometria.length - 1];
+    if (ultimoPunto) {
+      const [lng, lat] = ultimoPunto;
+      this.marcarDestino({ lat, lng });
+    }
   }
 
   public centrarEnPunto(punto: PuntoReciclaje): void {
@@ -469,6 +489,22 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
         html: '<div class="origin-dot">🟢</div>',
         iconSize: [32, 32],
         iconAnchor: [16, 16],
+      }),
+    }).addTo(this.mapInstance);
+  }
+
+  private marcarDestino(coords: { lat: number; lng: number }): void {
+    if (!this.mapInstance) {
+      return;
+    }
+
+    this.destinoMarker?.remove();
+    this.destinoMarker = marker([coords.lat, coords.lng], {
+      icon: divIcon({
+        className: 'destination-dot-wrapper',
+        html: '<div class="destination-dot"></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
       }),
     }).addTo(this.mapInstance);
   }
@@ -693,6 +729,29 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
 
+  public get destinoSeleccionadoTexto(): string {
+    if (this.destinoSeleccionadoId == null) {
+      return 'Selecciona un punto...';
+    }
+
+    if (this.destinoSeleccionadoId === -1) {
+      return 'Otra dirección...';
+    }
+
+    const destino = this.puntos.find((p) => p.id === this.destinoSeleccionadoId);
+    return destino?.nombre ?? 'Selecciona un punto...';
+  }
+
+  public toggleDestinoDropdown(): void {
+    this.destinoDropdownAbierto = !this.destinoDropdownAbierto;
+  }
+
+  public seleccionarDestino(valor: number | null): void {
+    this.destinoSeleccionadoId = valor;
+    this.destinoDropdownAbierto = false;
+    this.onDestinoChange();
+  }
+
   public irAPaso(paso: RutaPaso): void {
     if (!this.mapInstance) {
       return;
@@ -746,5 +805,79 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       default:
         return 0;
     }
+  }
+
+  /**
+   * Calcula la distancia en km entre dos puntos usando la fórmula de Haversine
+   */
+  private calcularDistancia(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLng = (lng2 - lng1) * (Math.PI / 180);
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  /**
+   * Obtiene la ubicación actual del localStorage y muestra los puntos cercanos
+   */
+  public filtrarPuntosCercanos(): void {
+    const ubicacionGuardada = localStorage.getItem('ubicacionActual');
+    
+    if (!ubicacionGuardada) {
+      this.rutaError = 'Por favor, activa tu ubicación actual primero.';
+      return;
+    }
+
+    try {
+      const ubicacion = JSON.parse(ubicacionGuardada);
+      const { lat, lng } = ubicacion;
+
+      if (!lat || !lng) {
+        this.rutaError = 'Ubicación inválida. Intenta nuevamente.';
+        return;
+      }
+
+      // Calcular distancia para cada punto
+      const puntosConDistancia = this.puntos.map(punto => ({
+        ...punto,
+        distancia: this.calcularDistancia(lat, lng, Number(punto.latitud || 0), Number(punto.longitud || 0))
+      }));
+
+      // Ordenar por distancia (menor primero) y tomar los 10 más cercanos
+      const puntosCercanos = puntosConDistancia
+        .sort((a, b) => (a.distancia || 0) - (b.distancia || 0))
+        .slice(0, 10);
+
+      this.puntosFiltroCercano = puntosCercanos;
+      this.mostrarPuntosCercanos = true;
+      this.rutaError = '';
+
+      // Actualizar vista del mapa para mostrar solo estos puntos
+      this.limpiarMarcadores();
+      puntosCercanos.forEach((punto) => this.crearMarcador(punto));
+      
+      if (puntosCercanos.length > 0) {
+        const bounds = latLngBounds(this.dataMarkers.map((mk) => mk.getLatLng()));
+        this.mapInstance?.fitBounds(bounds, { padding: [24, 24] });
+      }
+    } catch (error) {
+      console.error('Error procesando ubicación:', error);
+      this.rutaError = 'Error al procesar tu ubicación.';
+    }
+  }
+
+  /**
+   * Limpia el filtro de puntos cercanos y vuelve a mostrar todos
+   */
+  public limpiarPuntosCercanos(): void {
+    this.mostrarPuntosCercanos = false;
+    this.puntosFiltroCercano = [];
+    this.rutaError = '';
+    this.cargarPuntos();
   }
 }
