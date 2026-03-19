@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ServiceModel } from '../Models/solicitudes.model';
 
@@ -27,10 +27,8 @@ export class Service {
   obtenerIdUsuarioActual(): number {
     throw new Error('Method not implemented.');
   }
-
-  private api = 'http://localhost:8082/api/solicitudes';
+  private api = 'https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes';
   solicitud: ServiceModel[] = [];
-  private solicitudesCache$?: Observable<ServiceModel[]>;
 
   constructor(private http: HttpClient) {}
 
@@ -39,16 +37,7 @@ export class Service {
   // ================================
 
   listar(): Observable<ServiceModel[]> {
-    if (!this.solicitudesCache$) {
-      this.solicitudesCache$ = this.http.get<ServiceModel[]>(this.api).pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
-      );
-    }
-    return this.solicitudesCache$;
-  }
-
-  private invalidarCacheSolicitudes(): void {
-    this.solicitudesCache$ = undefined;
+    return this.http.get<ServiceModel[]>(this.api);
   }
 
   obtenerPorId(id: number): Observable<ServiceModel> {
@@ -56,21 +45,15 @@ export class Service {
   }
 
   crearSolicitud(solicitud: ServiceModel): Observable<ServiceModel> {
-    return this.http.post<ServiceModel>(this.api, solicitud).pipe(
-      tap(() => this.invalidarCacheSolicitudes())
-    );
+    return this.http.post<ServiceModel>(this.api, solicitud);
   }
 
   actualizarSolicitud(id: number, solicitud: ServiceModel): Observable<ServiceModel> {
-    return this.http.put<ServiceModel>(`${this.api}/${id}`, solicitud).pipe(
-      tap(() => this.invalidarCacheSolicitudes())
-    );
+    return this.http.put<ServiceModel>(`${this.api}/${id}`, solicitud);
   }
 
   eliminarSolicitud(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/${id}`).pipe(
-      tap(() => this.invalidarCacheSolicitudes())
-    );
+    return this.http.delete<void>(`${this.api}/${id}`);
   }
 
   listarPorUsuario(id: number): Observable<ServiceModel[]> {
@@ -93,17 +76,13 @@ export class Service {
   // ================================
 
   aceptarSolicitud(id: number): Observable<ServiceModel> {
-    return this.http.post<ServiceModel>(`${this.api}/${id}/aceptar`, {}).pipe(
-      tap(() => this.invalidarCacheSolicitudes())
-    );
+    return this.http.post<ServiceModel>(`${this.api}/${id}/aceptar`, {});
   }
 
   rechazarSolicitud(id: number, motivo: string): Observable<ServiceModel> {
     const body = { razon: motivo };
     console.log('[rechazarSolicitud] enviando:', { id, motivo, body });
-    return this.http.post<ServiceModel>(`${this.api}/${id}/rechazar`, body).pipe(
-      tap(() => this.invalidarCacheSolicitudes())
-    );
+    return this.http.post<ServiceModel>(`${this.api}/${id}/rechazar`, body);
   }
 
   // ================================
