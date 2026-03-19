@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, tap, shareReplay } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface PuntoReciclaje {
   id?: number;
@@ -24,7 +25,8 @@ export type GenericResponse<T = unknown> = ApiResponse<T>;
 
 @Injectable({ providedIn: 'root' })
 export class PuntosReciclajeService {
-  private readonly baseUrl = '/api/puntos';
+  private readonly apiBaseUrl = environment.apiUrl.replace(/\/$/, '');
+  private readonly baseUrl = `${this.apiBaseUrl}/api/puntos`;
   private readonly refreshSubject = new Subject<void>();
   readonly refresh$ = this.refreshSubject.asObservable();
   private puntosCache$?: Observable<PuntosResponse>;

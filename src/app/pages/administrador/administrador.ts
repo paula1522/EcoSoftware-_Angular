@@ -245,16 +245,13 @@ export class Administrador {
       const payload: any = {
         nombre: this.nuevoPunto.nombre.trim(),
         direccion: this.nuevoPunto.direccion.trim(),
-        ubicacion: this.nuevoPunto.direccion.trim(),
         tipoResiduo: this.nuevoPunto.tipoResiduo.trim(),
-        tipo_residuo: this.nuevoPunto.tipoResiduo.trim(),
         horario: this.nuevoPunto.horario.trim(),
         descripcion: this.nuevoPunto.descripcion.trim(),
         latitud: coords.lat,
         longitud: coords.lng,
         imagen: null,
         usuarioId,
-        usuario_id: usuarioId,
       };
 
       this.estadoRegistroPunto = this.editandoPunto ? 'Actualizando punto...' : 'Guardando punto...';
