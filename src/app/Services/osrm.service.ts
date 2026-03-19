@@ -11,7 +11,7 @@ export interface OsrmNearestResponse {
   providedIn: 'root',
 })
 export class OsrmService {
-  private readonly baseApiUrl = environment.apiUrl;
+  private readonly baseApiUrl = environment.osrmUrl.replace(/\/$/, '');
 
   constructor(private readonly http: HttpClient) {}
 
@@ -21,22 +21,24 @@ export class OsrmService {
     alternatives = 2
   ): Observable<T> {
     const params = new HttpParams()
-      .set('origin', `${origin.lng},${origin.lat}`)
-      .set('dest', `${dest.lng},${dest.lat}`)
       .set('overview', 'full')
       .set('geometries', 'geojson')
       .set('steps', 'true')
-      .set('alternatives', String(alternatives));
+      .set('alternatives', alternatives > 0 ? 'true' : 'false');
 
-    return this.http.get<T>(`${this.baseApiUrl}/route`, { params });
+    return this.http.get<T>(
+      `${this.baseApiUrl}/route/v1/driving/${origin.lng},${origin.lat};${dest.lng},${dest.lat}`,
+      { params }
+    );
   }
 
   public nearest(lat: number, lng: number, number = 1): Observable<OsrmNearestResponse> {
     const params = new HttpParams()
-      .set('lat', String(lat))
-      .set('lng', String(lng))
       .set('number', String(number));
 
-    return this.http.get<OsrmNearestResponse>(`${this.baseApiUrl}/nearest`, { params });
+    return this.http.get<OsrmNearestResponse>(
+      `${this.baseApiUrl}/nearest/v1/driving/${lng},${lat}`,
+      { params }
+    );
   }
 }

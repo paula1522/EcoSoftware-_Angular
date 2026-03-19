@@ -6,7 +6,7 @@ import { AuthService } from '../auth.service';
 export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
-  const isRoutingProxyRequest = /\/(api\/)?(route|nearest)(?:[/?#]|$)/.test(req.url);
+  const isRoutingProxyRequest = /(?:^|\/)(osrm\/)?(route|nearest)(?:\/v1\/|[/?#]|$)/.test(req.url) || req.url.includes('router.project-osrm.org');
   const isPublicPuntosRequest = req.method === 'GET' && /\/api\/puntos(?:[/?#]|$)/.test(req.url);
   const masked = token ? (token.length > 16 ? token.slice(0,8) + '...' + token.slice(-6) : token) : null;
   console.log('[AuthInterceptor] token?', !!token, 'masked:', masked);
