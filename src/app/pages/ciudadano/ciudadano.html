@@ -157,7 +157,9 @@
             [columnas]="columnasPuntos"
             [data]="puntosFiltrados"
             [cellTemplates]="puntosCellTemplates"
-            [mostrarAcciones]="false"
+            [mostrarAcciones]="true"
+            [accionesVisibles]="['ver']"
+            (ver)="verPuntoDesdeTabla($event)"
             titulo="Todos los puntos">
           </app-tabla>
         </div>
