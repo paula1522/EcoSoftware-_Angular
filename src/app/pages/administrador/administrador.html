@@ -29,6 +29,44 @@
 
       <!-- Auth status removed -->
 
+      <div class="admin-kpi-grid">
+        <article class="admin-kpi-card admin-kpi-card-emerald">
+          <div class="admin-kpi-head">
+            <span class="admin-kpi-icon"><i class="bi bi-people"></i></span>
+            <span class="admin-kpi-label">Usuarios registrados</span>
+          </div>
+          <strong class="admin-kpi-value">{{ formatMetric(totalUsuarios) }}</strong>
+          <small class="admin-kpi-note">Base total de usuarios presentes en la plataforma</small>
+        </article>
+
+        <article class="admin-kpi-card admin-kpi-card-blue">
+          <div class="admin-kpi-head">
+            <span class="admin-kpi-icon"><i class="bi bi-clipboard-data"></i></span>
+            <span class="admin-kpi-label">Solicitudes registradas</span>
+          </div>
+          <strong class="admin-kpi-value">{{ formatMetric(totalSolicitudes) }}</strong>
+          <small class="admin-kpi-note">Volumen consolidado de solicitudes de recolección</small>
+        </article>
+
+        <article class="admin-kpi-card admin-kpi-card-forest">
+          <div class="admin-kpi-head">
+            <span class="admin-kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+            <span class="admin-kpi-label">Usuarios pendientes</span>
+          </div>
+          <strong class="admin-kpi-value">{{ formatMetric(totalUsuariosPendientes) }}</strong>
+          <small class="admin-kpi-note">Registros que requieren validación administrativa</small>
+        </article>
+
+        <article class="admin-kpi-card admin-kpi-card-teal">
+          <div class="admin-kpi-head">
+            <span class="admin-kpi-icon"><i class="bi bi-geo-alt"></i></span>
+            <span class="admin-kpi-label">Puntos registrados</span>
+          </div>
+          <strong class="admin-kpi-value">{{ formatMetric(totalPuntos) }}</strong>
+          <small class="admin-kpi-note">Cobertura actual de puntos de reciclaje en el sistema</small>
+        </article>
+      </div>
+
       <!-- FILA DE BOTONES DE REPORTES -->
       <div class="reportes-buttons-row mb-4">
         <button class="btn btn-success me-2" (click)="generarReporteUsuarios()" [disabled]="cargandoReporte">
@@ -45,8 +83,10 @@
       <div class="analytics-grid">
 
         <!-- Gráfico 1: Usuarios por Localidad (Línea/Barras) -->
-        <div class="analytics-card">
-          <h6 class="card-title">Usuarios por Localidad</h6>
+        <div class="analytics-card analytics-card-olive">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Usuarios por Localidad</h6>
+          </header>
           <div class="chart-container" #usuariosGrafico>
             <app-grafico-usuarios-localidad></app-grafico-usuarios-localidad>
           </div>
@@ -55,8 +95,10 @@
         <!-- (Removed) Distribución por Barrio - usuario solicitó eliminar -->
 
         <!-- Gráfico 3: Solicitudes por Localidad -->
-        <div class="analytics-card">
-          <h6 class="card-title">Solicitudes por Localidad</h6>
+        <div class="analytics-card analytics-card-blue-tone">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Solicitudes por Localidad</h6>
+          </header>
           <div class="chart-container" #solicitudesLocalidadGrafico>
             <app-solicitudes-localidad-chart></app-solicitudes-localidad-chart>
           </div>
@@ -68,16 +110,20 @@
       <div class="analytics-grid mt-4">
 
         <!-- Rechazadas por Motivo -->
-        <div class="analytics-card">
-          <h6 class="card-title">Solicitudes Rechazadas</h6>
+        <div class="analytics-card analytics-card-forest-tone">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Solicitudes Rechazadas</h6>
+          </header>
           <div class="chart-container" #rechazadasGrafico>
             <app-rechazadas-motivo-chart></app-rechazadas-motivo-chart>
           </div>
         </div>
 
         <!-- Pendientes vs Aceptadas -->
-        <div class="analytics-card">
-          <h6 class="card-title">Estado de Solicitudes</h6>
+        <div class="analytics-card analytics-card-teal-tone">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Estado de Solicitudes</h6>
+          </header>
           <div class="chart-container" #estadoGrafico>
             <app-pendientes-aceptadas-chart></app-pendientes-aceptadas-chart>
           </div>

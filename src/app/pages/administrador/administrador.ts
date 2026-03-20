@@ -48,6 +48,10 @@ export class Administrador {
   usuarioActual: UsuarioModel | null = null;
   nombreUsuario: string = '';
   nombreRol: string = '';
+  totalUsuarios = 0;
+  totalSolicitudes = 0;
+  totalPuntos = 0;
+  totalUsuariosPendientes = 0;
 
   filtroNombre: string = '';
   filtroCorreo: string = '';
@@ -158,6 +162,7 @@ export class Administrador {
           latitud: p.latitud !== null && p.latitud !== undefined ? parseFloat(String(p.latitud)) : null,
           longitud: p.longitud !== null && p.longitud !== undefined ? parseFloat(String(p.longitud)) : null
         }));
+        this.totalPuntos = this.puntos.length;
         this.actualizarPuntosFiltrados();
       },
       error: (err: unknown) => {
@@ -593,6 +598,7 @@ export class Administrador {
 
     this.usuarioService.contarPendientes().subscribe({
       next: (pendientes: number) => {
+        this.totalUsuariosPendientes = pendientes;
 
         // Si hay pendientes → mostrar vista Aceptar/Rechazar
         if (pendientes > 0) {
@@ -615,6 +621,7 @@ export class Administrador {
     this.solicitudService.listar().subscribe({
       next: (data) => {
         this.solicitudes = data;
+        this.totalSolicitudes = data.length;
       },
       error: (err) => {
         console.error('Error al cargar solicitudes:', err);
@@ -763,6 +770,7 @@ export class Administrador {
           ...usuario,
           rol: this.obtenerNombreRol(usuario.rolId!)
         }));
+        this.totalUsuarios = lista.length;
 
         this.cargando = false;
         this.mensaje = `Se cargaron ${lista.length} usuario(s)`;
@@ -818,6 +826,13 @@ export class Administrador {
 
   editarPerfil(): void {
     this.vistaActual = 'editar-perfil';
+  }
+
+  formatMetric(value: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      maximumFractionDigits: value % 1 === 0 ? 0 : 1,
+      minimumFractionDigits: value % 1 === 0 ? 0 : 1,
+    }).format(value);
   }
 
 

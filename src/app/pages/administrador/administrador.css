@@ -5,8 +5,81 @@
 }
 
 .dashboard.administrador {
-  background: #f1f1f1;
+  background: linear-gradient(180deg, #f3f6f4 0%, #eef3ef 100%);
   min-height: 100vh;
+}
+
+.admin-kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.admin-kpi-card {
+  background: #ffffff;
+  border: 1px solid #dce8de;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(17, 67, 33, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 148px;
+  padding: 1.1rem 1.15rem;
+}
+
+.admin-kpi-head {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-kpi-icon {
+  align-items: center;
+  background: rgba(21, 101, 192, 0.08);
+  border-radius: 12px;
+  color: #14532d;
+  display: inline-flex;
+  font-size: 1.05rem;
+  height: 2.3rem;
+  justify-content: center;
+  width: 2.3rem;
+}
+
+.admin-kpi-card-emerald {
+  background: linear-gradient(180deg, #ffffff 0%, #eef8f1 100%);
+}
+
+.admin-kpi-card-blue {
+  background: linear-gradient(180deg, #ffffff 0%, #eef5fb 100%);
+}
+
+.admin-kpi-card-forest {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f8ef 100%);
+}
+
+.admin-kpi-card-teal {
+  background: linear-gradient(180deg, #ffffff 0%, #eef9f8 100%);
+}
+
+.admin-kpi-label {
+  color: #4b6350;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.admin-kpi-value {
+  color: #123b1d;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.admin-kpi-note {
+  color: #6e8374;
+  font-size: 0.82rem;
+  margin-top: auto;
 }
 
 .alertas-container {
@@ -86,15 +159,17 @@
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 20px;
+  margin-top: 1rem;
 }
 
 .reportes-buttons-row .btn {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  font-weight: 500;
+  padding: 12px 18px;
+  font-weight: 600;
   transition: all var(--transicion-rapida);
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(25, 135, 84, 0.12);
 }
 
 .reportes-buttons-row .btn:hover:not(:disabled) {
@@ -122,31 +197,60 @@
 
 /* TARJETA DE ANÁLISIS */
 .analytics-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
+  border-radius: 22px;
+  padding: 18px 18px 20px;
+  box-shadow: 0 18px 42px rgba(17, 67, 33, 0.08);
   transition: all var(--transicion-rapida);
   border: 1px solid rgba(25, 135, 84, 0.1);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.analytics-card::before {
+  content: '';
+  height: 5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.analytics-card-olive::before {
+  background: linear-gradient(90deg, #1b5e20 0%, #43a047 100%);
+}
+
+.analytics-card-blue-tone::before {
+  background: linear-gradient(90deg, #0d47a1 0%, #42a5f5 100%);
+}
+
+.analytics-card-forest-tone::before {
+  background: linear-gradient(90deg, #2e7d32 0%, #80cbc4 100%);
+}
+
+.analytics-card-teal-tone::before {
+  background: linear-gradient(90deg, #00695c 0%, #26a69a 100%);
+}
+
+.analytics-card-header {
+  margin-bottom: 0.5rem;
+  padding-top: 0.35rem;
 }
 
 .analytics-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.12);
   border-color: rgba(25, 135, 84, 0.2);
 }
 
 .analytics-card .card-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--verde-principal);
-  padding-bottom: 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #123b1d;
+  margin-bottom: 0;
+  letter-spacing: 0.01em;
 }
 
 /* CONTENEDOR DE GRÁFICOS */
@@ -158,6 +262,8 @@
   min-height: 300px;
   position: relative;
   width: 100%;
+  background: radial-gradient(circle at top right, rgba(25, 135, 84, 0.04), transparent 42%);
+  border-radius: 16px;
 }
 
 .chart-container canvas {
@@ -219,6 +325,10 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .analytics-grid {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -252,6 +362,12 @@
     grid-template-columns: 1fr;
   }
 
+}
+
+@media (max-width: 575.98px) {
+  .admin-kpi-grid {
+    grid-template-columns: 1fr;
+  }
 }
     
     .grafico-placeholder {

@@ -146,7 +146,7 @@ export class DashboardEmpresaComponent implements OnInit {
         labels: { style: { colors: '#547162' } }
       },
       yaxis: { labels: { style: { colors: '#365241', fontWeight: 600 } } },
-      colors: ['#1B5E20', '#2E7D32', '#4CAF50', '#5C6BC0', '#00897B', '#039BE5'],
+      colors: ['#0ea5e9'],
       dataLabels: { enabled: false },
       title: { text: '', align: 'left' },
       tooltip: {
@@ -258,7 +258,8 @@ export class DashboardEmpresaComponent implements OnInit {
         this.materialChartOptions = {
           ...this.materialChartOptions,
           xaxis: { ...this.materialChartOptions.xaxis, categories: categories.length ? categories : ['Sin datos'] },
-          series: [{ name: 'Cantidad', data: values.length ? values : [0] }]
+          series: [{ name: 'Cantidad', data: values.length ? values : [0] }],
+          colors: categories.length ? categories.map((category) => this.getColorMaterialMapa(category)) : ['#0ea5e9']
         };
         this.materialTotal = values.reduce((acc, current) => acc + current, 0);
         this.errorMaterial = normalized.length ? null : 'No hay materiales para mostrar.';
@@ -314,6 +315,15 @@ export class DashboardEmpresaComponent implements OnInit {
       this.pickFirstTextValue(item as Record<string, unknown>, ['cantidad', 'total', 'valor', 'peso', 'kilos']) ??
       'Sin tipo';
     return String(raw).trim() || 'Sin tipo';
+  }
+
+  private getColorMaterialMapa(tipo: string): string {
+    const normalized = (tipo || '').toLowerCase();
+    if (normalized.includes('papel')) return '#2563eb';
+    if (normalized.includes('plastico') || normalized.includes('plástico')) return '#fff200';
+    if (normalized.includes('metal') || normalized.includes('metálico')) return '#dc2626';
+    if (normalized.includes('vidrio')) return '#0f9d58';
+    return '#0ea5e9';
   }
 
   private getMaterialCantidad(item: EmpresaDashboardMaterial): number {
