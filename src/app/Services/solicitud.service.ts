@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ServiceModel } from '../Models/solicitudes.model';
+import { environment } from '../../environments/environment';
 
 // Interfaces para los datos de gráficos
 export interface PendientesAceptadas {

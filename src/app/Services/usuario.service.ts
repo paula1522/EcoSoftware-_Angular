@@ -5,6 +5,7 @@ import { catchError, map } from 'rxjs/operators';
 import { UsuarioModel } from '../Models/usuario';
 import { AuthResponse } from '../Models/api-responses';
 import { ApiService } from './api.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
