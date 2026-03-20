@@ -45,23 +45,33 @@ export class Usuario implements OnInit {
   formFiltros: FormGroup = new FormGroup({});
 
   fieldsFiltros: FieldConfig[] = [
-    { type: 'select', name: 'criterio', label: 'Criterio', cols: 4, options: [
-      { value: 'nombre', text: 'Nombre' },
-      { value: 'correo', text: 'Correo' },
-      { value: 'documento', text: 'Documento' }
-    ] },
+    {
+      type: 'select', name: 'criterio', label: 'Criterio', cols: 4, options: [
+        { value: 'nombre', text: 'Nombre' },
+        { value: 'correo', text: 'Correo' },
+        { value: 'documento', text: 'Documento' }
+      ]
+    },
     { type: 'select', name: 'rol', label: 'Rol', cols: 4 },
 
-    { type: 'text', name: 'nombre', label: 'Buscar por nombre', placeholder: 'Ingrese nombre', cols: 4,
-      showIf: () => this.formFiltros.get('criterio')?.value === 'nombre' },
-    { type: 'text', name: 'correo', label: 'Buscar por correo', placeholder: 'Ingrese correo', cols: 4,
-      showIf: () => this.formFiltros.get('criterio')?.value === 'correo' },
-    { type: 'text', name: 'documento', label: 'Buscar por documento', placeholder: 'Ingrese documento', cols: 4,
-      showIf: () => this.formFiltros.get('criterio')?.value === 'documento' },
-    { type: 'select', name: 'estado', label: 'Estado', cols: 4, options: [
-      { value: 'activo', text: 'Activo' },
-      { value: 'inactivo', text: 'Inactivo' }
-    ] }
+    {
+      type: 'text', name: 'nombre', label: 'Buscar por nombre', placeholder: 'Ingrese nombre', cols: 4,
+      showIf: () => this.formFiltros.get('criterio')?.value === 'nombre'
+    },
+    {
+      type: 'text', name: 'correo', label: 'Buscar por correo', placeholder: 'Ingrese correo', cols: 4,
+      showIf: () => this.formFiltros.get('criterio')?.value === 'correo'
+    },
+    {
+      type: 'text', name: 'documento', label: 'Buscar por documento', placeholder: 'Ingrese documento', cols: 4,
+      showIf: () => this.formFiltros.get('criterio')?.value === 'documento'
+    },
+    {
+      type: 'select', name: 'estado', label: 'Estado', cols: 4, options: [
+        { value: 'activo', text: 'Activo' },
+        { value: 'inactivo', text: 'Inactivo' }
+      ]
+    }
   ];
 
   // =========================
@@ -81,7 +91,7 @@ export class Usuario implements OnInit {
   }
 
 
- 
+
   // ============================
   // Roles
   // ============================
@@ -235,7 +245,7 @@ export class Usuario implements OnInit {
     this.modalEliminar.isOpen = true;
   }
 
- 
+
 
   abrirModalVer(usuario: UsuarioModel): void {
     this.usuarioSeleccionado = usuario;
@@ -320,57 +330,57 @@ export class Usuario implements OnInit {
   // ===============================
   // FILTROS
   // ===============================
-aplicarFiltros(): void {
-  this.cargando = true;
-  this.usuarioService.listar().subscribe({
-    next: (lista: UsuarioModel[]) => {
-      let resultados = lista || [];
+  aplicarFiltros(): void {
+    this.cargando = true;
+    this.usuarioService.listar().subscribe({
+      next: (lista: UsuarioModel[]) => {
+        let resultados = lista || [];
 
-      const filtros = this.formFiltros.value;
+        const filtros = this.formFiltros.value;
 
-if (filtros.nombre) {
-  const val = filtros.nombre.trim().toLowerCase();
-  resultados = resultados.filter(u => u.nombre?.toLowerCase().includes(val));
-}
+        if (filtros.nombre) {
+          const val = filtros.nombre.trim().toLowerCase();
+          resultados = resultados.filter(u => u.nombre?.toLowerCase().includes(val));
+        }
 
-if (filtros.correo) {
-  const val = filtros.correo.trim().toLowerCase();
-  resultados = resultados.filter(u => u.correo?.toLowerCase().includes(val));
-}
+        if (filtros.correo) {
+          const val = filtros.correo.trim().toLowerCase();
+          resultados = resultados.filter(u => u.correo?.toLowerCase().includes(val));
+        }
 
-if (filtros.documento) {
-  const val = filtros.documento.trim().toLowerCase();
-  resultados = resultados.filter(u => u.cedula?.toLowerCase().includes(val));
-}
+        if (filtros.documento) {
+          const val = filtros.documento.trim().toLowerCase();
+          resultados = resultados.filter(u => u.cedula?.toLowerCase().includes(val));
+        }
 
-if (filtros.rol) {
-  resultados = resultados.filter(u => u.rolId === Number(filtros.rol));
-}
+        if (filtros.rol) {
+          resultados = resultados.filter(u => u.rolId === Number(filtros.rol));
+        }
 
-if (filtros.estado) {
-  const estadoBool = filtros.estado === 'activo';
-  resultados = resultados.filter(u => u.estado === estadoBool);
-}
-      this.usuarios = resultados;
-      this.cargando = false;
-    },
-    error: () => {
-      this.mostrarAlertaGlobal('Error al filtrar usuarios', 'error');
-      this.cargando = false;
-    }
-  });
-}
+        if (filtros.estado) {
+          const estadoBool = filtros.estado === 'activo';
+          resultados = resultados.filter(u => u.estado === estadoBool);
+        }
+        this.usuarios = resultados;
+        this.cargando = false;
+      },
+      error: () => {
+        this.mostrarAlertaGlobal('Error al filtrar usuarios', 'error');
+        this.cargando = false;
+      }
+    });
+  }
 
   limpiarFiltro(): void {
     this.formFiltros.reset({
       criterio: 'nombre',
-  nombre: '',
-  correo: '',
-  documento: '',
-  rol: '',
-  estado: ''
-});
-this.cargarUsuarios();
+      nombre: '',
+      correo: '',
+      documento: '',
+      rol: '',
+      estado: ''
+    });
+    this.cargarUsuarios();
   }
 
   // ===============================
@@ -413,7 +423,7 @@ this.cargarUsuarios();
     });
   }
 
- 
+
 
   // ===============================
   // EDICIÓN DE USUARIO
@@ -425,29 +435,31 @@ this.cargarUsuarios();
       { type: 'text', name: 'telefono', label: 'Teléfono', placeholder: 'Teléfono', cols: 6 },
       { type: 'text', name: 'cedula', label: 'Documento', placeholder: 'Documento', cols: 6 },
       { type: 'email', name: 'correo', label: 'Correo', placeholder: 'Correo', cols: 6 },
-      { type: 'select', name: 'localidad', label: 'Localidad', cols: 6, options: [
-        { value: '', text: 'Seleccione' },
-        { value: 'Usaquen', text: 'Usaquén' },
-        { value: 'Chapinero', text: 'Chapinero' },
-        { value: 'Santa_Fe', text: 'Santa Fe' },
-        { value: 'San_Cristobal', text: 'San Cristóbal' },
-        { value: 'Usme', text: 'Usme' },
-        { value: 'Tunjuelito', text: 'Tunjuelito' },
-        { value: 'Bosa', text: 'Bosa' },
-        { value: 'Kennedy', text: 'Kennedy' },
-        { value: 'Fontibon', text: 'Fontibón' },
-        { value: 'Engativa', text: 'Engativá' },
-        { value: 'Suba', text: 'Suba' },
-        { value: 'Barrios_Unidos', text: 'Barrios Unidos' },
-        { value: 'Teusaquillo', text: 'Teusaquillo' },
-        { value: 'Los_Martires', text: 'Los Mártires' },
-        { value: 'Antonio_Nariño', text: 'Antonio Nariño' },
-        { value: 'Puente_Aranda', text: 'Puente Aranda' },
-        { value: 'Candelaria', text: 'Candelaria' },
-        { value: 'Rafael_Uribe_Uribe', text: 'Rafael Uribe Uribe' },
-        { value: 'Ciudad_Bolivar', text: 'Ciudad Bolívar' },
-        { value: 'Sumapaz', text: 'Sumapaz' }
-      ] },
+      {
+        type: 'select', name: 'localidad', label: 'Localidad', cols: 6, options: [
+          { value: '', text: 'Seleccione' },
+          { value: 'Usaquen', text: 'Usaquén' },
+          { value: 'Chapinero', text: 'Chapinero' },
+          { value: 'Santa_Fe', text: 'Santa Fe' },
+          { value: 'San_Cristobal', text: 'San Cristóbal' },
+          { value: 'Usme', text: 'Usme' },
+          { value: 'Tunjuelito', text: 'Tunjuelito' },
+          { value: 'Bosa', text: 'Bosa' },
+          { value: 'Kennedy', text: 'Kennedy' },
+          { value: 'Fontibon', text: 'Fontibón' },
+          { value: 'Engativa', text: 'Engativá' },
+          { value: 'Suba', text: 'Suba' },
+          { value: 'Barrios_Unidos', text: 'Barrios Unidos' },
+          { value: 'Teusaquillo', text: 'Teusaquillo' },
+          { value: 'Los_Martires', text: 'Los Mártires' },
+          { value: 'Antonio_Nariño', text: 'Antonio Nariño' },
+          { value: 'Puente_Aranda', text: 'Puente Aranda' },
+          { value: 'Candelaria', text: 'Candelaria' },
+          { value: 'Rafael_Uribe_Uribe', text: 'Rafael Uribe Uribe' },
+          { value: 'Ciudad_Bolivar', text: 'Ciudad Bolívar' },
+          { value: 'Sumapaz', text: 'Sumapaz' }
+        ]
+      },
       { type: 'text', name: 'direccion', label: 'Dirección', placeholder: 'Dirección', cols: 6 },
       { type: 'text', name: 'barrio', label: 'Barrio', placeholder: 'Barrio', cols: 6 },
     ];

@@ -8,7 +8,7 @@ import { ModeloRecoleccion, EstadoRecoleccion } from '../Models/modelo-recolecci
 })
 export class RecoleccionService {
 
-  private readonly URL = 'https://ecosoftware-spring-boot.azurewebsites.net/api/recolecciones';
+  private readonly URL = 'http://localhost:8082/api/recolecciones';
 
   constructor(private http: HttpClient) {}
 
@@ -28,6 +28,10 @@ export class RecoleccionService {
     return this.http.get<ModeloRecoleccion[]>(`${this.URL}/recolector/${id}`);
   }
 
+  listarTodas(): Observable<ModeloRecoleccion[]> {
+  return this.http.get<ModeloRecoleccion[]>(`${this.URL}`);
+}
+
   listarPorRuta(idRuta: number): Observable<ModeloRecoleccion[]> {
     return this.http.get<ModeloRecoleccion[]>(`${this.URL}/ruta/${idRuta}`);
   }
@@ -36,9 +40,9 @@ export class RecoleccionService {
     return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}/estado?estado=${estado}`, {});
   }
 
-  actualizarRecoleccion(id: number, recoleccion: ModeloRecoleccion): Observable<ModeloRecoleccion> {
-    return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}`, recoleccion);
-  }
+  actualizarRecoleccion(id: number, data: Partial<ModeloRecoleccion>): Observable<ModeloRecoleccion> {
+  return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}`, data);
+}
 
   eliminarLogicamente(id: number): Observable<void> {
     return this.http.delete<void>(`${this.URL}/${id}`);

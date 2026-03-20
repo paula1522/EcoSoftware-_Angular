@@ -1,106 +1,141 @@
-<div *ngIf="cargando">Cargando recolecciones...</div>
-<div *ngIf="error">{{ error }}</div>
+<div class="recolecciones-container">
 
-<app-tabla
-  *ngIf="!cargando && data.length > 0"
-  [titulo]="'Listado de Recolecciones'"
-  [iconosAcciones]="{
-    descargar: 'bi-plus-circle'
-  }"
-  [columnas]="columnas"
-  [data]="data"
-  (ver)="onVer($event)"
-  (editar)="onEditar($event)"
-  (eliminar)="onEliminar($event)">
-</app-tabla>
+  <!-- ======================= -->
+  <!-- FILTROS -->
+  <!-- ======================= -->
+  <div class="filtros-container p-3">
+    <div class="d-flex flex-wrap align-items-end gap-3">
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Estado:</label>
+        <select class="form-select" [(ngModel)]="estadoFilter">
+          <option value="">Todos</option>
+<option value="Pendiente">Pendiente</option>
+<option value="En_Progreso">En progreso</option>
+<option value="Completada">Completada</option>
+<option value="Fallida">Fallida</option>
+<option value="Cancelada">Cancelada</option>
+        </select>
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Recolector:</label>
+        <input type="text" class="form-control"
+          [(ngModel)]="recolectorFilter"
+          placeholder="ID recolector">
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Fecha Desde:</label>
+        <input type="date" class="form-control" [(ngModel)]="fechaDesde">
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Fecha Hasta:</label>
+        <input type="date" class="form-control" [(ngModel)]="fechaHasta">
+      </div>
+
+      <!-- BOTONES -->
+      <div class="d-flex gap-2 ms-auto">
+        <app-boton icono="bi bi-funnel"
+          color="custom-success-filled"
+          (click)="aplicarFiltros()"></app-boton>
+
+        <app-boton icono="bi bi-x-circle"
+          color="custom-gray-filled"
+          (click)="limpiarFiltros()"></app-boton>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!-- TABLA (SIEMPRE VISIBLE) -->
+  <!-- ======================= -->
+  <app-tabla
+    [titulo]="'Listado de Recolecciones'"
+    [columnas]="columnas"
+    [data]="data.length ? data : []"
+    [cellTemplates]="cellTemplates"
+    [accionesVisibles]="['ver','editar','eliminar']"
+    (ver)="onVer($event)"
+    (editar)="onEditar($event)"
+    (eliminar)="onEliminar($event)">
+  </app-tabla>
+
+  <!-- MENSAJES -->
+  <div *ngIf="!cargando && data.length === 0" class="text-center mt-3">
+    No hay recolecciones para mostrar
+  </div>
+
+  <div *ngIf="error" class="text-danger text-center mt-3">
+    {{ error }}
+  </div>
+
+</div>
+
+<!-- ======================= -->
+<!-- MODAL VER -->
+<!-- ======================= -->
 <app-modal
   #modalVerRecoleccion
   [title]="'Detalles de la Recolección'"
   [headerColor]="'#4f69d9'"
-  [isOpen]="false"
->
+  [isOpen]="false">
+
   <div class="p-3 modal-perfil-container">
 
-    <!-- ENCABEZADO -->
     <div class="text-center mb-4">
-      <h3 class="mt-2 mb-0">Recolección #{{ selectedRecoleccion?.idRecoleccion || '---' }}</h3>
-      <small class="text-muted">Solicitud ID: {{ selectedRecoleccion?.solicitudId }}</small>
+      <h3>Recolección #{{ selectedRecoleccion?.idRecoleccion }}</h3>
+      <small>Solicitud ID: {{ selectedRecoleccion?.solicitudId }}</small>
     </div>
 
-    <!-- SECCIÓN 1: Información general -->
     <h5 class="section-title">Información general</h5>
 
-    <div class="row mb-3">
-      <div class="col-6">
-        <label class="fw-bold">Estado:</label>
-        <div>{{ selectedRecoleccion?.estado || 'Sin estado' }}</div>
-      </div>
+<div class="row mb-3">
+  
 
-      <div class="col-6">
-        <label class="fw-bold">Fecha de recolección:</label>
-        <div>{{ selectedRecoleccion?.fechaRecoleccion || 'No definida' }}</div>
-      </div>
-    </div>
+  <div class="col-6">
+    <label class="fw-bold">Recolector:</label>
+    <div>{{ selectedRecoleccion?.recolectorId }}</div>
+  </div>
+  <div class="col-6">
+    <label class="fw-bold">Estado:</label>
+    <div>{{ selectedRecoleccion?.estado }}</div>
+  </div>
+</div>
 
-    <div class="mb-3">
-      <label class="fw-bold">Observaciones:</label>
-      <div>{{ selectedRecoleccion?.observaciones || 'Sin observaciones' }}</div>
-    </div>
 
-    <!-- SECCIÓN 2: Asignaciones -->
-    <h5 class="section-title">Asignaciones</h5>
 
-    <div class="row mb-3">
-      <div class="col-6">
-        <label class="fw-bold">Recolector ID:</label>
-        <div>{{ selectedRecoleccion?.recolectorId || 'No asignado' }}</div>
-      </div>
+<div class="row mb-3">
+  <div class="col-6">
+    <label class="fw-bold">Fecha:</label>
+    <div>{{ selectedRecoleccion?.fechaRecoleccion }}</div>
+  </div>
+</div>
 
-      <div class="col-6">
-        <label class="fw-bold">Ruta ID:</label>
-        <div>{{ selectedRecoleccion?.rutaId || 'Sin ruta' }}</div>
-      </div>
-    </div>
+<div class="mb-3">
+  <label class="fw-bold">Observaciones:</label>
+  <div>{{ selectedRecoleccion?.observaciones }}</div>
+</div>
 
-    <!-- SECCIÓN 3: Evidencia -->
-    <h5 class="section-title">Evidencia</h5>
-
-    <div>
-      <ng-container *ngIf="selectedRecoleccion?.evidencia; else noEvidencia">
-        <a 
-          [href]="selectedRecoleccion?.evidencia" 
-          target="_blank" 
-          class="text-primary">
-          Ver evidencia adjunta
-        </a>
-      </ng-container>
-
-      <ng-template #noEvidencia>
-        <div class="text-muted fst-italic">
-          Sin evidencia registrada
-        </div>
-      </ng-template>
-    </div>
-
-    <!-- SECCIÓN 4: Fechas -->
-    <h5 class="section-title">Fechas</h5>
-
-    <div class="row mb-3">
-      <div class="col-12">
-        <label class="fw-bold">Fecha de creación:</label>
-        <div>{{ selectedRecoleccion?.fechaCreacionRecoleccion || 'No registrada' }}</div>
-      </div>
-    </div>
+<div>
+  <label class="fw-bold">Evidencia:</label>
+  <div>{{ selectedRecoleccion?.evidencia || 'Sin evidencia' }}</div>
+</div>
 
   </div>
 </app-modal>
 
+<!-- ======================= -->
+<!-- MODAL EDITAR -->
+<!-- ======================= -->
 <app-modal
   #modalEditarRecoleccion
   [title]="'Editar Recolección'"
   [headerColor]="'#ffc107'"
-  [isOpen]="false"
->
+  [isOpen]="false">
+
   <div class="p-3">
     <app-form-comp
       *ngIf="selectedRecoleccion"
@@ -109,28 +144,31 @@
       [submitButtonText]="'Actualizar'"
       [submitButtonIcon]="'bi bi-save'"
       [submitButtonColor]="'custom-success-filled'"
-      (submitForm)="actualizarRecoleccion()"
-      [showSubmitButton]="true">
+      (submitForm)="actualizarRecoleccion()">
     </app-form-comp>
   </div>
-  <ng-container modal-footer>
-    
-  </ng-container>
+
 </app-modal>
 
+<!-- ======================= -->
+<!-- MODAL ELIMINAR -->
+<!-- ======================= -->
 <app-modal
   #modalEliminarRecoleccion
   [title]="'Eliminar Recolección'"
   [headerColor]="'#dc3545'"
-  [isOpen]="false"
->
+  [isOpen]="false">
+
   <div class="p-3">
-    <p>¿Está seguro que desea eliminar la recolección <strong>#{{ selectedRecoleccion?.idRecoleccion }}</strong>?</p>
+    ¿Eliminar recolección #{{ selectedRecoleccion?.idRecoleccion }}?
   </div>
+
   <ng-container modal-footer>
     <div class="d-flex justify-content-end gap-2">
-      <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled" (click)="cerrarModalEliminarRecoleccion()"></app-boton>
-      <app-boton texto="Eliminar" icono="bi bi-trash" color="custom-danger-filled" (click)="confirmarEliminarRecoleccion()"></app-boton>
+      <app-boton texto="Cancelar" (click)="cerrarModalEliminarRecoleccion()"></app-boton>
+      <app-boton texto="Eliminar" color="custom-danger-filled"
+        (click)="confirmarEliminarRecoleccion()"></app-boton>
     </div>
   </ng-container>
+
 </app-modal>

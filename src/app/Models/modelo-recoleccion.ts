@@ -1,14 +1,18 @@
 export interface ModeloRecoleccion {
   idRecoleccion: number;
-  solicitudId?: number;
-  recolectorId?: number;
+  solicitudId: number;
+  recolectorId: number;
   rutaId?: number | null;
-  estado: string;
-  fechaRecoleccion?: string | null; 
+
+  estado: EstadoRecoleccion; // ✅ usar enum
+
+  fechaRecoleccion?: string | null;
   ordenParada?: number | null;
+
   observaciones?: string;
   evidencia?: string;
-  fechaCreacionRecoleccion?: string; 
+
+  fechaCreacionRecoleccion?: string;
 }
 
 export enum EstadoRecoleccion {
@@ -18,4 +22,3 @@ export enum EstadoRecoleccion {
   Fallida = 'Fallida',
   Cancelada = 'Cancelada'
 }
-

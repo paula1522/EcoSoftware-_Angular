@@ -32,6 +32,7 @@ import { Capacitaciones } from './pages/capacitaciones/capacitaciones';
 import { Noticias } from './pages/noticias/noticias';
 import { SubirDocumentos } from './auth/subir-documentos/subir-documentos';
 import { CardInscripcion } from './Logic/capacitaciones/card-inscripcion/card-inscripcion';
+import { Solicitud } from './pages/solicitud/solicitud';
 
 export const routes: Routes = [
 
@@ -93,6 +94,7 @@ export const routes: Routes = [
   { path: 'form-solicitud', component: FormRegistro },
   { path: 'mapa', component: MapaComponent },
   { path: 'puntos-reciclaje', component: MapaComponent },
+  {path: 'Solicitud', component: Solicitud},
 
   { path: '**', component: Error }
 

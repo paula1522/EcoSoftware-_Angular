@@ -22,7 +22,7 @@ export class Tabla implements OnChanges {
   @Input() titulo: string = 'Listado';
   @Input() cellTemplates: { [campo: string]: (item: any) => string } = {};
   @Input() mostrarAcciones: boolean = true;
-@Input() accionesVisibles: string[] = ['ver', 'editar', 'eliminar'];
+  @Input() accionesVisibles: string[] = ['ver', 'editar', 'eliminar'];
   @Output() ver = new EventEmitter<any>();
   @Output() editar = new EventEmitter<any>();
   @Output() eliminar = new EventEmitter<any>();
@@ -41,56 +41,56 @@ export class Tabla implements OnChanges {
   acciones: any[] = [];
   Header: any[] = [];
 
-  
+
 
   // 🔥 ESTE ES EL CAMBIO MÁS IMPORTANTE (para que iconosAcciones sí funcione)
   ngOnChanges(changes: SimpleChanges) {
     this.acciones = [];
 
-if (this.accionesVisibles.includes('editar')) {
-  this.acciones.push({
-    icon: this.iconosAcciones.editar || 'bi-pencil',
-    color: 'pastel-success',
-    hover: 'btn-pastel-success',
-    evento: (item: any) => this.editar.emit(item)
-  });
-}
-
-if (this.accionesVisibles.includes('eliminar')) {
-  this.acciones.push({
-    icon: this.iconosAcciones.eliminar || 'bi-trash',
-    color: 'pastel-danger',
-    hover: 'btn-pastel-danger',
-    evento: (item: any) => this.eliminar.emit(item)
-  });
-}
-
-if (this.accionesVisibles.includes('ver')) {
-  this.acciones.push({
-    icon: this.iconosAcciones.ver || 'bi-eye',
-    color: 'pastel-info',
-    hover: 'btn-pastel-info',
-    evento: (item: any) => this.ver.emit(item)
-  });
-}
-
-if (this.accionesVisibles.includes('rechazar')) {
-  this.acciones.push({
-    icon: this.iconosAcciones.rechazar || 'bi-x-circle',
-    color: 'pastel-danger',
-    hover: 'btn-pastel-danger',
-    evento: (item: any) => this.rechazar.emit(item)
-  });
-};
-    this.Header = [
-    {
-      icon: this.iconosAcciones.descargar || 'bi-download',
-      texto: '',
-      color: 'outline-custom-success',
-      hover: 'custom-success-filled',
-      evento: () => this.descargar.emit()
+    if (this.accionesVisibles.includes('editar')) {
+      this.acciones.push({
+        icon: this.iconosAcciones.editar || 'bi-pencil',
+        color: 'pastel-success',
+        hover: 'btn-pastel-success',
+        evento: (item: any) => this.editar.emit(item)
+      });
     }
-  ];
+
+    if (this.accionesVisibles.includes('eliminar')) {
+      this.acciones.push({
+        icon: this.iconosAcciones.eliminar || 'bi-trash',
+        color: 'pastel-danger',
+        hover: 'btn-pastel-danger',
+        evento: (item: any) => this.eliminar.emit(item)
+      });
+    }
+
+    if (this.accionesVisibles.includes('ver')) {
+      this.acciones.push({
+        icon: this.iconosAcciones.ver || 'bi-eye',
+        color: 'pastel-info',
+        hover: 'btn-pastel-info',
+        evento: (item: any) => this.ver.emit(item)
+      });
+    }
+
+    if (this.accionesVisibles.includes('rechazar')) {
+      this.acciones.push({
+        icon: this.iconosAcciones.rechazar || 'bi-x-circle',
+        color: 'pastel-danger',
+        hover: 'btn-pastel-danger',
+        evento: (item: any) => this.rechazar.emit(item)
+      });
+    };
+    this.Header = [
+      {
+        icon: this.iconosAcciones.descargar || 'bi-download',
+        texto: '',
+        color: 'outline-custom-success',
+        hover: 'custom-success-filled',
+        evento: () => this.descargar.emit()
+      }
+    ];
   }
 
   cambiarPagina(p: number) {

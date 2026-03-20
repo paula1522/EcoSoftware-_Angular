@@ -30,7 +30,13 @@
       <tbody>
         <tr *ngFor="let item of datosPaginados">
           <td *ngFor="let col of columnas">
-            <span [innerHTML]="cellTemplates[col.campo] ? cellTemplates[col.campo](item) : item[col.campo]"></span>
+            <span *ngIf="cellTemplates[col.campo]; else normal">
+  <span [innerHTML]="cellTemplates[col.campo](item)"></span>
+</span>
+
+<ng-template #normal>
+  {{ item[col.campo] }}
+</ng-template>
           </td>
 
 
