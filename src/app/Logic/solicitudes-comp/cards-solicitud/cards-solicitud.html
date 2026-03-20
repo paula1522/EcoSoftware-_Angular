@@ -1,17 +1,32 @@
 <div class="container-cards">
+  <div class="mb-3 d-flex gap-2 align-items-center">
 
+  <div class="filtro-bar">
+  <label>Filtrar por estado:</label>
 
+  <select
+    [(ngModel)]="estadoSeleccionado"
+    (change)="paginaActual=1">
+
+    <option value="">Todos</option>
+    <option value="Pendiente">Pendiente</option>
+    <option value="Aceptada">Aceptada</option>
+    <option value="Cancelada">Cancelada</option>
+    <option value="Rechazada">Rechazada</option>
+
+  </select>
+</div>
+
+</div>
   <div class="cards-grid">
 
-    <div class="solicitud-card" *ngFor="let s of solicitudes">
+    <div class="solicitud-card" *ngFor="let s of solicitudesPaginadas">
       <div class="card-accent"></div>
 
       <div class="card-content">
 
         <!-- CABECERA -->
         <div class="card-header-row">
-
-          <!-- ID E ICONO -->
           <div class="solicitud-id">
             <div class="icon-wrapper">
               <i class="bi bi-recycle"></i>
@@ -25,28 +40,23 @@
             </div>
           </div>
 
-          <!-- ESTADO -->
-
-
           <span class="status-badge" [ngClass]="{
-    'status-pendiente': s.estadoPeticion === 'Pendiente',
-    'status-aceptada': s.estadoPeticion === 'Aceptada',
-    'status-cancelada': s.estadoPeticion === 'Cancelada',
-    'status-rechazada': s.estadoPeticion === 'Rechazada'
-  }">
+            'status-pendiente': s.estadoPeticion === 'Pendiente',
+            'status-aceptada': s.estadoPeticion === 'Aceptada',
+            'status-cancelada': s.estadoPeticion === 'Cancelada',
+            'status-rechazada': s.estadoPeticion === 'Rechazada'
+          }">
             <i class="bi bi-clock" *ngIf="s.estadoPeticion === 'Pendiente'"></i>
             <i class="bi bi-check-circle" *ngIf="s.estadoPeticion === 'Aceptada'"></i>
             <i class="bi bi-x-circle" *ngIf="s.estadoPeticion === 'Cancelada'"></i>
             <i class="bi bi-slash-circle" *ngIf="s.estadoPeticion === 'Rechazada'"></i>
             {{ s.estadoPeticion | titlecase }}
           </span>
-
         </div>
 
-        <!-- INFORMACIÓN -->
-        <div class="card-info-grid ">
+        <!-- INFO -->
+        <div class="card-info-grid">
 
-          <!-- DIRECCIÓN / UBICACIÓN -->
           <div class="info-box">
             <div class="info-icon-circle"><i class="bi bi-geo-alt"></i></div>
             <div class="info-text">
@@ -56,7 +66,6 @@
             </div>
           </div>
 
-          <!-- FECHA PROGRAMADA -->
           <div class="info-box">
             <div class="info-icon-circle"><i class="bi bi-calendar"></i></div>
             <div class="info-text">
@@ -67,7 +76,6 @@
             </div>
           </div>
 
-          <!-- CANTIDAD -->
           <div class="info-box">
             <div class="info-icon-circle"><i class="bi bi-basket"></i></div>
             <div class="info-text">
@@ -76,7 +84,6 @@
             </div>
           </div>
 
-          <!-- DESCRIPCIÓN -->
           <div class="info-box full-width">
             <div class="info-icon-circle"><i class="bi bi-card-text"></i></div>
             <div class="info-text">
@@ -90,21 +97,23 @@
         <!-- FOOTER -->
         <div class="card-footer-row">
 
-          <!-- MATERIAL -->
           <div class="material-tag">
-            <i class="fas fa-box"></i> {{ s.tipoResiduo }}
+            {{ s.tipoResiduo }}
           </div>
 
-          <!-- BOTONES -->
           <div class="action-btns">
-            <button class="btn-icon btn-edit" title="Editar">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-icon btn-view" title="Ver detalles">
-              <i class="bi bi-arrow-right"></i>
-            </button>
+            <app-boton icono="bi bi-pencil" color="cancelar" 
+              (click)="abrirModalEditar(s)">
+            </app-boton>
+
+            <app-boton  icono="bi bi-x-circle" color="pastel-danger" 
+              (click)="abrirModalCancelar(s)">
+            </app-boton>
+
+            <app-boton  icono="bi bi-eye" color="pastel-info"
+              (click)="abrirModalVer(s)">
+            </app-boton>
           </div>
-          
 
         </div>
 
@@ -112,4 +121,122 @@
     </div>
 
   </div>
+  <div class="pag" *ngIf="totalPaginas > 1">
+
+  <!-- Anterior -->
+  <button class="pg"
+          (click)="cambiarPagina(paginaActual - 1)"
+          [disabled]="paginaActual === 1">
+    ‹
+  </button>
+
+  <!-- Números -->
+  <ng-container *ngFor="let p of [].constructor(totalPaginas); let i = index">
+    <button class="pg"
+            [class.on]="paginaActual === i + 1"
+            (click)="cambiarPagina(i + 1)">
+      {{ i + 1 }}
+    </button>
+  </ng-container>
+
+  <!-- Siguiente -->
+  <button class="pg"
+          (click)="cambiarPagina(paginaActual + 1)"
+          [disabled]="paginaActual === totalPaginas">
+    ›
+  </button>
+
+</div>
+
+  <!-- 🔥 MODAL EDITAR -->
+<app-modal 
+  [isOpen]="modalEditarAbierto" 
+  (closed)="cerrarModalEditar()" 
+  title="Editar Solicitud">
+
+  <div *ngIf="solicitudSeleccionada">
+
+    <div class="mb-2">
+      <label>Dirección</label>
+      <input class="form-control"
+             [(ngModel)]="solicitudSeleccionada.ubicacion">
+    </div>
+
+    <div class="mb-2">
+      <label>Localidad</label>
+      <select class="form-select"
+              [(ngModel)]="solicitudSeleccionada.localidad">
+        <option *ngFor="let loc of localidades" [value]="loc">
+          {{ loc }}
+        </option>
+      </select>
+    </div>
+
+    <div class="mb-2">
+      <label>Cantidad</label>
+      <input type="text"
+             class="form-control"
+             [(ngModel)]="solicitudSeleccionada.cantidad">
+    </div>
+
+    <div class="mb-2">
+      <label>Tipo de Residuo</label>
+      <input class="form-control"
+             [(ngModel)]="solicitudSeleccionada.tipoResiduo">
+    </div>
+
+    <div class="mb-2">
+      <label>Descripción</label>
+      <textarea class="form-control"
+                [(ngModel)]="solicitudSeleccionada.descripcion"></textarea>
+    </div>
+
+    <app-boton
+      texto="Guardar cambios"
+      icono="bi bi-check"
+      color="success"
+      (click)="guardarCambios()">
+    </app-boton>
+
+  </div>
+</app-modal>
+
+<!-- 🔥 MODAL CANCELAR -->
+<app-modal 
+  [isOpen]="modalCancelarAbierto" 
+  (closed)="cerrarModalCancelar()" 
+  title="Cancelar Solicitud">
+
+  <div *ngIf="solicitudSeleccionada">
+    <p>
+      ¿Seguro que deseas cancelar la solicitud
+      <strong>#{{ solicitudSeleccionada.idSolicitud }}</strong>?
+    </p>
+
+    <app-boton
+      texto="Confirmar cancelación"
+      icono="bi bi-x-circle"
+      color="danger"
+      (click)="confirmarCancelar()">
+    </app-boton>
+  </div>
+
+</app-modal>
+<!-- 🔥 MODAL VER -->
+<app-modal 
+  [isOpen]="modalVerAbierto" 
+  (closed)="cerrarModalVer()" 
+  title="Ver Solicitud">
+
+  <ul *ngIf="solicitudSeleccionada">
+    <li>Dirección: {{ solicitudSeleccionada.ubicacion }}</li>
+    <li>Localidad: {{ solicitudSeleccionada.localidad | localidadNombre }}</li>
+    <li>Cantidad: {{ solicitudSeleccionada.cantidad }}</li>
+    <li>Tipo: {{ solicitudSeleccionada.tipoResiduo }}</li>
+    <li>Descripción: {{ solicitudSeleccionada.descripcion }}</li>
+    <li>Estado: {{ solicitudSeleccionada.estadoPeticion }}</li>
+  </ul>
+
+</app-modal>
+
 </div>

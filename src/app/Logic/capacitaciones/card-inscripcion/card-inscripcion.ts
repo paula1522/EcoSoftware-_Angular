@@ -18,6 +18,7 @@ capacitaciones: any[] = [];
     private authService: AuthService
   ) {}
 
+
   ngOnInit(): void {
     this.cargarMisCapacitaciones();
   }

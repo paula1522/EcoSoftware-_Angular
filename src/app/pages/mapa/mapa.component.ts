@@ -2,6 +2,7 @@ import { CommonModule, Location } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Header } from '../../core/header/header';
 import {
   Icon,
   Map as LeafletMap,
@@ -66,7 +67,7 @@ interface RutaCalculada {
   standalone: true,
   templateUrl: './mapa.component.html',
   styleUrls: ['./mapa.component.css'],
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Header],
 })
 export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private static instanceCounter = 0;

@@ -1,24 +1,18 @@
 <div class="container-table">
 
- <!-- HEADER -->
+  <!-- HEADER -->
   <div class="table-header">
-    
+
     <h2 class="table-title">
       <i class="fas fa-table"></i>
       {{ titulo }}
     </h2>
- <app-boton
-  *ngFor="let d of Header"
-  [icono]="d.icon"
-  [texto]="d.texto"
-  [color]="d.color"
-  [hoverColor]="d.hover"
-  size="sm"
-  (click)="d.evento()">
-</app-boton>
+    <app-boton *ngFor="let d of Header" [icono]="d.icon" [texto]="d.texto" [color]="d.color" [hoverColor]="d.hover"
+      size="sm" (click)="d.evento()">
+    </app-boton>
 
-    
-    </div>
+
+  </div>
 
   <!-- TABLA -->
   <div class="table-wrapper">
@@ -36,27 +30,22 @@
       <tbody>
         <tr *ngFor="let item of datosPaginados">
           <td *ngFor="let col of columnas">
-  <span [innerHTML]="cellTemplates[col.campo] ? cellTemplates[col.campo](item) : item[col.campo]"></span>
-</td>
+            <span [innerHTML]="cellTemplates[col.campo] ? cellTemplates[col.campo](item) : item[col.campo]"></span>
+          </td>
 
 
-            <td class="table-actions-cell" *ngIf="mostrarAcciones">
-  <app-boton
-  *ngFor="let a of acciones"
-  [icono]="a.icon"
-  [texto]="a.texto"
-  [color]="a.color"
-  [hoverColor]="a.hover"
-  size="sm"
-  (click)="a.evento(item)">
-</app-boton>
+          <td class="table-actions-cell" *ngIf="mostrarAcciones">
+            <app-boton *ngFor="let a of acciones" [icono]="a.icon" [texto]="a.texto" [color]="a.color"
+              [hoverColor]="a.hover" size="sm" (click)="a.evento(item)">
+            </app-boton>
 
-</td>
+          </td>
 
         </tr>
 
         <tr *ngIf="data.length === 0">
-          <td [attr.colspan]="mostrarAcciones ? (columnas.length + 1) : columnas.length" style="text-align: center; padding: 20px;">
+          <td [attr.colspan]="mostrarAcciones ? (columnas.length + 1) : columnas.length"
+            style="text-align: center; padding: 20px;">
             No hay datos disponibles
           </td>
         </tr>
@@ -67,7 +56,8 @@
   <!-- FOOTER -->
   <div class="table-footer">
     <div class="pagination-info">
-      Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong> de <strong>{{ data.length }}</strong> registros
+      Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong> de <strong>{{ data.length
+        }}</strong> registros
     </div>
 
     <div class="pagination-controls">
@@ -78,9 +68,7 @@
       </select>
 
       <div class="pagination-buttons">
-        <button *ngFor="let p of paginasAMostrar"
-                [class.active]="p === pagina"
-                (click)="cambiarPagina(p)">
+        <button *ngFor="let p of paginasAMostrar" [class.active]="p === pagina" (click)="cambiarPagina(p)">
           {{ p }}
         </button>
       </div>

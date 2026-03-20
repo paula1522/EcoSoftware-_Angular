@@ -1,7 +1,6 @@
 <div class="solicitudes-container">
 
   <!-- FILTROS Y EXPORTACIONES -->
-  <!-- FILTROS Y EXPORTACIONES -->
   <div class="filtros-container p-3 ">
     <div class="d-flex flex-wrap align-items-end gap-3">
       <!-- Campos de filtro -->
@@ -41,33 +40,18 @@
   </div>
 
   <!-- TABLA REUTILIZABLE -->
-  <app-tabla [columnas]="columnasSolicitudes" [data]="solicitudes" [cellTemplates]="cellTemplates" titulo="Solicitudes"
-    (descargar)="abrirModalReportes()" (ver)="onVerSolicitud($event)" (editar)="onEditarSolicitud($event)"
-    (eliminar)="onEliminarSolicitud($event)">
-  </app-tabla>
+<app-tabla 
+  [columnas]="columnasSolicitudes" 
+  [data]="solicitudes" 
+  [cellTemplates]="cellTemplates" 
+  titulo="Solicitudes"
+  [accionesVisibles]="['ver','editar','rechazar']"
+  (ver)="onVerSolicitud($event)" 
+  (editar)="onEditarSolicitud($event)"
+  (rechazar)="onRechazarSolicitud($event)">
+</app-tabla>
 
-  <!-- MODAL RECHAZO -->
-  <div class="modal fade show d-block" *ngIf="mostrarModalRechazo" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content border-danger">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">Rechazar Solicitud</h5>
-          <button type="button" class="btn-close" (click)="cerrarModalRechazo()"></button>
-        </div>
-        <div class="modal-body">
-          <label for="motivoSelect" class="form-label">Seleccione motivo del rechazo:</label>
-          <select id="motivoSelect" class="form-select mb-2" [(ngModel)]="selectedMotivo">
-            <option value="">-- Seleccione --</option>
-            <option *ngFor="let m of motivosDisponibles" [value]="m">{{ m }}</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary text-white" (click)="cerrarModalRechazo()">Cancelar</button>
-          <button class="btn btn-danger" (click)="confirmarRechazo()"
-            [disabled]="!selectedMotivo || (selectedMotivo === 'Otro' && !motivoRechazo.trim())">Confirmar</button>
-        </div>
-      </div>
-    </div>
+  
 
     <!-- =============================== -->
     <!-- MODAL DE REPORTES -->
@@ -188,31 +172,51 @@
       </div>
     </app-modal>
 
-    <app-modal #modalEditarSolicitud [title]="'Editar Solicitud'" [headerColor]="'#ffc107'" [isOpen]="false">
-      <div class="p-3">
-        <app-form-comp *ngIf="selectedSolicitud" [formGroup]="formEditarSolicitud" [fields]="fieldsEditarSolicitud"
-          [submitButtonText]="'Actualizar'" [submitButtonIcon]="'bi bi-save'"
-          [submitButtonColor]="'custom-success-filled'" (submitForm)="actualizarSolicitud()" [showSubmitButton]="true">
-        </app-form-comp>
-      </div>
-      <ng-container modal-footer>
-        <div class="d-flex justify-content-end">
-          <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled"
-            (click)="cerrarModalEditarSolicitud()"></app-boton>
-        </div>
-      </ng-container>
-    </app-modal>
+    <app-modal #modalEditarSolicitud
+           [title]="'Editar Solicitud'"
+           [headerColor]="'#ffc107'"
+           [isOpen]="mostrarModalEditar">
+  <div class="p-3">
+    <app-form-comp [formGroup]="formEditarSolicitud"
+                   [fields]="fieldsEditarSolicitud"
+                   [submitButtonText]="'Actualizar'"
+                   [submitButtonIcon]="'bi bi-save'"
+                   [submitButtonColor]="'custom-success-filled'"
+                   (submitForm)="actualizarSolicitud()"
+                   [showSubmitButton]="true">
+    </app-form-comp>
+  </div>
+  <ng-container modal-footer>
+    
+  </ng-container>
+</app-modal>
 
-    <app-modal #modalEliminarSolicitud [title]="'Eliminar Solicitud'" [headerColor]="'#dc3545'" [isOpen]="false">
-      <div class="p-3">
-        <p>¿Está seguro que desea eliminar la solicitud <strong>#{{ selectedSolicitud?.idSolicitud }}</strong>?</p>
-      </div>
-      <ng-container modal-footer>
-        <div class="d-flex justify-content-end gap-2">
-          <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled"
-            (click)="cerrarModalEliminarSolicitud()"></app-boton>
-          <app-boton texto="Eliminar" icono="bi bi-trash" color="custom-danger-filled"
-            (click)="confirmarEliminarSolicitud()"></app-boton>
-        </div>
-      </ng-container>
-    </app-modal>
+<!-- MODAL RECHAZO -->
+<app-modal 
+  #modalRechazo 
+  [title]="'Rechazar Solicitud'" 
+  [headerColor]="'#dc3545'"  
+  [isOpen]="mostrarModalRechazo">
+
+  <div class="p-3">
+    <label class="form-label">Motivo:</label>
+    <select class="form-select" [(ngModel)]="selectedMotivo">
+      <option value="">Seleccione</option>
+      <option *ngFor="let m of motivosDisponibles" [value]="m">{{ m }}</option>
+    </select>
+  </div>
+
+  <ng-container modal-footer>
+    <div class="d-flex justify-content-end gap-2">
+      <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled"
+        (click)="cerrarModalRechazo()">
+      </app-boton>
+
+      <app-boton texto="Confirmar" icono="bi bi-check-circle" color="custom-danger-filled"
+        (click)="confirmarRechazo()">
+      </app-boton>
+    </div>
+  </ng-container>
+
+</app-modal>
+

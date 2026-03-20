@@ -31,6 +31,7 @@ import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-notici
 import { MapaComponent } from '../mapa/mapa.component';
 import { firstValueFrom } from 'rxjs';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
+import { Boton } from '../../shared/botones/boton/boton';
 
 
 @Component({
@@ -38,7 +39,7 @@ import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
   imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
     RechazadasMotivoChartComponent, PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla, Solcitudes,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla],
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -55,6 +56,27 @@ export class Administrador {
   error: string = '';
   mensaje: string = '';
   cargandoReporte: boolean = false;
+
+  modalRegistroOpen = false;
+  modalCargaMasivaOpen = false;
+
+  rolSeleccionado: string = '';
+  archivoSeleccionado: File | null = null;
+  cargandoArchivo = false;
+
+  tipoAlerta: 'success' | 'error' | 'warning' | 'info' = 'info';
+  mensajeAlerta: string = '';
+  mostrarAlerta: boolean = false;
+
+  mostrarAlertaGlobal(mensaje: string, tipo: 'success' | 'error' | 'warning' | 'info') {
+    this.mensajeAlerta = mensaje;
+    this.tipoAlerta = tipo;
+    this.mostrarAlerta = true;
+
+    setTimeout(() => {
+      this.mostrarAlerta = false;
+    }, 5000);
+  }
 
   vistaActual: 'panel' | 'editar-perfil' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'Aceptar-Rechazar-Usuarios' | 'puntos' | 'capacitaciones' | 'noticias' = 'noticias';
 
@@ -198,7 +220,7 @@ export class Administrador {
     const R = 6371; // Radio de la Tierra en km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLng = (lng2 - lng1) * (Math.PI / 180);
-    const a = 
+    const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
       Math.sin(dLng / 2) * Math.sin(dLng / 2);
@@ -264,7 +286,7 @@ export class Administrador {
         next: (response: any) => {
           this.guardandoPunto = false;
           this.estadoRegistroPunto = '';
-          
+
           // Si es creación de nuevo punto, agregarlo inmediatamente a la tabla
           if (!this.editandoPunto) {
             const datosPunto = response?.data || response;
@@ -281,7 +303,7 @@ export class Administrador {
             // Si es actualización, recargar desde servidor
             this.cargarPuntos();
           }
-          
+
           this.reiniciarFormularioPunto();
           this.cerrarModalRegistrarPunto();
         },
@@ -567,26 +589,26 @@ export class Administrador {
 
   ngOnInit(): void {
 
-    
- 
-  this.usuarioService.contarPendientes().subscribe({
-    next: (pendientes: number) => {
 
-      // Si hay pendientes → mostrar vista Aceptar/Rechazar
-      if (pendientes > 0) {
-        this.vistaActual = 'Aceptar-Rechazar-Usuarios';
-      } else {
-        //Si  no hay pendientes → mostrar panel
+
+    this.usuarioService.contarPendientes().subscribe({
+      next: (pendientes: number) => {
+
+        // Si hay pendientes → mostrar vista Aceptar/Rechazar
+        if (pendientes > 0) {
+          this.vistaActual = 'Aceptar-Rechazar-Usuarios';
+        } else {
+          //Si  no hay pendientes → mostrar panel
+          this.vistaActual = 'panel';
+        }
+      },
+      error: (err) => {
+        console.error('Error contando usuarios pendientes:', err);
+
+        // Por seguridad, mostrar panel si falla
         this.vistaActual = 'panel';
       }
-    },
-    error: (err) => {
-      console.error('Error contando usuarios pendientes:', err);
-
-      // Por seguridad, mostrar panel si falla
-      this.vistaActual = 'panel';
-    }
-  });
+    });
     this.consultarUsuarios();
 
     // Cargar solicitudes para reportes
@@ -797,4 +819,82 @@ export class Administrador {
   editarPerfil(): void {
     this.vistaActual = 'editar-perfil';
   }
+
+
+  abrirModalRegistro() {
+    this.modalRegistroOpen = true;
+  }
+
+  abrirModalCargaMasiva() {
+    this.modalCargaMasivaOpen = true;
+  }
+
+  descargarPlantillaExcel() {
+    if (!this.rolSeleccionado) {
+      this.mostrarAlertaGlobal('Seleccione un rol', 'warning');
+      return;
+    }
+
+    this.usuarioService.descargarPlantilla(this.rolSeleccionado)
+      .subscribe(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `plantilla_${this.rolSeleccionado}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      });
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.archivoSeleccionado = file;
+    }
+  }
+
+ cargarExcel() {
+  if (!this.rolSeleccionado || !this.archivoSeleccionado) {
+    this.mostrarAlertaGlobal('Debe seleccionar rol y archivo', 'warning');
+    return;
+  }
+
+  this.cargandoArchivo = true;
+
+  this.usuarioService.cargarExcel(this.archivoSeleccionado, this.rolSeleccionado)
+    .subscribe({
+      next: (res: any) => {
+
+        if (res?.errores && res.errores.length > 0) {
+          this.mostrarAlertaGlobal(
+            `⚠️ Carga completada con errores: ${res.errores.join(' | ')}`,
+            'warning'
+          );
+        } else {
+          this.mostrarAlertaGlobal(
+            '✅ Carga masiva de usuarios exitosa',
+            'success'
+          );
+        }
+
+        this.consultarUsuarios();
+        this.archivoSeleccionado = null;
+        this.cargandoArchivo = false;
+        this.modalCargaMasivaOpen = false;
+      },
+
+      error: (err) => {
+        console.error('ERROR REAL:', err);
+
+        const mensaje =
+          err?.error?.mensaje ||
+          err?.error?.detalle ||
+          '❌ Error inesperado al cargar archivo';
+
+        this.mostrarAlertaGlobal(mensaje, 'error');
+
+        this.cargandoArchivo = false;
+      }
+    });
+}
 }

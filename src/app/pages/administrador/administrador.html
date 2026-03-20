@@ -1,3 +1,14 @@
+<div *ngIf="mostrarAlerta" class="alert" [ngClass]="{
+       'alert-success': tipoAlerta === 'success',
+       'alert-danger': tipoAlerta === 'error',
+       'alert-warning': tipoAlerta === 'warning',
+       'alert-info': tipoAlerta === 'info'
+     }" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 250px;">
+
+  {{ mensajeAlerta }}
+
+</div>
+
 <div class="d-flex">
 
   <!-- BARRA LATERAL -->
@@ -12,7 +23,8 @@
     <ng-container *ngIf="vistaActual === 'panel'">
 
       <app-titulo titulo="Panel de Control" subtitulo="Resumen de análisis y métricas de la plataforma"
-        iconoBoton="bi bi-bell" textoBoton="Pendientes" colorBoton="outline-custom-success" hoverColorBoton="custom-success-filled">
+        iconoBoton="bi bi-bell" textoBoton="Pendientes" colorBoton="outline-custom-success"
+        hoverColorBoton="custom-success-filled">
       </app-titulo>
 
       <!-- Auth status removed -->
@@ -86,15 +98,11 @@
 
     <ng-container *ngIf="vistaActual === 'usuarios'">
 
-    <app-titulo 
-  titulo="Usuarios" 
-  subtitulo="Gestión de usuarios del sistema" 
-  [textoBoton]="mostrarNuevoUsuario ? 'Mostrar usuarios' : 'Agregar nuevo usuario'"
-  [iconoBoton]="'bi bi-plus-circle'"
-  [colorBoton]="'outline-custom-success'"
-  [hoverColorBoton]="'custom-success-filled'"
-  (clickBoton)="toggleNuevoUsuario()">
-</app-titulo>
+      <app-titulo titulo="Usuarios" subtitulo="Gestión de usuarios del sistema"
+        [textoBoton]="mostrarNuevoUsuario ? 'Mostrar usuarios' : 'Agregar nuevo usuario'"
+        [iconoBoton]="'bi bi-plus-circle'" [colorBoton]="'outline-custom-success'"
+        [hoverColorBoton]="'custom-success-filled'" (clickBoton)="toggleNuevoUsuario()">
+      </app-titulo>
 
 
 
@@ -106,10 +114,93 @@
           <div class="contenido-solicitud">
             <!-- En cualquier template -->
             <!-- En el dashboard de administrador -->
-            <app-registro-admin></app-registro-admin>
+            <div class="row g-4">
+              <!-- Card Registrar Usuario -->
+              <div class="col-12 col-md-6">
+                <div class="card text-center shadow-sm h-100">
+                  <div class="card-body d-flex flex-column align-items-center justify-content-between">
+                    <i class="bi bi-people fs-1 text-success mb-3"></i>
+                    <h5 class="mb-3">Registrar Usuario</h5>
+                    <app-boton texto="Registrar" [icono]="'bi bi-plus-circle'" color="outline-custom-success"
+                      (click)="modalRegistroOpen = true" title="Registrar">
+                    </app-boton>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Carga Masiva -->
+              <div class="col-12 col-md-6">
+                <div class="card text-center shadow-sm h-100">
+                  <div class="card-body d-flex flex-column align-items-center justify-content-between">
+                    <i class="bi bi-file-earmark-plus fs-1 text-success mb-3"></i>
+                    <h5 class="mb-3">Carga Masiva</h5>
+                    <app-boton texto="Subir archivo" [icono]="'bi bi-upload'" color="outline-custom-success"
+                      (click)="modalCargaMasivaOpen = true" title="Carga Masiva">
+                    </app-boton>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- MODAL REGISTRO -->
+            <app-modal [isOpen]="modalRegistroOpen" title="" size="md" headerColor="white"
+              (closed)="modalRegistroOpen = false">
+              <app-registro-admin></app-registro-admin>
+            </app-modal>
+
+            <!-- MODAL CARGA MASIVA -->
+            <app-modal [isOpen]="modalCargaMasivaOpen" title="Carga Masiva de Usuarios" size="md"
+              (closed)="modalCargaMasivaOpen = false">
+
+              <div class="carga-masiva-container">
+
+                <p class="text-muted mb-3">
+                  Descarga la plantilla según el rol, complétala y súbela.
+                </p>
+
+                <div class="d-flex flex-wrap align-items-end gap-3">
+
+                  <!-- SELECT ROL -->
+                  <div class="flex-grow-1" style="min-width: 180px;">
+                    <label class="form-label">Rol</label>
+                    <select class="form-select mb-3" [(ngModel)]="rolSeleccionado">
+                      <option value="">Seleccione</option>
+                      <option value="Administrador">Administrador</option>
+                      <option value="Ciudadano">Ciudadano</option>
+                      <option value="Empresa">Empresa</option>
+                      <option value="Reciclador">Reciclador</option>
+                    </select>
+                  </div>
+
+                  <!-- BOTÓN PLANTILLA -->
+                  <div>
+                    <label class="form-label d-block">&nbsp;</label>
+                    <app-boton texto="Plantilla" icono="bi bi-download" color="outline-custom-primary"
+                      (click)="descargarPlantillaExcel()">
+                    </app-boton>
+                  </div>
+
+                  <!-- INPUT FILE -->
+                  <div class="flex-grow-1" style="min-width: 200px;">
+                    <label class="form-label">Archivo Excel</label>
+                    <input type="file" class="form-control" (change)="onFileSelected($event)" accept=".xlsx">
+                  </div>
+
+                  <!-- BOTÓN SUBIR -->
+                  <div>
+                    <label class="form-label d-block">&nbsp;</label>
+                    <app-boton texto="Cargar" icono="bi bi-upload" color="custom-success-filled"
+                      (click)="cargarExcel()">
+                    </app-boton>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </app-modal>
           </div>
         </ng-container>
-
         <!-- Lista de usuarios -->
         <ng-container *ngIf="!mostrarNuevoUsuario">
           <div class="contenido-solicitud">
@@ -127,15 +218,14 @@
     <!-- SOLICITUDES -->
     <ng-container *ngIf="vistaActual === 'solicitudes'">
       <app-titulo titulo="Solicitudes de Recolección" subtitulo="Gestión de solicitudes de recolección"
-      [mostrarBoton]="false" >
+        [mostrarBoton]="false">
       </app-titulo>
       <app-solcitudes></app-solcitudes>
     </ng-container>
 
     <!-- RECOLECCIONES -->
     <ng-container *ngIf="vistaActual === 'recolecciones'">
-      <app-titulo titulo="Recolecciones" subtitulo="Gestión de recolecciones" 
-      [mostrarBoton]="false">
+      <app-titulo titulo="Recolecciones" subtitulo="Gestión de recolecciones" [mostrarBoton]="false">
       </app-titulo>
 
       <app-listar-tabla></app-listar-tabla>
@@ -149,42 +239,27 @@
 
       <div class="puntos-admin-toolbar mt-3">
         <div class="puntos-admin-actions">
-          <button
-            class="btn btn-outline-success"
-            [class.active]="vistaPuntos === 'mis'"
-            (click)="mostrarMisPuntos()"
+          <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'mis'" (click)="mostrarMisPuntos()"
             type="button">
             Mis puntos
           </button>
-          <button
-            class="btn btn-outline-success"
-            [class.active]="vistaPuntos === 'todos'"
-            (click)="mostrarTodosLosPuntos()"
-            type="button">
+          <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'todos'"
+            (click)="mostrarTodosLosPuntos()" type="button">
             Todos los puntos
           </button>
-          <button
-            class="btn btn-success"
-            (click)="irAPaginaMapa()"
-            type="button">
+          <button class="btn btn-success" (click)="irAPaginaMapa()" type="button">
             Mapa
           </button>
         </div>
 
         <div class="puntos-filters-row">
-          <select 
-            class="form-select form-select-sm" 
-            [(ngModel)]="filtroTipoResiduo" 
-            (change)="filtrarPorTipoResiduo()">
+          <select class="form-select form-select-sm" [(ngModel)]="filtroTipoResiduo" (change)="filtrarPorTipoResiduo()">
             <option value="">Filtrar por tipo de residuo</option>
             <option *ngFor="let tipo of tiposResiduoDisponibles" [value]="tipo">
               {{ tipo }}
             </option>
           </select>
-          <button 
-            *ngIf="filtroTipoResiduo" 
-            class="btn btn-outline-secondary btn-sm" 
-            type="button" 
+          <button *ngIf="filtroTipoResiduo" class="btn btn-outline-secondary btn-sm" type="button"
             (click)="limpiarFiltroResiduo()">
             Limpiar
           </button>
@@ -196,58 +271,50 @@
       </div>
 
       <div class="puntos-admin-list mt-3">
-        <app-tabla
-          [columnas]="columnasPuntos"
-          [data]="puntosFiltrados"
-          [cellTemplates]="puntosCellTemplates"
-          [mostrarAcciones]="true"
-          (editar)="editarPuntoDesdeTabla($event)"
-          (eliminar)="eliminarPuntoDesdeTabla($event)"
-          (ver)="verPuntoDesdeTabla($event)"
-          titulo="Puntos de reciclaje">
+        <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
+          [mostrarAcciones]="true" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
+          (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
         </app-tabla>
       </div>
 
-      <app-modal
-        [isOpen]="mostrarModalRegistrarPunto"
-        [title]="editandoPunto ? 'Editar punto de reciclaje' : 'Registrar punto de reciclaje'"
-        size="lg"
-        [headerColor]="'#198754'"
-        (closed)="cerrarModalRegistrarPunto()">
+      <app-modal [isOpen]="mostrarModalRegistrarPunto"
+        [title]="editandoPunto ? 'Editar punto de reciclaje' : 'Registrar punto de reciclaje'" size="lg"
+        [headerColor]="'#198754'" (closed)="cerrarModalRegistrarPunto()">
 
         <form class="puntos-form-grid" (ngSubmit)="registrarPunto()">
           <div class="form-group">
             <label for="puntoNombre">Nombre</label>
-            <input id="puntoNombre" class="form-control" type="text" [(ngModel)]="nuevoPunto.nombre" name="nombre" required>
+            <input id="puntoNombre" class="form-control" type="text" [(ngModel)]="nuevoPunto.nombre" name="nombre"
+              required>
           </div>
 
           <div class="form-group">
             <label for="puntoDireccion">Dirección</label>
-            <input id="puntoDireccion" class="form-control" type="text" [(ngModel)]="nuevoPunto.direccion" name="direccion" required>
+            <input id="puntoDireccion" class="form-control" type="text" [(ngModel)]="nuevoPunto.direccion"
+              name="direccion" required>
           </div>
 
           <div class="form-group">
             <label for="puntoTipoResiduo">Tipo de residuo</label>
-            <input id="puntoTipoResiduo" class="form-control" type="text" [(ngModel)]="nuevoPunto.tipoResiduo" name="tipoResiduo" required>
+            <input id="puntoTipoResiduo" class="form-control" type="text" [(ngModel)]="nuevoPunto.tipoResiduo"
+              name="tipoResiduo" required>
           </div>
 
           <div class="form-group">
             <label for="puntoHorario">Horario</label>
-            <input id="puntoHorario" class="form-control" type="text" [(ngModel)]="nuevoPunto.horario" name="horario" required>
+            <input id="puntoHorario" class="form-control" type="text" [(ngModel)]="nuevoPunto.horario" name="horario"
+              required>
           </div>
 
           <div class="form-group form-group-full">
             <label for="puntoDescripcion">Descripción</label>
-            <textarea id="puntoDescripcion" class="form-control" rows="3" [(ngModel)]="nuevoPunto.descripcion" name="descripcion" required></textarea>
+            <textarea id="puntoDescripcion" class="form-control" rows="3" [(ngModel)]="nuevoPunto.descripcion"
+              name="descripcion" required></textarea>
           </div>
 
           <div class="form-group form-group-full">
             <label for="puntoImagen">Imagen del punto</label>
-            <input
-              id="puntoImagen"
-              class="form-control"
-              type="file"
-              accept="image/*">
+            <input id="puntoImagen" class="form-control" type="file" accept="image/*">
           </div>
 
           <p class="text-danger mb-0 form-group-full" *ngIf="errorRegistroPunto">{{ errorRegistroPunto }}</p>
@@ -257,9 +324,11 @@
         </form>
 
         <div modal-footer class="d-flex justify-content-end gap-2 w-100">
-          <button class="btn btn-outline-secondary" type="button" (click)="cerrarModalRegistrarPunto()">Cancelar</button>
+          <button class="btn btn-outline-secondary" type="button"
+            (click)="cerrarModalRegistrarPunto()">Cancelar</button>
           <button class="btn btn-success" type="button" [disabled]="guardandoPunto" (click)="registrarPunto()">
-            {{ guardandoPunto ? (editandoPunto ? 'Actualizando...' : 'Guardando...') : (editandoPunto ? 'Actualizar punto' : 'Registrar punto') }}
+            {{ guardandoPunto ? (editandoPunto ? 'Actualizando...' : 'Guardando...') : (editandoPunto ? 'Actualizar
+            punto' : 'Registrar punto') }}
           </button>
         </div>
       </app-modal>
@@ -268,8 +337,9 @@
 
     <!-- CAPACITACIONES -->
     <ng-container *ngIf="vistaActual === 'capacitaciones'">
-      <app-titulo titulo="Capacitaciones y Módulos" subtitulo="Gestión de capacitaciones y módulos" iconoBoton="bi bi-plus-circle"
-        colorBoton="outline-custom-success" textoBoton="Nueva Capacitacion"  hoverColorBoton="custom-success-filled" (clickBoton)="toggleVista()">
+      <app-titulo titulo="Capacitaciones y Módulos" subtitulo="Gestión de capacitaciones y módulos"
+        iconoBoton="bi bi-plus-circle" colorBoton="outline-custom-success" textoBoton="Nueva Capacitacion"
+        hoverColorBoton="custom-success-filled" (clickBoton)="toggleVista()">
       </app-titulo>
 
       <div class="contenedor-toggle">
@@ -298,7 +368,7 @@
       <app-titulo titulo="Noticias" subtitulo="Gestión de noticias y novedades" [mostrarBoton]="false">
       </app-titulo>
       <!-- <app-rutas></app-rutas> -->
-       <cards-noticias></cards-noticias>
+      <cards-noticias></cards-noticias>
     </ng-container>
 
     <ng-container *ngIf="vistaActual === 'Aceptar-Rechazar-Usuarios'">

@@ -11,8 +11,7 @@ import { Capacitacion, EstadoCurso, Modulo, Inscripcion, Progreso, UploadResultD
 })
 export class CapacitacionesService {
 
-  private apiUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/capacitaciones';
-
+private apiUrl = 'http://localhost:8082/api/capacitaciones';
   constructor(private http: HttpClient) {}
 
   // ===========================

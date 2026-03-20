@@ -24,10 +24,8 @@ export interface SolicitudesPorLocalidad {
   providedIn: 'root'
 })
 export class Service {
-  obtenerIdUsuarioActual(): number {
-    throw new Error('Method not implemented.');
-  }
-  private api = 'https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes';
+  
+  private api = 'http://localhost:8082/api/solicitudes';
   solicitud: ServiceModel[] = [];
 
   constructor(private http: HttpClient) {}
@@ -48,6 +46,19 @@ export class Service {
     return this.http.post<ServiceModel>(this.api, solicitud);
   }
 
+  subirEvidencia(id: number, file: File): Observable<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return this.http.post(`${this.api}/${id}/evidencia`, formData, {
+    responseType: 'text'
+  });
+}
+
+cancelarSolicitud(id: number) {
+  return this.http.post<ServiceModel>(`${this.api}/${id}/cancelar`, {});
+}
+
   actualizarSolicitud(id: number, solicitud: ServiceModel): Observable<ServiceModel> {
     return this.http.put<ServiceModel>(`${this.api}/${id}`, solicitud);
   }
@@ -60,7 +71,13 @@ export class Service {
     return this.http.get<ServiceModel[]>(`${this.api}/usuario/${id}`);
   }
 
+obtenerIdUsuarioActual(): number {
+  const token = localStorage.getItem('token');
+  if (!token) return 0;
 
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return payload.idUsuario;
+}
 
   // ================================
   // FILTROS Y ESTADOS
@@ -84,6 +101,8 @@ export class Service {
     console.log('[rechazarSolicitud] enviando:', { id, motivo, body });
     return this.http.post<ServiceModel>(`${this.api}/${id}/rechazar`, body);
   }
+
+  
 
   // ================================
   // EXPORTACIONES

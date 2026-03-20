@@ -12,67 +12,94 @@
 <!-- =============================== -->
 <!-- FILTROS CON FormComp Y BOTÓN LIMPIAR -->
 <!-- =============================== -->
-<div class="filtros-container p-3">
-  <div class="d-flex flex-wrap align-items-end gap-2">
+<form [formGroup]="formFiltros">
 
-    <!-- Nombre -->
-    <div class="flex-grow-1" style="min-width: 150px;">
-      <label for="nombreFilter" class="form-label">Nombre</label>
-      <input type="text" id="nombreFilter" class="form-control" [(ngModel)]="nombreFilter" placeholder="Ingrese nombre">
+  <div class="filtros-container p-3">
+    <div class="d-flex flex-wrap align-items-end gap-2">
+
+      <!-- Nombre -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Nombre</label>
+        <input type="text" class="form-control"
+               formControlName="nombre"
+               placeholder="Ingrese nombre">
+      </div>
+
+      <!-- Correo -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Correo</label>
+        <input type="text" class="form-control"
+               formControlName="correo"
+               placeholder="Ingrese correo">
+      </div>
+
+      <!-- Documento -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Documento</label>
+        <input type="text" class="form-control"
+               formControlName="documento"
+               placeholder="Ingrese documento">
+      </div>
+
+      <!-- Rol (solo frontend) -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Rol</label>
+        <select class="form-select" formControlName="rol">
+          <option value="">Todos</option>
+          <option *ngFor="let r of roles" [value]="r.id">
+            {{ r.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Estado (solo frontend) -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Estado</label>
+        <select class="form-select" formControlName="estado">
+          <option value="">Todos</option>
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </div>
+
+      <!-- Botones -->
+      <div class="d-flex gap-2">
+
+        <!-- Filtrar -->
+        <app-boton
+          icono="bi bi-funnel"
+          color="custom-success-filled"
+          (click)="aplicarFiltros()">
+        </app-boton>
+
+        <!-- Limpiar -->
+        <app-boton
+          icono="bi bi-x-circle"
+          color="custom-gray-filled"
+          (click)="limpiarFiltro()">
+        </app-boton>
+
+      </div>
+
     </div>
-
-    <!-- Correo -->
-    <div class="flex-grow-1" style="min-width: 150px;">
-      <label for="correoFilter" class="form-label">Correo</label>
-      <input type="text" id="correoFilter" class="form-control" [(ngModel)]="correoFilter" placeholder="Ingrese correo">
-    </div>
-
-    <!-- Documento -->
-    <div class="flex-grow-1" style="min-width: 150px;">
-      <label for="documentoFilter" class="form-label">Documento</label>
-      <input type="text" id="documentoFilter" class="form-control" [(ngModel)]="documentoFilter"
-        placeholder="Ingrese documento">
-    </div>
-
-    <!-- Rol -->
-    <div class="flex-grow-1" style="min-width: 150px;">
-      <label for="rolFilter" class="form-label">Rol</label>
-      <select id="rolFilter" class="form-select" [(ngModel)]="rolFilter">
-        <option value="">Todos</option>
-        <option *ngFor="let r of roles" [value]="r.id">{{ r.nombre }}</option>
-      </select>
-    </div>
-
-    <!-- Estado -->
-    <div class="flex-grow-1" style="min-width: 150px;">
-      <label for="estadoFilter" class="form-label">Estado</label>
-      <select id="estadoFilter" class="form-select" [(ngModel)]="estadoFilter">
-        <option value="">Todos</option>
-        <option value="activo">Activo</option>
-        <option value="inactivo">Inactivo</option>
-      </select>
-    </div>
-
-    <!-- Botones de acción alineados a la derecha -->
-    <div class="d-flex gap-2" style="min-width: 150px;">
-      <app-boton icono="bi bi-funnel" color="custom-success-filled" (click)="aplicarFiltros()">
-
-      </app-boton>
-      <app-boton icono="bi bi-x-circle" color="custom-gray-filled" (click)="limpiarFiltro()">
-      </app-boton>
-    </div>
-
   </div>
-</div>
 
+</form>
 
 
 <!-- =============================== -->
 <!-- TABLA DE USUARIOS -->
 <!-- =============================== -->
-<app-tabla [columnas]="columnasUsuarios" [data]="usuarios" [cellTemplates]="cellTemplatesUsuarios" titulo="Usuarios"
-  (descargar)="abrirModalReportes()" (eliminar)="abrirModalEliminar($event)" (ver)="abrirModalVer($event)"
-  (editar)="abrirModalEditar($event)">
+<app-tabla 
+  [columnas]="columnasUsuarios" 
+  [data]="usuarios" 
+  [cellTemplates]="cellTemplatesUsuarios"
+  titulo="Usuarios"
+  
+  (descargar)="abrirModalReportes()"
+  (ver)="abrirModalVer($event)"
+  (editar)="abrirModalEditar($event)"
+  (eliminar)="abrirModalEliminar($event)">
 </app-tabla>
 
 <!-- MENSAJE CUANDO NO HAY USUARIOS -->

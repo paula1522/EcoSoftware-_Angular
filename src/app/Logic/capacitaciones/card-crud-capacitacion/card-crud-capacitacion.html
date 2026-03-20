@@ -1,16 +1,12 @@
 <div class="container mt-4">
   <div class="row">
-    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let cap of capacitaciones">
+    <div class="col-md-6 col-lg-4 mb-4" *ngFor="let cap of capacitacionesPaginadas">
 
       <div class="capacitacion-card">
 
         <!-- Imagen -->
         <div class="capacitacion-image">
-          <img
-            [src]="cap.imagen || 'assets/capacitacion-default.jpg'"
-            alt="Imagen capacitación"
-            loading="lazy"
-          />
+          <img [src]="cap.imagen || 'assets/capacitacion-default.jpg'" alt="Imagen capacitación" loading="lazy" />
 
           <span class="capacitacion-badge disponible">
             <i class="fas fa-leaf"></i> Disponible
@@ -45,11 +41,11 @@
             </div>
           </div>
 
-          <button 
-  class="capacitacion-btn"
-  (click)="inscribirse(cap)">
-  <i class="bi bi-person-plus"></i> Inscribirme
-</button>
+          <app-boton [texto]="estaInscrito(cap.id!) ? 'Inscrito' : 'Inscribirme'"
+            [icono]="estaInscrito(cap.id!) ? 'bi bi-check-circle' : 'bi bi-person-plus'"
+            [color]="estaInscrito(cap.id!) ? 'custom-success-filled' : 'custom-success-filled' " 
+            [deshabilitado]="estaInscrito(cap.id!)"
+            (click)="inscribirse(cap)"> </app-boton>
 
         </div>
       </div>
@@ -57,14 +53,32 @@
     </div>
   </div>
 </div>
+<div class="pag" *ngIf="totalPaginas > 1">
 
-<app-modal
-  [isOpen]="modalOpen"
-  [title]="modalTitle"
-  size="md"
-  headerColor="#16a34a"
-  (closed)="cerrarModal()"
->
+  <!-- Flecha izquierda -->
+  <button class="pg" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+    ←
+  </button>
+
+  <!-- Números -->
+  <ng-container *ngFor="let p of paginasMostradas">
+
+    <span *ngIf="p === '...'" class="pg-dots">···</span>
+
+    <button *ngIf="p !== '...'" class="pg" [class.on]="p === paginaActual" (click)="cambiarPagina(p)">
+      {{ p }}
+    </button>
+
+  </ng-container>
+
+  <!-- Flecha derecha -->
+  <button class="pg" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">
+    →
+  </button>
+
+</div>
+
+<app-modal [isOpen]="modalOpen" [title]="modalTitle" size="md" headerColor="#16a34a" (closed)="cerrarModal()">
 
   <p>{{ modalMessage }}</p>
 
@@ -72,6 +86,29 @@
     <button class="btn btn-success" (click)="cerrarModal()">
       Aceptar
     </button>
+  </div>
+
+</app-modal>
+
+
+<app-modal [isOpen]="modalConfirmacion" title="Confirmar inscripción" size="md" headerColor="#16a34a"
+  (closed)="modalConfirmacion = false">
+
+  <p>
+    ¿Estás seguro de que deseas inscribirte en
+    <strong>{{ capSeleccionada?.nombre }}</strong>?
+  </p>
+
+  <div modal-footer class="d-flex gap-2 justify-content-end">
+
+    <!-- Botón cancelar -->
+    <app-boton texto="Cancelar" color="secondary" (click)="modalConfirmacion = false">
+    </app-boton>
+
+    <!-- Botón confirmar -->
+    <app-boton texto="Sí, inscribirme" icono="bi bi-check" color="success" (click)="confirmarInscripcion()">
+    </app-boton>
+
   </div>
 
 </app-modal>

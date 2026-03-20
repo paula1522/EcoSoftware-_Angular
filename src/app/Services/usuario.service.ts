@@ -14,7 +14,7 @@ export class UsuarioService {
   // ============================================================
   //  URL BASE DEL BACKEND SPRINGBOOT
   // ============================================================
-  private apiUrlSpringboot = 'https://ecosoftware-spring-boot.azurewebsites.net/api/personas';
+  private apiUrlSpringboot = 'http://localhost:8082/api/personas';
 
   constructor(private http: HttpClient, private api: ApiService) {}
 
@@ -148,6 +148,10 @@ export class UsuarioService {
     }).pipe(catchError(err => throwError(() => err)));
   }
 
+cambiarEstado(id: number, estado: boolean) {
+  return this.http.put(`${this.apiUrlSpringboot}/estado/${id}?estado=${estado}`, {});
+}
+
   // ============================================================
   // 5. ENDPOINTS DE EXCEL & PDF
   // ============================================================
@@ -232,13 +236,15 @@ export class UsuarioService {
   }
 
   /** Cargar archivo Excel por rol */
-  cargarExcel(rol: string, archivo: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('archivo', archivo);
+  cargarExcel(file: File, rol: string): Observable<any> {
+  const formData = new FormData();
+  formData.append('archivo', file);
 
-    return this.http.post(`${this.apiUrlSpringboot}/cargar/${rol}`, formData)
-      .pipe(catchError(err => throwError(() => err)));
-  }
+  return this.http.post(`${this.apiUrlSpringboot}/cargar/${rol}`, formData, {
+    reportProgress: true,
+    observe: 'events'
+  });
+}
 
   /** Endpoint test público */
   testPublic(): Observable<string> {

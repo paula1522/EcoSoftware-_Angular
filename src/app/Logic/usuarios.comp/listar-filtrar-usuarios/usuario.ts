@@ -1,4 +1,3 @@
-import { Header } from './../../../core/header/header';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { UsuarioService } from '../../../Services/usuario.service';
@@ -22,17 +21,9 @@ export class Usuario implements OnInit {
   usuarios: UsuarioModel[] = [];
   cargando = false;
 
-  editandoId: number | null = null;
-  usuarioEditado: Partial<UsuarioModel> = {};
 
-  mensaje = '';
-  error = '';
 
-  nombreFilter: string = '';
-correoFilter: string = '';
-documentoFilter: string = '';
-rolFilter: string = '';
-estadoFilter: string = '';
+
 
   // ============================
   // ALERTA (propiedades necesarias)
@@ -43,7 +34,6 @@ estadoFilter: string = '';
 
   @ViewChild('modalReportes') modalReportes!: Modal;
   @ViewChild('modalEliminar') modalEliminar!: Modal;
-  @ViewChild('modalEliminarFisico') modalEliminarFisico!: Modal;
   @ViewChild('modalVerPerfil') modalVerPerfil!: Modal;
   @ViewChild('modalEditarUsuario') modalEditarUsuario!: Modal;
 
@@ -60,12 +50,18 @@ estadoFilter: string = '';
       { value: 'correo', text: 'Correo' },
       { value: 'documento', text: 'Documento' }
     ] },
+    { type: 'select', name: 'rol', label: 'Rol', cols: 4 },
+
     { type: 'text', name: 'nombre', label: 'Buscar por nombre', placeholder: 'Ingrese nombre', cols: 4,
       showIf: () => this.formFiltros.get('criterio')?.value === 'nombre' },
     { type: 'text', name: 'correo', label: 'Buscar por correo', placeholder: 'Ingrese correo', cols: 4,
       showIf: () => this.formFiltros.get('criterio')?.value === 'correo' },
     { type: 'text', name: 'documento', label: 'Buscar por documento', placeholder: 'Ingrese documento', cols: 4,
-      showIf: () => this.formFiltros.get('criterio')?.value === 'documento' }
+      showIf: () => this.formFiltros.get('criterio')?.value === 'documento' },
+    { type: 'select', name: 'estado', label: 'Estado', cols: 4, options: [
+      { value: 'activo', text: 'Activo' },
+      { value: 'inactivo', text: 'Inactivo' }
+    ] }
   ];
 
   // =========================
@@ -84,6 +80,8 @@ estadoFilter: string = '';
     }, 4000);
   }
 
+
+ 
   // ============================
   // Roles
   // ============================
@@ -237,10 +235,7 @@ estadoFilter: string = '';
     this.modalEliminar.isOpen = true;
   }
 
-  abrirModalEliminarFisico(usuario: UsuarioModel): void {
-    this.usuarioSeleccionado = usuario;
-    this.modalEliminarFisico.isOpen = true;
-  }
+ 
 
   abrirModalVer(usuario: UsuarioModel): void {
     this.usuarioSeleccionado = usuario;
@@ -331,30 +326,31 @@ aplicarFiltros(): void {
     next: (lista: UsuarioModel[]) => {
       let resultados = lista || [];
 
-      if (this.nombreFilter) {
-        const val = this.nombreFilter.trim().toLowerCase();
-        resultados = resultados.filter(u => u.nombre?.toLowerCase().includes(val));
-      }
+      const filtros = this.formFiltros.value;
 
-      if (this.correoFilter) {
-        const val = this.correoFilter.trim().toLowerCase();
-        resultados = resultados.filter(u => u.correo?.toLowerCase().includes(val));
-      }
+if (filtros.nombre) {
+  const val = filtros.nombre.trim().toLowerCase();
+  resultados = resultados.filter(u => u.nombre?.toLowerCase().includes(val));
+}
 
-      if (this.documentoFilter) {
-        const val = this.documentoFilter.trim().toLowerCase();
-        resultados = resultados.filter(u => u.cedula?.toLowerCase().includes(val));
-      }
+if (filtros.correo) {
+  const val = filtros.correo.trim().toLowerCase();
+  resultados = resultados.filter(u => u.correo?.toLowerCase().includes(val));
+}
 
-      if (this.rolFilter) {
-        resultados = resultados.filter(u => u.rolId === Number(this.rolFilter));
-      }
+if (filtros.documento) {
+  const val = filtros.documento.trim().toLowerCase();
+  resultados = resultados.filter(u => u.cedula?.toLowerCase().includes(val));
+}
 
-      if (this.estadoFilter) {
-        const estadoBool = this.estadoFilter === 'activo';
-        resultados = resultados.filter(u => u.estado === estadoBool);
-      }
+if (filtros.rol) {
+  resultados = resultados.filter(u => u.rolId === Number(filtros.rol));
+}
 
+if (filtros.estado) {
+  const estadoBool = filtros.estado === 'activo';
+  resultados = resultados.filter(u => u.estado === estadoBool);
+}
       this.usuarios = resultados;
       this.cargando = false;
     },
@@ -366,12 +362,15 @@ aplicarFiltros(): void {
 }
 
   limpiarFiltro(): void {
-    this.nombreFilter = '';
-    this.correoFilter = '';
-    this.documentoFilter = '';
-    this.rolFilter = '';
-    this.estadoFilter = '';
-    this.cargarUsuarios();
+    this.formFiltros.reset({
+      criterio: 'nombre',
+  nombre: '',
+  correo: '',
+  documento: '',
+  rol: '',
+  estado: ''
+});
+this.cargarUsuarios();
   }
 
   // ===============================
@@ -414,17 +413,7 @@ aplicarFiltros(): void {
     });
   }
 
-  eliminarUsuarioFisico(id: number): void {
-    this.usuarioService.eliminarLogico(id).subscribe({
-      next: () => {
-        this.mostrarAlertaGlobal('Usuario inactivado correctamente', 'success');
-        this.cargarUsuarios();
-      },
-      error: () => {
-        this.mostrarAlertaGlobal('No se pudo eliminar el usuario', 'error');
-      }
-    });
-  }
+ 
 
   // ===============================
   // EDICIÓN DE USUARIO
