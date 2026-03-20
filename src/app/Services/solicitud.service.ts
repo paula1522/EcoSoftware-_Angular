@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ServiceModel } from '../Models/solicitudes.model';
+import { environment } from '../../environments/environment';
 
 // Interfaces para los datos de gráficos
 export interface PendientesAceptadas {
@@ -25,7 +26,8 @@ export interface SolicitudesPorLocalidad {
 })
 export class Service {
   
-  private api = 'http://localhost:8082/api/solicitudes';
+  // private api = 'http://localhost:8082/api/solicitudes';
+  private readonly api = `${environment.apiUrl.replace(/\/$/, '')}/api/solicitudes`;
   solicitud: ServiceModel[] = [];
 
   constructor(private http: HttpClient) {}
