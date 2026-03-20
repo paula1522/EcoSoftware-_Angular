@@ -106,4 +106,6 @@ export class Registro {
   contrasenasCoinciden(): boolean {
     return this.usuario.contrasena === this.verificarContrasena;
   }
+
+  
 }

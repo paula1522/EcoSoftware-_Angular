@@ -1,41 +1,103 @@
-<div class="card">
+<div class="upload-principal">
+  <div class="upload-wrapper">
 
-  <h2>📂 Subir Documentos</h2>
+    <!-- IZQUIERDA: cambia según rol -->
+    <div class="left-section"
+      [ngClass]="{
+        'rol-empresa':    rol === 'Empresa',
+        'rol-reciclador': rol === 'Reciclador',
+        'rol-ciudadano':  rol === 'Ciudadano'
+      }">
 
-  <p class="info">
-    Tu cuenta está en estado <strong>PENDIENTE_DOCUMENTACION</strong>.
-    Para continuar debes subir los documentos requeridos.
-  </p>
+      
 
-  <div class="requisitos" *ngIf="documentosRequeridos.length > 0">
-    <h4>Documentos requeridos para {{ rol }}:</h4>
-    <ul>
-      <li *ngFor="let doc of documentosRequeridos">
-        ✔ {{ doc }}
-      </li>
-    </ul>
+      <div class="welcome-content">
+
+        <ng-container *ngIf="rol === 'Empresa'">
+          <img class="rol-image"
+            src="https://res.cloudinary.com/dhl2ixdsr/image/upload/v1774021545/empresaaaa_p7q4c6.png"
+            alt="Empresa">
+          <h1>¡Casi listo, Empresa! </h1>
+          <p>Sube tus documentos para verificar tu cuenta y comenzar a gestionar.</p>
+        </ng-container>
+
+        <ng-container *ngIf="rol === 'Reciclador'">
+          <img class="rol-image"
+            src="https://res.cloudinary.com/dhl2ixdsr/image/upload/v1774021546/recicladorrrr_spw7uf.png"
+            alt="Reciclador">
+          <h1>¡Ya casi, Reciclador! </h1>
+          <p>Solo un paso más para activar tu cuenta y conectar con tu comunidad.</p>
+        </ng-container>
+
+
+
+      </div>
+    </div>
+
+    <!-- DERECHA: formulario -->
+    <div class="form-section">
+      <div class="auth-card">
+
+        <div class="auth-header">
+          <div class="header-icon"><i class="text-black" > </i></div>
+          <h2>Subir Documentos</h2>
+          <p class="form-subtitle">Completa tu verificación para activar tu cuenta</p>
+        </div>
+
+        <div class="status-alert">
+          <span class="status-dot"></span>
+          Tu cuenta está <strong>pendiente de documentación</strong>
+        </div>
+
+        <div class="requisitos" *ngIf="documentosRequeridos.length > 0">
+          <p class="requisitos-title">
+            Documentos requeridos para <strong>{{ rol }}</strong>:
+          </p>
+          <ul>
+            <li *ngFor="let doc of documentosRequeridos">
+              <span class="check-icon"><i class="bi bi-check2-square"></i></span> {{ doc }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de documento</label>
+          <select [(ngModel)]="tipo" class="form-input">
+            <option value="">Selecciona tipo</option>
+            <option *ngFor="let t of tiposPermitidos" [value]="t.value">
+              {{ t.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Seleccionar archivo</label>
+          <div class="file-upload-box" (click)="fileInput.click()">
+            <span class="file-icon"><i class="bi bi-paperclip"></i></span>
+            <span class="file-text">
+              {{ archivo ? archivo.name : 'PDF, JPG o PNG — Máx. 5MB' }}
+            </span>
+            <input #fileInput type="file"
+              (change)="seleccionarArchivo($event)"
+              accept=".pdf,.jpg,.png"
+              style="display:none" />
+          </div>
+        </div>
+
+        <button class="submit-btn" (click)="subir()">
+          Subir Documento
+          <i class="bi bi-cloud-arrow-up"></i>
+        </button>
+
+        <div class="msg-success" *ngIf="mensaje">
+          <span><i class="bi bi-check2-square"></i></span> {{ mensaje }}
+        </div>
+        <div class="msg-error" *ngIf="error">
+          <span><i class="bi bi-exclamation-triangle"></i></span> {{ error }}
+        </div>
+
+      </div>
+    </div>
+
   </div>
-
-  <div class="form-group">
-    <label>Tipo de documento</label>
-    <select [(ngModel)]="tipo">
-  <option value="">Selecciona tipo</option>
-  <option *ngFor="let t of tiposPermitidos" [value]="t.value">
-    {{ t.label }}
-  </option>
-</select>
-  </div>
-
-  <div class="form-group">
-    <label>Seleccionar archivo (PDF, JPG o PNG - Máx 5MB)</label>
-    <input type="file"
-           (change)="seleccionarArchivo($event)"
-           accept=".pdf,.jpg,.png" />
-  </div>
-
-  <button (click)="subir()">Subir Documento</button>
-
-  <p class="success" *ngIf="mensaje">{{ mensaje }}</p>
-  <p class="error" *ngIf="error">{{ error }}</p>
-
 </div>

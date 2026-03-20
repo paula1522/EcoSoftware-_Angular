@@ -1,35 +1,69 @@
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+/* =============================== */
+/* CONTENEDOR DE FILTROS PRINCIPAL */
+/* =============================== */
+.filtros-container {
+  flex-wrap: wrap;          /* Permite que baje a otra fila si no cabe */
+  align-items: flex-end;    /* Alinea los inputs y botones al fondo */
+  gap: 10px;                /* Espacio entre filtros */
+  padding: 15px 10px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
 }
 
-/* Estados */
-.status-pendiente {
-  background: #fff3cd;
-  color: #856404;
+/* Cada filtro ocupa espacio proporcional */
+.filtros-container .flex-grow-1 {
+  flex: 1 1 150px;          /* Crece según el espacio disponible, mínimo 150px */
+  min-width: 150px;
 }
 
-.status-proceso {
-  background: #cfe2ff;
-  color: #084298;
+/* Botones */
+.filtros-container .d-flex.ms-auto {
+  flex: 0 0 auto;           /* No crecen, se quedan al tamaño del contenido */
 }
 
-.status-aceptada {
-  background: #d1e7dd;
-  color: #0f5132;
+/* Botones personalizados */
+.botones-wrapper app-boton,
+.filtros-container app-boton {
+  min-width: 80px;
+  height: 40px !important;
 }
 
-.status-fallida {
-  background: #f8d7da;
-  color: #842029;
+/* Inputs y selects dentro de filtros */
+.filtros-container input.form-control,
+.filtros-container select.form-select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.status-cancelada {
-  background: #e2e3e5;
-  color: #41464b;
+/* =============================== */
+/* RESPONSIVE PARA PANTALLAS PEQUEÑAS */
+/* =============================== */
+@media (max-width: 600px) {
+  .filtros-container {
+    flex-direction: column;   /* Pasa todo a columnas */
+    align-items: stretch;
+    padding: 20px 10px;
+  }
+
+  .filtros-container .d-flex.ms-auto {
+    justify-content: flex-start;  /* Botones abajo alineados a la izquierda */
+    margin-top: 10px;
+  }
+
+  /* Opcional: iconos sin texto en móviles */
+  .botones-wrapper app-boton span {
+    display: none !important;
+  }
+
+  .botones-wrapper app-boton i {
+    font-size: 1.3rem;
+  }
+
+  .botones-wrapper app-boton {
+    gap: 0 !important;
+    padding: 8px;
+  }
 }

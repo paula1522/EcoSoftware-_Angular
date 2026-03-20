@@ -24,6 +24,7 @@ export class SubirDocumentos {
   documentosRequeridos: string [] = [];
 
   tiposPermitidos: { label: string, value: string }[] = [];
+  fileInput: any;
 
   constructor(
     private usuarioService: UsuarioService,
@@ -74,10 +75,20 @@ export class SubirDocumentos {
     this.usuarioService.subirDocumento(idUsuario, this.archivo, this.tipo)
       .subscribe({
   next: (res) => {
-    console.log("RESPUESTA:", res);
-    this.mensaje = 'Documento subido correctamente.';
-    this.error = '';
-  },
+  console.log("RESPUESTA:", res);
+  this.mensaje = 'Documento subido correctamente.';
+  this.error = '';
+
+  // Limpiar formulario para subir otro
+  this.tipo = '';
+  this.archivo = null!;
+  this.fileInput.nativeElement.value = '';
+
+  // Ocultar mensaje después de 3 segundos
+  setTimeout(() => {
+    this.mensaje = '';
+  }, 3000);
+},
   error: (err) => {
     console.log("ERROR COMPLETO:", err);
     console.log("MENSAJE BACKEND:", err.error);
@@ -101,7 +112,7 @@ ngOnInit() {
     return;
   }
 
-  this.rol = user.rol; // 👈 importante
+  this.rol = user.rol;
   console.log("ROL DEL USUARIO:", user.rol);
 
   if (this.rol === 'Empresa') {
@@ -128,14 +139,7 @@ ngOnInit() {
     ];
   }
 
-  if (this.rol === 'Ciudadano') {
-    this.tiposPermitidos = [
-      { label: 'Cédula', value: 'CEDULA' }
-    ];
-
-    this.documentosRequeridos = [
-      'Cédula'
-    ];
-  }
+  
 }
+
 }

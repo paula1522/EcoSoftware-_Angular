@@ -1,24 +1,43 @@
 <div class="auth-container">
-  <!-- Sección Izquierda: Mensaje -->
-  <div class="welcome-section">
+
+  <!-- Sección Izquierda -->
+  <div class="welcome-section" [ngClass]="{
+      'rol-ciudadano':  usuario.rolId == 2,
+      'rol-empresa':    usuario.rolId == 3,
+      'rol-reciclador': usuario.rolId == 4
+    }">
+
+
     <div class="welcome-content">
-      <h1>Bienvenido a EcoSoftware</h1>
-      <p class="welcome-subtitle">
-        Conecta, gestiona y transforma tu entorno de manera sostenible
-      </p>
-      <div class="welcome-message">
-        <ul class="benefits-list">
-          <li> Gestiona tus puntos de reciclaje</li>
-          <li>Monitorea tu impacto ambiental</li>
-          <li>Conecta con recicladores locales</li>
-          <li>Contribuye a un planeta más verde</li>
-        </ul>
-      </div>
+      <ng-container *ngIf="usuario.rolId == 2">
+        <img class="rol-image" src="https://res.cloudinary.com/dhl2ixdsr/image/upload/v1774021548/ciudadnao_zjsmwi.png">
+        <h1>¡Hola, Ciudadano!</h1>
+        <p>Forma parte del cambio y gestiona tu impacto ambiental.</p>
+      </ng-container>
+
+      <ng-container *ngIf="usuario.rolId == 3">
+        <img class="rol-image"
+          src="https://res.cloudinary.com/dhl2ixdsr/image/upload/v1774021545/empresaaaa_p7q4c6.png">
+        <h1>¡Bienvenida, Empresa!</h1>
+        <p>Gestiona la responsabilidad ambiental.</p>
+      </ng-container>
+
+      <ng-container *ngIf="usuario.rolId == 4">
+        <img class="rol-image"
+          src="https://res.cloudinary.com/dhl2ixdsr/image/upload/v1774021546/recicladorrrr_spw7uf.png">
+        <h1>¡Bienvenido, Reciclador!</h1>
+        <p>Organiza tu zona de trabajo.</p>
+      </ng-container>
     </div>
   </div>
 
-  <!-- Sección Derecha: Formulario -->
+  <!-- Sección Derecha -->
   <div class="form-section">
+    <!-- TU FORMULARIO (déjalo tal cual, ese está bien) -->
+
+
+
+
     <div class="auth-card">
       <div class="auth-header">
         <h2>Crear Cuenta</h2>
@@ -172,7 +191,8 @@
           </div>
         </div>
 
-        <button type="submit" [disabled]="!registroForm.valid || enviando || !contrasenasCoinciden() || !validarFuerte(usuario.contrasena)"
+        <button type="submit"
+          [disabled]="!registroForm.valid || enviando || !contrasenasCoinciden() || !validarFuerte(usuario.contrasena)"
           class="submit-btn"> {{ enviando ? 'Creando tu cuenta...' : 'Crear mi cuenta' }}
         </button>
 
@@ -181,5 +201,7 @@
         </div>
       </form>
     </div>
+
   </div>
+
 </div>
