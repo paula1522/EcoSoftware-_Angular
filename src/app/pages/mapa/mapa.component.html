@@ -1,10 +1,8 @@
 
 <app-header />
 <section class="mapa-shell" [class.mapa-shell--bloqueado]="requiereInicioSesion">
-  <button class="mapa-back-btn" type="button" (click)="volverAtras()">← Volver</button>
-
   <div class="mapa-shell__map">
-    <div class="map-wrapper" [id]="mapContainerId"></div>
+    <div #mapHost class="map-wrapper" [id]="mapContainerId"></div>
 
     <div class="route-overlay" *ngIf="mostrarPasosOverlay && pasosVisibles.length">
       <div class="overlay-header">
@@ -21,8 +19,6 @@
   </div>
 
   <aside class="mapa-shell__sidebar">
-    <h1>Puntos de Reciclaje</h1>
-
     <section class="panel panel-rutas">
       <div class="panel-field">
         <label for="origen-input">Origen</label>

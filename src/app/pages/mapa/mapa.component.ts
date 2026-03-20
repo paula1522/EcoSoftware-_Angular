@@ -1,6 +1,6 @@
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Header } from '../../core/header/header';
 import {
@@ -74,6 +74,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private readonly bogotaCoords: [number, number] = [4.711, -74.0721];
   private readonly defaultZoom = 13;
   private mapInstance?: LeafletMap;
+  private resizeObserver?: ResizeObserver;
   private dataMarkers: Marker[] = [];
   private markerIndex = new Map<number, Marker>();
   private routeLine?: Polyline;
@@ -84,6 +85,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private puntosSub?: Subscription;
   private refreshSub?: Subscription;
   private colorRutaActual = '#2563eb';
+
+  @ViewChild('mapHost') private mapHostRef?: ElementRef<HTMLDivElement>;
 
   public readonly mapContainerId = `mapa-bogota-${++MapaComponent.instanceCounter}`;
   public puntos: PuntoReciclaje[] = [];
@@ -105,13 +108,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     private readonly puntosService: PuntosReciclajeService,
     private readonly http: HttpClient,
     private readonly osrmService: OsrmService,
-    private readonly authService: AuthService,
-    private readonly location: Location
+    private readonly authService: AuthService
   ) {}
-
-  public volverAtras(): void {
-    this.location.back();
-  }
 
   public get requiereInicioSesion(): boolean {
     return !this.authService.isLoggedIn();
@@ -134,18 +132,26 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       maxZoom: 19,
     }).addTo(this.mapInstance);
 
+    this.inicializarObservadorRedimension();
+    this.programarAjusteMapa();
     this.cargarPuntos();
   }
 
   ngOnDestroy(): void {
     this.puntosSub?.unsubscribe();
     this.refreshSub?.unsubscribe();
+    this.resizeObserver?.disconnect();
     this.routeLine?.remove();
     this.origenMarker?.remove();
     this.destinoMarker?.remove();
     this.cursorMarker?.remove();
     this.limpiarMarcadores();
     this.mapInstance?.remove();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.programarAjusteMapa();
   }
 
   private cargarPuntos(): void {
@@ -161,6 +167,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
         this.limpiarMarcadores();
         puntos.forEach((punto) => this.crearMarcador(punto));
         this.ajustarVistaMapa();
+        this.programarAjusteMapa();
       },
       error: (err) => {
         console.error('Error al obtener los puntos de reciclaje', err);
@@ -228,6 +235,31 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
     const bounds = latLngBounds(this.dataMarkers.map((mk) => mk.getLatLng()));
     this.mapInstance.fitBounds(bounds, { padding: [24, 24] });
+  }
+
+  private inicializarObservadorRedimension(): void {
+    const hostElement = this.mapHostRef?.nativeElement;
+    if (!hostElement || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.programarAjusteMapa();
+    });
+
+    this.resizeObserver.observe(hostElement);
+  }
+
+  private programarAjusteMapa(): void {
+    if (!this.mapInstance) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.mapInstance?.invalidateSize();
+      });
+    });
   }
 
   public usarMiUbicacion(): void {
@@ -455,6 +487,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
     this.mapInstance.fitBounds(this.routeLine.getBounds(), { padding: [36, 36] });
     this.colocarCursorDireccion(latLngCoords);
+    this.programarAjusteMapa();
   }
 
   private colocarCursorDireccion(coords: [number, number][]): void {
@@ -866,6 +899,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
         const bounds = latLngBounds(this.dataMarkers.map((mk) => mk.getLatLng()));
         this.mapInstance?.fitBounds(bounds, { padding: [24, 24] });
       }
+
+      this.programarAjusteMapa();
     } catch (error) {
       console.error('Error procesando ubicación:', error);
       this.rutaError = 'Error al procesar tu ubicación.';
