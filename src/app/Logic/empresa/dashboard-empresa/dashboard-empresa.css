@@ -1,0 +1,180 @@
+.empresa-kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.empresa-kpi-card {
+  background: #ffffff;
+  border: 1px solid #dce8de;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(17, 67, 33, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 148px;
+  padding: 1.1rem 1.15rem;
+}
+
+.empresa-kpi-head {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.empresa-kpi-icon {
+  align-items: center;
+  background: rgba(21, 101, 192, 0.08);
+  border-radius: 12px;
+  color: #14532d;
+  display: inline-flex;
+  font-size: 1.05rem;
+  height: 2.3rem;
+  justify-content: center;
+  width: 2.3rem;
+}
+
+.empresa-kpi-card-emerald {
+  background: linear-gradient(180deg, #ffffff 0%, #eef8f1 100%);
+}
+
+.empresa-kpi-card-blue {
+  background: linear-gradient(180deg, #ffffff 0%, #eef5fb 100%);
+}
+
+.empresa-kpi-card-forest {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f8ef 100%);
+}
+
+.empresa-kpi-card-teal {
+  background: linear-gradient(180deg, #ffffff 0%, #eef9f8 100%);
+}
+
+.empresa-kpi-label {
+  color: #4b6350;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.empresa-kpi-value {
+  color: #123b1d;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.empresa-kpi-value-text {
+  font-size: 1.45rem;
+}
+
+.empresa-kpi-note {
+  color: #6e8374;
+  font-size: 0.82rem;
+  margin-top: auto;
+}
+
+.empresa-dashboard-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.empresa-chart-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbf9 100%);
+  border: 1px solid #dce8de;
+  border-radius: 22px;
+  box-shadow: 0 18px 42px rgba(17, 67, 33, 0.08);
+  min-height: 360px;
+  overflow: hidden;
+  padding: 1rem 1rem 1.1rem;
+  position: relative;
+}
+
+.empresa-chart-card::before {
+  content: '';
+  height: 5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.empresa-chart-card-olive::before {
+  background: linear-gradient(90deg, #1b5e20 0%, #43a047 100%);
+}
+
+.empresa-chart-card-blue-tone::before {
+  background: linear-gradient(90deg, #0d47a1 0%, #42a5f5 100%);
+}
+
+.empresa-chart-card-forest-tone::before {
+  background: linear-gradient(90deg, #2e7d32 0%, #80cbc4 100%);
+}
+
+.empresa-chart-card-teal-tone::before {
+  background: linear-gradient(90deg, #00695c 0%, #26a69a 100%);
+}
+
+.empresa-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.35rem;
+  padding: 0.35rem 0.1rem 0.5rem;
+}
+
+.empresa-chart-kicker {
+  color: #6b8373;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.empresa-chart-title {
+  color: #123b1d;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.empresa-chart-copy {
+  color: #64806e;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.empresa-chart-card-wide {
+  min-height: 380px;
+}
+
+.empresa-chart-state {
+  align-items: center;
+  color: #4b6350;
+  display: flex;
+  font-size: 0.95rem;
+  height: 100%;
+  justify-content: center;
+  min-height: 320px;
+}
+
+@media (max-width: 991.98px) {
+  .empresa-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .empresa-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .empresa-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

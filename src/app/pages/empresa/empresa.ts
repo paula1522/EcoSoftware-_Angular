@@ -13,6 +13,7 @@ import { PuntoReciclaje } from '../../Models/puntos-reciclaje.model';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
 import { Rutas } from '../../Logic/rutas/rutas';
+import { DashboardEmpresaComponent } from '../../Logic/empresa/dashboard-empresa/dashboard-empresa';
 
 import { MapaComponent } from '../mapa/mapa.component';
 /**
@@ -32,7 +33,7 @@ interface MenuItem {
   selector: 'app-empresa',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, CardARSolicitud, CardsRecoleccion,
-Rutas,
+Rutas, DashboardEmpresaComponent,
     EditarUsuario, BarraLateral, Titulo, PuntosIframe, MapaComponent, CardsNoticias],
   templateUrl: './empresa.html',
   styleUrls: ['./empresa.css']

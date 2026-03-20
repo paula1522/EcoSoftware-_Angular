@@ -12,6 +12,7 @@ export class PuntosIframe {
 
   constructor(private sanitizer: DomSanitizer) {
     // URL DE LA VISTA PARA LOS PUNTOS 
-    this.url = this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost/puntos/Eco_Software-/views/PuntosReciclaje.php');
+    // this.url = this.sanitizer.bypassSecurityTrustResourceUrl('http://localhost/puntos/Eco_Software-/views/PuntosReciclaje.php');
+    this.url = this.sanitizer.bypassSecurityTrustResourceUrl('https://ecosoftware.azurewebsites.net/puntos/Eco_Software-/views/PuntosReciclaje.php');
   }
 }
