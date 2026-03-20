@@ -95,32 +95,42 @@
 
     <!-- PUNTOS DE RECICLAJE -->
     <ng-container *ngIf="vistaActual === 'puntos'">
-      <app-titulo
-        titulo="Mis puntos"
-        subtitulo=""
-        [textoBoton]="mostrarPuntos ? 'Gestionar' : 'Registrar puntos'"
-        iconoBoton="bi bi-plus-lg"
-        colorBoton="outline-custom-success"
-        hoverColorBoton="custom-success-filled"
-        
-        (clickBoton)="togglePuntos()">
-      </app-titulo>
+      <div class="contenido-solicitud">
+        <app-titulo
+          titulo="Puntos de Reciclaje"
+          subtitulo="Consulta el mapa y el listado de puntos disponibles"
+          [mostrarBoton]="false">
+        </app-titulo>
 
-      <div class="contenedor-toggle">
-        <ng-container *ngIf="mostrarPuntos">
-          <div class="contenido-solicitud">
-            <app-mapa></app-mapa>
+        <div class="puntos-admin-toolbar mt-3">
+          <div class="puntos-admin-actions">
+            <button
+              class="btn btn-outline-success"
+              [class.active]="vistaPuntos === 'todos'"
+              (click)="mostrarTodosLosPuntos()"
+              type="button">
+              Todos los puntos
+            </button>
+            <button
+              class="btn btn-success"
+              (click)="irAPaginaMapa()"
+              type="button">
+              Mapa
+            </button>
           </div>
-        </ng-container>
+        </div>
 
-        <ng-container *ngIf="!mostrarPuntos">
-          <div class="contenido-solicitud">
-           
-
-            <div class="d-flex justify-content-end align-items-center mt-3">
-            </div>
-          </div>
-        </ng-container>
+        <div class="puntos-admin-list mt-3">
+          <app-tabla
+            [columnas]="columnasPuntos"
+            [data]="puntosFiltrados"
+            [cellTemplates]="puntosCellTemplates"
+            [mostrarAcciones]="true"
+            [accionesVisibles]="['ver']"
+            (ver)="verPuntoDesdeTabla($event)"
+            titulo="Todos los puntos">
+          </app-tabla>
+        </div>
       </div>
     </ng-container>
 

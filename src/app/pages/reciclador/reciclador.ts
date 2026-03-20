@@ -1,14 +1,14 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { COMPARTIR_IMPORTS } from '../../shared/imports';
 import { BarraLateral } from '../../shared/barra-lateral/barra-lateral';
 import { Titulo } from '../../shared/titulo/titulo';
 import { UsuarioService } from '../../Services/usuario.service';
-import { MapaComponent } from '../mapa/mapa.component';
 import { PuntoReciclaje, PuntosReciclajeService, PuntosResponse } from '../../Services/puntos-reciclaje.service';
 import { Router } from '@angular/router';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
 import { CardARSolicitud } from '../../Logic/solicitudes-comp/card-a-r-solicitud/card-a-r-solicitud';
 import { CardsRecoleccion } from '../../Logic/recolecciones-comp/cards-recoleccion/cards-recoleccion';
+import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 
 
 interface MenuItem {
@@ -19,7 +19,7 @@ interface MenuItem {
 @Component({
   selector: 'app-reciclador',
   standalone: true,
-  imports: [COMPARTIR_IMPORTS, BarraLateral, Titulo, MapaComponent, EditarUsuario, CardARSolicitud, CardsRecoleccion],
+  imports: [COMPARTIR_IMPORTS, BarraLateral, Titulo, EditarUsuario, CardARSolicitud, CardsRecoleccion, Tabla],
   templateUrl: './reciclador.html',
   styleUrls: ['./reciclador.css']
 })
@@ -33,12 +33,20 @@ export class Reciclador {
   vistaActual: MenuItem['vista'] = 'panel'; // vista por defecto
   nombreUsuario: string = localStorage.getItem('nombreUsuario') ?? 'Usuario';
   nombreRol: string = localStorage.getItem('nombreRol') ?? 'Rol';
+  puntos: PuntoReciclaje[] = [];
+  vistaPuntos: 'todos' = 'todos';
 
+  columnasPuntos: ColumnaTabla[] = [
+    { campo: 'nombre', titulo: 'Nombre' },
+    { campo: 'direccion', titulo: 'Dirección' },
+    { campo: 'horario', titulo: 'Horario' },
+    { campo: 'tipoResiduo', titulo: 'Tipo Residuo' },
+  ];
 
-  mostrarPuntos = false;
-  puntosList: PuntoReciclaje[] = [];
-
-  @ViewChild(MapaComponent) mapaComponent?: MapaComponent;
+  puntosCellTemplates: { [campo: string]: (item: any) => string } = {
+    horario: (item: any) => item?.horario || 'No informado',
+    tipoResiduo: (item: any) => item?.tipoResiduo || item?.tipo_residuo || 'General',
+  };
 
   menu: MenuItem[] = [
     { vista: 'panel', label: 'Panel de Control', icon: 'bi bi-speedometer2' },
@@ -47,19 +55,6 @@ export class Reciclador {
     { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
     { vista: 'noticias', label: 'Noticias', icon: 'bi bi-newspaper' },
   ];
-
-
-  // ========================
-  // Botones alternar vistas
-  // ========================
-  togglePuntos(): void {
-    this.mostrarPuntos = !this.mostrarPuntos;
-  }
-
-  openMyPointsFromPage(): void {
-    this.vistaActual = 'puntos';
-    this.mostrarPuntos = true;
-  }
 
   /**
    * Dependencias inyectadas por el constructor:
@@ -81,7 +76,7 @@ export class Reciclador {
     this.puntosService.getPuntos().subscribe({
       next: (response: PuntosResponse | PuntoReciclaje[]) => {
         const data = Array.isArray(response) ? response : response?.data ?? [];
-        this.puntosList = data.map((p: any) => ({
+        this.puntos = data.map((p: any) => ({
           ...p,
           latitud: p.latitud !== null && p.latitud !== undefined ? parseFloat(String(p.latitud)) : null,
           longitud: p.longitud !== null && p.longitud !== undefined ? parseFloat(String(p.longitud)) : null
@@ -91,6 +86,43 @@ export class Reciclador {
         console.error('Error al cargar puntos:', err);
       }
     });
+  }
+
+  get puntosFiltrados(): PuntoReciclaje[] {
+    return this.puntos;
+  }
+
+  mostrarTodosLosPuntos(): void {
+    this.vistaPuntos = 'todos';
+  }
+
+  irAPaginaMapa(): void {
+    this.router.navigate(['/puntos-reciclaje']);
+  }
+
+  verPuntoDesdeTabla(punto: any): void {
+    const id = this.obtenerIdPunto(punto);
+    const lat = Number(punto?.latitud);
+    const lng = Number(punto?.longitud);
+
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      this.router.navigate(['/puntos-reciclaje'], {
+        queryParams: { id, lat, lng, nombre: punto?.nombre || '' }
+      });
+      return;
+    }
+
+    this.irAPaginaMapa();
+  }
+
+  private obtenerIdPunto(punto: any): number | null {
+    const raw = punto?.id ?? punto?.idPunto ?? punto?.id_punto ?? null;
+    if (raw == null) {
+      return null;
+    }
+
+    const id = Number(raw);
+    return Number.isNaN(id) ? null : id;
   }
 
   // ========================
