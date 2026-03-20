@@ -1,0 +1,63 @@
+.puntos-admin-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.puntos-admin-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.puntos-filters-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex: 1;
+	min-width: 250px;
+}
+
+.puntos-filters-row .form-select {
+	flex: 1;
+}
+
+.puntos-admin-actions .btn.active {
+	background: #198754;
+	border-color: #198754;
+	color: #fff;
+}
+
+.puntos-admin-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.puntos-form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.form-group-full {
+	grid-column: 1 / -1;
+}
+
+.form-group label {
+	font-weight: 600;
+	margin-bottom: 4px;
+	display: block;
+}
+
+@media (max-width: 768px) {
+	.puntos-form-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.puntos-filters-row {
+		min-width: 100%;
+	}
+}

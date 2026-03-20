@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Header } from '../../core/header/header';
+import { ActivatedRoute } from '@angular/router';
 import {
   Icon,
   Map as LeafletMap,
@@ -84,7 +85,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private origenCoords?: { lat: number; lng: number };
   private puntosSub?: Subscription;
   private refreshSub?: Subscription;
+  private queryParamsSub?: Subscription;
   private colorRutaActual = '#2563eb';
+  private puntoEnfocado?: { id?: number; lat?: number; lng?: number; nombre?: string };
 
   @ViewChild('mapHost') private mapHostRef?: ElementRef<HTMLDivElement>;
 
@@ -108,7 +111,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     private readonly puntosService: PuntosReciclajeService,
     private readonly http: HttpClient,
     private readonly osrmService: OsrmService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly route: ActivatedRoute
   ) {}
 
   public get requiereInicioSesion(): boolean {
@@ -117,6 +121,18 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.refreshSub = this.puntosService.refresh$.subscribe(() => this.cargarPuntos());
+    this.queryParamsSub = this.route.queryParamMap.subscribe((params) => {
+      const id = this.parseNumberParam(params.get('id'));
+      const lat = this.parseNumberParam(params.get('lat'));
+      const lng = this.parseNumberParam(params.get('lng'));
+      const nombre = params.get('nombre')?.trim() || undefined;
+
+      this.puntoEnfocado = id != null || (lat != null && lng != null) || nombre
+        ? { id: id ?? undefined, lat: lat ?? undefined, lng: lng ?? undefined, nombre }
+        : undefined;
+
+      this.aplicarEnfoquePunto();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -140,6 +156,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   ngOnDestroy(): void {
     this.puntosSub?.unsubscribe();
     this.refreshSub?.unsubscribe();
+    this.queryParamsSub?.unsubscribe();
     this.resizeObserver?.disconnect();
     this.routeLine?.remove();
     this.origenMarker?.remove();
@@ -167,6 +184,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
         this.limpiarMarcadores();
         puntos.forEach((punto) => this.crearMarcador(punto));
         this.ajustarVistaMapa();
+        this.aplicarEnfoquePunto();
         this.programarAjusteMapa();
       },
       error: (err) => {
@@ -430,7 +448,80 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     if (punto.id !== undefined) {
       const markerRef = this.markerIndex.get(punto.id);
       markerRef?.openPopup();
+      return;
     }
+
+    const markerRef = this.buscarMarcadorPorCoordenadas(lat, lng);
+    markerRef?.openPopup();
+  }
+
+  private aplicarEnfoquePunto(): void {
+    if (!this.mapInstance || !this.puntoEnfocado || !this.puntos.length) {
+      return;
+    }
+
+    const punto = this.buscarPuntoEnfocado();
+    if (!punto) {
+      return;
+    }
+
+    this.centrarEnPunto(punto);
+  }
+
+  private buscarPuntoEnfocado(): PuntoReciclaje | undefined {
+    const objetivo = this.puntoEnfocado;
+    if (!objetivo) {
+      return undefined;
+    }
+
+    if (objetivo.id != null) {
+      const porId = this.puntos.find((punto) => Number(punto.id) === objetivo.id);
+      if (porId) {
+        return porId;
+      }
+    }
+
+    if (objetivo.lat != null && objetivo.lng != null) {
+      const porCoordenadas = this.puntos.find((punto) =>
+        this.sonCoordenadasIguales(Number(punto.latitud), objetivo.lat!) &&
+        this.sonCoordenadasIguales(Number(punto.longitud), objetivo.lng!)
+      );
+      if (porCoordenadas) {
+        return porCoordenadas;
+      }
+    }
+
+    if (objetivo.nombre) {
+      return this.puntos.find((punto) =>
+        (punto.nombre || '').trim().toLowerCase() === objetivo.nombre!.toLowerCase()
+      );
+    }
+
+    return undefined;
+  }
+
+  private buscarMarcadorPorCoordenadas(lat: number, lng: number): Marker | undefined {
+    return this.dataMarkers.find((marcador) => {
+      const position = marcador.getLatLng();
+      return this.sonCoordenadasIguales(position.lat, lat) && this.sonCoordenadasIguales(position.lng, lng);
+    });
+  }
+
+  private sonCoordenadasIguales(valorA: number, valorB: number): boolean {
+    if (Number.isNaN(valorA) || Number.isNaN(valorB)) {
+      return false;
+    }
+
+    return Math.abs(valorA - valorB) < 0.00001;
+  }
+
+  private parseNumberParam(value: string | null): number | null {
+    if (value == null || value.trim() === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
   }
 
   private async obtenerCoordenadasOrigen(): Promise<{ lat: number; lng: number }> {

@@ -66,33 +66,99 @@
     <!-- PUNTOS DE RECICLAJE -->
     <ng-container *ngIf="vistaActual === 'puntos'">
       <app-titulo
-        titulo="Mis puntos"
-        subtitulo=""
-        [textoBoton]="mostrarPuntos ? 'Gestionar' : 'Registrar puntos'"
-        iconoBoton="bi bi-plus-lg"
-        colorBoton="outline-custom-success"
-        hoverColorBoton="custom-success-filled"
-        
-        (clickBoton)="togglePuntos()">
+        titulo="Puntos de Reciclaje"
+        subtitulo="Consulta y gestiona los puntos registrados"
+        [mostrarBoton]="false">
       </app-titulo>
 
-      <div class="contenedor-toggle">
-        <ng-container *ngIf="mostrarPuntos">
-          <div class="contenido-solicitud">
-            <app-mapa></app-mapa>
-          </div>
-        </ng-container>
+      <div class="puntos-admin-toolbar mt-3">
+        <div class="puntos-admin-actions">
+          <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'mis'" (click)="mostrarMisPuntos()"
+            type="button">
+            Mis puntos
+          </button>
+          <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'todos'"
+            (click)="mostrarTodosLosPuntos()" type="button">
+            Todos los puntos
+          </button>
+          <button class="btn btn-success" (click)="irAPaginaMapa()" type="button">
+            Mapa
+          </button>
+        </div>
 
-        <ng-container *ngIf="!mostrarPuntos">
-          <div class="contenido-solicitud">
-            <app-puntos-iframe></app-puntos-iframe>
-            <app-rutas></app-rutas>
+        <div class="puntos-filters-row">
+          <select class="form-select form-select-sm" [(ngModel)]="filtroTipoResiduo" (change)="filtrarPorTipoResiduo()">
+            <option value="">Filtrar por tipo de residuo</option>
+            <option *ngFor="let tipo of tiposResiduoDisponibles" [value]="tipo">
+              {{ tipo }}
+            </option>
+          </select>
+          <button *ngIf="filtroTipoResiduo" class="btn btn-outline-secondary btn-sm" type="button"
+            (click)="limpiarFiltroResiduo()">
+            Limpiar
+          </button>
+        </div>
 
-            <div class="d-flex justify-content-end align-items-center mt-3">
-            </div>
-          </div>
-        </ng-container>
+        <button class="btn btn-success" type="button" (click)="abrirModalRegistrarPunto()">
+          Registrar punto
+        </button>
       </div>
+
+      <div class="puntos-admin-list mt-3">
+        <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
+          [mostrarAcciones]="true" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
+          (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
+        </app-tabla>
+      </div>
+
+      <app-modal [isOpen]="mostrarModalRegistrarPunto"
+        [title]="editandoPunto ? 'Editar punto de reciclaje' : 'Registrar punto de reciclaje'" size="lg"
+        [headerColor]="'#198754'" (closed)="cerrarModalRegistrarPunto()">
+
+        <form class="puntos-form-grid" (ngSubmit)="registrarPunto()">
+          <div class="form-group">
+            <label for="puntoNombre">Nombre</label>
+            <input id="puntoNombre" class="form-control" type="text" [(ngModel)]="nuevoPunto.nombre" name="nombre"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="puntoDireccion">Dirección</label>
+            <input id="puntoDireccion" class="form-control" type="text" [(ngModel)]="nuevoPunto.direccion"
+              name="direccion" required>
+          </div>
+
+          <div class="form-group">
+            <label for="puntoTipoResiduo">Tipo de residuo</label>
+            <input id="puntoTipoResiduo" class="form-control" type="text" [(ngModel)]="nuevoPunto.tipoResiduo"
+              name="tipoResiduo" required>
+          </div>
+
+          <div class="form-group">
+            <label for="puntoHorario">Horario</label>
+            <input id="puntoHorario" class="form-control" type="text" [(ngModel)]="nuevoPunto.horario" name="horario"
+              required>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="puntoDescripcion">Descripción</label>
+            <textarea id="puntoDescripcion" class="form-control" rows="3" [(ngModel)]="nuevoPunto.descripcion"
+              name="descripcion" required></textarea>
+          </div>
+
+          <p class="text-danger mb-0 form-group-full" *ngIf="errorRegistroPunto">{{ errorRegistroPunto }}</p>
+          <p class="text-success mb-0 form-group-full" *ngIf="guardandoPunto && estadoRegistroPunto">
+            {{ estadoRegistroPunto }}
+          </p>
+        </form>
+
+        <div modal-footer class="d-flex justify-content-end gap-2 w-100">
+          <button class="btn btn-outline-secondary" type="button" (click)="cerrarModalRegistrarPunto()">Cancelar</button>
+          <button class="btn btn-success" type="button" [disabled]="guardandoPunto" (click)="registrarPunto()">
+            {{ guardandoPunto ? (editandoPunto ? 'Actualizando...' : 'Guardando...') : (editandoPunto ? 'Actualizar punto' : 'Registrar punto') }}
+          </button>
+        </div>
+      </app-modal>
     </ng-container>
 
     <!-- NOTICIAS -->

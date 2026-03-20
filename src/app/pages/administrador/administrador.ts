@@ -380,12 +380,13 @@ export class Administrador {
   }
 
   verPuntoDesdeTabla(punto: any): void {
+    const id = this.obtenerIdPunto(punto);
     const lat = Number(punto?.latitud);
     const lng = Number(punto?.longitud);
 
     if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
       this.router.navigate(['/puntos-reciclaje'], {
-        queryParams: { lat, lng, nombre: punto?.nombre || '' }
+        queryParams: { id, lat, lng, nombre: punto?.nombre || '' }
       });
       return;
     }
