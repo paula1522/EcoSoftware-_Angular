@@ -1,4 +1,5 @@
 export interface ModeloRecoleccion {
+  tipoResiduo: string;
   idRecoleccion: number;
   solicitudId: number;
   recolectorId: number;

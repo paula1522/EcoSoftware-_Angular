@@ -298,26 +298,72 @@ body {
   justify-content: center;
   color: #ccc;
 }
-
-.filtro-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 25px;
-  background: white;
-  padding: 12px 16px;
+/* =============================== */
+/* CONTENEDOR DE FILTROS PRINCIPAL */
+/* =============================== */
+.filtros-container {
+  flex-wrap: wrap;          /* Permite que baje a otra fila si no cabe */
+  align-items: flex-end;    /* Alinea los inputs y botones al fondo */
+  gap: 10px;                /* Espacio entre filtros */
+  padding: 15px 10px;
+  background-color: #f8f9fa;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
 }
 
-.filtro-bar label {
-  font-weight: 600;
-  color: #334155;
+/* Cada filtro ocupa espacio proporcional */
+.filtros-container .flex-grow-1 {
+  flex: 1 1 150px;          /* Crece según el espacio disponible, mínimo 150px */
+  min-width: 150px;
 }
 
-.filtro-bar select {
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 6px 10px;
+/* Botones */
+.filtros-container .d-flex.ms-auto {
+  flex: 0 0 auto;           /* No crecen, se quedan al tamaño del contenido */
+}
+
+/* Botones personalizados */
+.botones-wrapper app-boton,
+.filtros-container app-boton {
+  min-width: 80px;
+  height: 40px !important;
+}
+
+/* Inputs y selects dentro de filtros */
+.filtros-container input.form-control,
+.filtros-container select.form-select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* =============================== */
+/* RESPONSIVE PARA PANTALLAS PEQUEÑAS */
+/* =============================== */
+@media (max-width: 600px) {
+  .filtros-container {
+    flex-direction: column;   /* Pasa todo a columnas */
+    align-items: stretch;
+    padding: 20px 10px;
+  }
+
+  .filtros-container .d-flex.ms-auto {
+    justify-content: flex-start;  /* Botones abajo alineados a la izquierda */
+    margin-top: 10px;
+  }
+
+  /* Opcional: iconos sin texto en móviles */
+  .botones-wrapper app-boton span {
+    display: none !important;
+  }
+
+  .botones-wrapper app-boton i {
+    font-size: 1.3rem;
+  }
+
+  .botones-wrapper app-boton {
+    gap: 0 !important;
+    padding: 8px;
+  }
 }

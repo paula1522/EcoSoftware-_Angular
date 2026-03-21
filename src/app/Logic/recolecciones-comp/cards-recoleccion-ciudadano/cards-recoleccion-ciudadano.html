@@ -1,5 +1,34 @@
 <div class="container-cards">
+<!-- FILTROS -->
+<div class="filtros-container p-3 d-flex flex-wrap align-items-end gap-3">
 
+  <!-- Estado -->
+  <div class="flex-grow-1" style="min-width: 150px;">
+    <label class="form-label">Estado:</label>
+    <select class="form-select" [(ngModel)]="estadoSeleccionado" (change)="paginaActual=1">
+      <option value="">Todos</option>
+      <option *ngFor="let e of (EstadoRecoleccion | keyvalue)" [value]="e.value">{{ e.value }}</option>
+    </select>
+  </div>
+
+ 
+
+  <!-- Ordenar -->
+  <div class="flex-grow-1" style="min-width: 150px;">
+    <label class="form-label">Ordenar por fecha:</label>
+    <select class="form-select" [(ngModel)]="ordenSeleccionado">
+      <option value="reciente">Más recientes</option>
+      <option value="antiguo">Más antiguos</option>
+    </select>
+  </div>
+
+  <!-- Limpiar filtros -->
+  <div class="botones-wrapper d-flex gap-2 ms-auto">
+    <app-boton icono="bi bi-x-circle" color="custom-gray-filled"
+      (click)="estadoSeleccionado=''; tipoResiduoSeleccionado=''; paginaActual=1"></app-boton>
+  </div>
+
+</div>
 
   <div class="row" *ngIf="recolecciones.length > 0; else sinRecolecciones">
     <div class="col-12 mb-4" *ngFor="let reco of recolecciones">
@@ -111,6 +140,16 @@
       <p>No tienes recolecciones asignadas.</p>
     </div>
   </ng-template>
+
+
+  <!-- PAGINACIÓN -->
+<div class="pag mt-3" *ngIf="totalPaginas > 1">
+  <button class="pg" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">‹</button>
+  <ng-container *ngFor="let p of [].constructor(totalPaginas); let i = index">
+    <button class="pg" [class.on]="paginaActual === i + 1" (click)="cambiarPagina(i + 1)">{{ i + 1 }}</button>
+  </ng-container>
+  <button class="pg" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">›</button>
+</div>
 </div>
 
 
@@ -178,16 +217,18 @@
            [headerColor]="'#4f69d9'"
            [isOpen]="false">
   <div class="p-3">
-    <div class="mb-3">
-      <label class="form-label fw-bold">Estado</label>
-      <select class="form-select" [(ngModel)]="estadoEditable">
-        <option *ngFor="let estado of (EstadoRecoleccion | keyvalue)" [value]="estado.value">{{ estado.value }}</option>
-      </select>
-    </div>
+    
+
     <div class="mb-3">
       <label class="form-label fw-bold">Fecha Programada</label>
       <input type="datetime-local" class="form-control" [(ngModel)]="fechaProgramadaEditable">
     </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Observaciones</label>
+      <textarea class="form-control" [(ngModel)]="observacionesEditable" rows="3"></textarea>
+    </div>
+
     <div class="d-flex justify-content-end gap-2">
       <app-boton texto="Cancelar" color="secondary" (click)="cerrarModalEdicion()"></app-boton>
       <app-boton texto="Guardar" color="success" (click)="guardarEdicion()"></app-boton>

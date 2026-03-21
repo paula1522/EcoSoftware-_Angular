@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { Service } from '../../../Services/solicitud.service';
-import { ServiceModel } from '../../../Models/solicitudes.model';
+import { ServiceModel, TipoResiduo } from '../../../Models/solicitudes.model';
 import { COMPARTIR_IMPORTS } from '../../../shared/imports';
 import { Boton } from "../../../shared/botones/boton/boton";
 import { UsuarioService } from '../../../Services/usuario.service';
@@ -32,15 +32,27 @@ export class CardsSolicitud implements OnInit {
   usuarioActual: UsuarioModel | null = null;
   idUsuarioActual: number | null = null;
 
-  // 🔥 SELECT LOCALIDADES
+  //SELECT LOCALIDADES
   localidades = Object.values(Localidad);
 
-  // 🔥 MODALES
+  //MODALES
   modalEditarAbierto = false;
   modalCancelarAbierto = false;
   modalVerAbierto = false;
 
+
+  // Filtros
+estadoSeleccionado: string = '';
+tipoResiduoSeleccionado: TipoResiduo | '' = '';
+  tiposResiduo: TipoResiduo[] = Object.values(TipoResiduo);
+
+// Ordenamiento
+campoOrden: keyof ServiceModel = 'idSolicitud';
+ascendente: boolean = true;
+
   solicitudSeleccionada: ServiceModel | null = null;
+    ordenSeleccionado: 'reciente' | 'antiguo' = 'reciente';
+
 
   constructor(
     private service: Service,
@@ -152,21 +164,37 @@ confirmarCancelar(): void {
     error: (err) => console.error('Error al cancelar solicitud', err)
   });
 }
-// FILTRO
-estadoSeleccionado: string = '';
+
 
 // Lista filtrada
 get solicitudesFiltradas(): ServiceModel[] {
-  if (!this.estadoSeleccionado) return this.solicitudes;
+  let filtradas = this.solicitudes;
 
-  return this.solicitudes.filter(s =>
-    s.estadoPeticion === this.estadoSeleccionado
-  );
+  // Filtrar por estado
+  if (this.estadoSeleccionado) {
+    filtradas = filtradas.filter(s => s.estadoPeticion === this.estadoSeleccionado);
+  }
+
+  // Filtrar por tipo de residuo
+  if (this.tipoResiduoSeleccionado) {
+    filtradas = filtradas.filter(s => s.tipoResiduo === this.tipoResiduoSeleccionado);
+  }
+  
+
+  
+
+  // ORDEN POR FECHA DE CREACIÓN
+    filtradas.sort((a, b) => {
+      const fechaA = a.fechaCreacionSolicitud ? new Date(a.fechaCreacionSolicitud).getTime() : 0;
+      const fechaB = b.fechaCreacionSolicitud ? new Date(b.fechaCreacionSolicitud).getTime() : 0;
+      return this.ordenSeleccionado === 'reciente' ? fechaB - fechaA : fechaA - fechaB;
+    });
+
+  return filtradas;
 }
-
 // PAGINACIÓN
 paginaActual: number = 1;
-itemsPorPagina: number = 5;
+itemsPorPagina: number = 16;
 
 // Lista paginada
 get solicitudesPaginadas(): ServiceModel[] {
