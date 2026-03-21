@@ -1,0 +1,131 @@
+<div class="ciudadano-kpi-grid">
+  <article *ngIf="!loadingImpacto && impactoCards.length === 0 && !errorImpacto" class="ciudadano-kpi-card ciudadano-kpi-card-emerald ciudadano-kpi-card-empty">
+    <div class="ciudadano-kpi-head">
+      <span class="ciudadano-kpi-icon"><i class="bi bi-recycle"></i></span>
+      <span class="ciudadano-kpi-label">Impacto ambiental</span>
+    </div>
+    <strong class="ciudadano-kpi-value ciudadano-kpi-value-text">Sin datos</strong>
+    <small class="ciudadano-kpi-note">No hay métricas disponibles para este usuario.</small>
+  </article>
+
+  <article
+    *ngFor="let card of impactoCards"
+    class="ciudadano-kpi-card"
+    [ngClass]="'ciudadano-kpi-card-' + card.tone">
+    <div class="ciudadano-kpi-head">
+      <span class="ciudadano-kpi-icon"><i [class]="card.icon"></i></span>
+      <span class="ciudadano-kpi-label">{{ card.label }}</span>
+    </div>
+    <strong class="ciudadano-kpi-value">{{ card.value }}</strong>
+    <small class="ciudadano-kpi-note">{{ card.note }}</small>
+  </article>
+
+  <article *ngIf="loadingImpacto" class="ciudadano-kpi-card ciudadano-kpi-card-emerald ciudadano-kpi-card-empty">
+    <div class="ciudadano-kpi-head">
+      <span class="ciudadano-kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+      <span class="ciudadano-kpi-label">Impacto ambiental</span>
+    </div>
+    <strong class="ciudadano-kpi-value ciudadano-kpi-value-text">Cargando</strong>
+    <small class="ciudadano-kpi-note">Consultando métricas personales.</small>
+  </article>
+
+  <article *ngIf="errorImpacto" class="ciudadano-kpi-card ciudadano-kpi-card-forest ciudadano-kpi-card-empty">
+    <div class="ciudadano-kpi-head">
+      <span class="ciudadano-kpi-icon"><i class="bi bi-exclamation-circle"></i></span>
+      <span class="ciudadano-kpi-label">Impacto ambiental</span>
+    </div>
+    <strong class="ciudadano-kpi-value ciudadano-kpi-value-text">No disponible</strong>
+    <small class="ciudadano-kpi-note">{{ errorImpacto }}</small>
+  </article>
+  
+</div>
+
+<div class="ciudadano-dashboard-grid">
+  <section class="ciudadano-chart-card ciudadano-chart-card-olive">
+    <header class="ciudadano-chart-header">
+      <h3 class="ciudadano-chart-title">Mis solicitudes por estado</h3>
+      <p class="ciudadano-chart-copy">Resumen actual del ciclo de vida de tus solicitudes.</p>
+    </header>
+    <div class="ciudadano-chart-state" *ngIf="loadingEstado">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingEstado && errorEstado">{{ errorEstado }}</div>
+    <apx-chart
+      *ngIf="!loadingEstado && !errorEstado"
+      [series]="estadoChartOptions.series"
+      [chart]="estadoChartOptions.chart"
+      [labels]="estadoChartOptions.labels"
+      [colors]="estadoChartOptions.colors"
+      [legend]="estadoChartOptions.legend"
+      [dataLabels]="estadoChartOptions.dataLabels"
+      [tooltip]="estadoChartOptions.tooltip"
+      [stroke]="estadoChartOptions.stroke"
+      [plotOptions]="estadoChartOptions.plotOptions">
+    </apx-chart>
+  </section>
+
+  <section class="ciudadano-chart-card ciudadano-chart-card-blue-tone">
+    <header class="ciudadano-chart-header">
+      <h3 class="ciudadano-chart-title">Mis solicitudes en el tiempo</h3>
+      <p class="ciudadano-chart-copy">Comportamiento mensual de la actividad registrada.</p>
+    </header>
+    <div class="ciudadano-chart-state" *ngIf="loadingTiempo">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingTiempo && errorTiempo">{{ errorTiempo }}</div>
+    <apx-chart
+      *ngIf="!loadingTiempo && !errorTiempo"
+      [series]="tiempoChartOptions.series"
+      [chart]="tiempoChartOptions.chart"
+      [stroke]="tiempoChartOptions.stroke"
+      [markers]="tiempoChartOptions.markers"
+      [xaxis]="tiempoChartOptions.xaxis"
+      [yaxis]="tiempoChartOptions.yaxis"
+      [colors]="tiempoChartOptions.colors"
+      [dataLabels]="tiempoChartOptions.dataLabels"
+      [tooltip]="tiempoChartOptions.tooltip"
+      [grid]="tiempoChartOptions.grid">
+    </apx-chart>
+  </section>
+
+  <section class="ciudadano-chart-card ciudadano-chart-card-wide ciudadano-chart-card-forest-tone">
+    <header class="ciudadano-chart-header">
+      <h3 class="ciudadano-chart-title">Mis residuos por tipo</h3>
+      <p class="ciudadano-chart-copy">Distribución consolidada del material que has reportado.</p>
+    </header>
+    <div class="ciudadano-chart-state" *ngIf="loadingResiduos">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingResiduos && errorResiduos">{{ errorResiduos }}</div>
+    <apx-chart
+      *ngIf="!loadingResiduos && !errorResiduos"
+      [series]="residuosChartOptions.series"
+      [chart]="residuosChartOptions.chart"
+      [plotOptions]="residuosChartOptions.plotOptions"
+      [xaxis]="residuosChartOptions.xaxis"
+      [yaxis]="residuosChartOptions.yaxis"
+      [colors]="residuosChartOptions.colors"
+      [dataLabels]="residuosChartOptions.dataLabels"
+      [tooltip]="residuosChartOptions.tooltip"
+      [grid]="residuosChartOptions.grid">
+    </apx-chart>
+  </section>
+
+  <section class="ciudadano-chart-card ciudadano-chart-card-wide ciudadano-chart-card-teal-tone ciudadano-summary-card">
+    <header class="ciudadano-chart-header">
+      <h3 class="ciudadano-chart-title">Resumen personal</h3>
+      <p class="ciudadano-chart-copy">Indicadores consolidados para lectura rapida del panel.</p>
+    </header>
+
+    <div class="ciudadano-summary-body">
+      <div class="ciudadano-summary-grid">
+        <article class="ciudadano-summary-item">
+          <span class="ciudadano-summary-label">Solicitudes registradas</span>
+          <strong class="ciudadano-summary-value">{{ formatMetric(totalSolicitudes) }}</strong>
+        </article>
+        <article class="ciudadano-summary-item">
+          <span class="ciudadano-summary-label">Estado dominante</span>
+          <strong class="ciudadano-summary-value ciudadano-summary-value-text">{{ estadoDominante }}</strong>
+        </article>
+        <article class="ciudadano-summary-item">
+          <span class="ciudadano-summary-label">Residuos acumulados</span>
+          <strong class="ciudadano-summary-value">{{ formatMetric(residuosTotales) }}</strong>
+        </article>
+      </div>
+    </div>
+  </section>
+</div>

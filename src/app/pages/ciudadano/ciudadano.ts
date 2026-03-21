@@ -13,13 +13,15 @@ import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-u
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
 import { CardInscripcion } from "../../Logic/capacitaciones/card-inscripcion/card-inscripcion";
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
+import { DashboardCiudadanoComponent } from '../../Logic/ciudadano/dashboard-ciudadano/dashboard-ciudadano';
 
 @Component({
   selector: 'app-ciudadano',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, FormRegistro,
     EditarUsuario,
-    CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, CardInscripcion, Tabla],
+    CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, CardInscripcion, Tabla,
+    DashboardCiudadanoComponent],
 
   templateUrl: './ciudadano.html',
   styleUrls: ['./ciudadano.css']

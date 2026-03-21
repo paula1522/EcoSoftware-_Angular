@@ -1,0 +1,135 @@
+<div class="reciclador-kpi-grid">
+  <article class="reciclador-kpi-card reciclador-kpi-card-emerald">
+    <div class="reciclador-kpi-head">
+      <span class="reciclador-kpi-icon"><i class="bi bi-truck"></i></span>
+      <span class="reciclador-kpi-label">Recolecciones registradas</span>
+    </div>
+    <strong class="reciclador-kpi-value">{{ formatMetric(totalRecolecciones) }}</strong>
+    <small class="reciclador-kpi-note">Volumen total consolidado por periodo.</small>
+  </article>
+
+  <article class="reciclador-kpi-card reciclador-kpi-card-blue">
+    <div class="reciclador-kpi-head">
+      <span class="reciclador-kpi-icon"><i class="bi bi-pie-chart"></i></span>
+      <span class="reciclador-kpi-label">Estado dominante</span>
+    </div>
+    <strong class="reciclador-kpi-value reciclador-kpi-value-text">{{ estadoDominante }}</strong>
+    <small class="reciclador-kpi-note">Etapa operativa con mayor frecuencia actual.</small>
+  </article>
+
+  <article class="reciclador-kpi-card reciclador-kpi-card-forest">
+    <div class="reciclador-kpi-head">
+      <span class="reciclador-kpi-icon"><i class="bi bi-recycle"></i></span>
+      <span class="reciclador-kpi-label">Material recolectado</span>
+    </div>
+    <strong class="reciclador-kpi-value">{{ formatMetric(materialTotal) }}</strong>
+    <small class="reciclador-kpi-note">Suma total del material clasificado por tipo.</small>
+  </article>
+
+  <article class="reciclador-kpi-card reciclador-kpi-card-teal">
+    <div class="reciclador-kpi-head">
+      <span class="reciclador-kpi-icon"><i class="bi bi-signpost-split"></i></span>
+      <span class="reciclador-kpi-label">Cumplimiento</span>
+    </div>
+    <strong class="reciclador-kpi-value">{{ formatMetric(cumplimientoPorcentaje) }}%</strong>
+    <small class="reciclador-kpi-note">{{ cumplimientoCompletadas }} de {{ cumplimientoTotal }} rutas completadas.</small>
+  </article>
+</div>
+
+<div class="reciclador-dashboard-grid">
+  <section class="reciclador-chart-card reciclador-chart-card-olive">
+    <header class="reciclador-chart-header">
+      <h3 class="reciclador-chart-title">Recolecciones por periodo</h3>
+      <p class="reciclador-chart-copy">Seguimiento del ritmo operativo a lo largo del tiempo.</p>
+    </header>
+    <div class="reciclador-chart-state" *ngIf="loadingPeriodo">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingPeriodo && errorPeriodo">{{ errorPeriodo }}</div>
+    <apx-chart
+      *ngIf="!loadingPeriodo && !errorPeriodo"
+      [series]="periodoChartOptions.series"
+      [chart]="periodoChartOptions.chart"
+      [plotOptions]="periodoChartOptions.plotOptions"
+      [fill]="periodoChartOptions.fill"
+      [xaxis]="periodoChartOptions.xaxis"
+      [yaxis]="periodoChartOptions.yaxis"
+      [colors]="periodoChartOptions.colors"
+      [dataLabels]="periodoChartOptions.dataLabels"
+      [tooltip]="periodoChartOptions.tooltip"
+      [grid]="periodoChartOptions.grid">
+    </apx-chart>
+  </section>
+
+  <section class="reciclador-chart-card reciclador-chart-card-blue-tone">
+    <header class="reciclador-chart-header">
+      <h3 class="reciclador-chart-title">Recolecciones por estado</h3>
+      <p class="reciclador-chart-copy">Distribucion actual del flujo de trabajo del reciclador.</p>
+    </header>
+    <div class="reciclador-chart-state" *ngIf="loadingEstado">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingEstado && errorEstado">{{ errorEstado }}</div>
+    <apx-chart
+      *ngIf="!loadingEstado && !errorEstado"
+      [series]="estadoChartOptions.series"
+      [chart]="estadoChartOptions.chart"
+      [labels]="estadoChartOptions.labels"
+      [colors]="estadoChartOptions.colors"
+      [legend]="estadoChartOptions.legend"
+      [dataLabels]="estadoChartOptions.dataLabels"
+      [tooltip]="estadoChartOptions.tooltip"
+      [stroke]="estadoChartOptions.stroke"
+      [plotOptions]="estadoChartOptions.plotOptions">
+    </apx-chart>
+  </section>
+
+  <section class="reciclador-chart-card reciclador-chart-card-wide reciclador-chart-card-teal-tone reciclador-progress-card">
+    <header class="reciclador-chart-header">
+      <h3 class="reciclador-chart-title">Cumplimiento de rutas</h3>
+      <p class="reciclador-chart-copy">Medicion operativa del porcentaje de rutas finalizadas frente al total asignado.</p>
+    </header>
+
+    <div class="reciclador-chart-state" *ngIf="loadingCumplimiento">Cargando cumplimiento...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingCumplimiento && errorCumplimiento">{{ errorCumplimiento }}</div>
+
+    <div *ngIf="!loadingCumplimiento && !errorCumplimiento" class="reciclador-progress-shell">
+      <div class="reciclador-progress-meta">
+        <span class="reciclador-progress-label">{{ cumplimientoLabel }}</span>
+        <strong class="reciclador-progress-value">{{ formatMetric(cumplimientoPorcentaje) }}%</strong>
+      </div>
+
+      <div class="reciclador-progress-track" aria-label="Cumplimiento de rutas">
+        <div class="reciclador-progress-bar" [style.width.%]="cumplimientoPorcentaje"></div>
+      </div>
+
+      <div class="reciclador-progress-stats">
+        <article class="reciclador-progress-stat">
+          <span>Completadas</span>
+          <strong>{{ formatMetric(cumplimientoCompletadas) }}</strong>
+        </article>
+        <article class="reciclador-progress-stat">
+          <span>Total asignadas</span>
+          <strong>{{ formatMetric(cumplimientoTotal) }}</strong>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="reciclador-chart-card reciclador-chart-card-wide reciclador-chart-card-forest-tone">
+    <header class="reciclador-chart-header">
+      <h3 class="reciclador-chart-title">Material recolectado por tipo</h3>
+      <p class="reciclador-chart-copy">Comparativo del material clasificado y recuperado por categoria.</p>
+    </header>
+    <div class="reciclador-chart-state" *ngIf="loadingMaterial">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingMaterial && errorMaterial">{{ errorMaterial }}</div>
+    <apx-chart
+      *ngIf="!loadingMaterial && !errorMaterial"
+      [series]="materialChartOptions.series"
+      [chart]="materialChartOptions.chart"
+      [plotOptions]="materialChartOptions.plotOptions"
+      [xaxis]="materialChartOptions.xaxis"
+      [yaxis]="materialChartOptions.yaxis"
+      [colors]="materialChartOptions.colors"
+      [dataLabels]="materialChartOptions.dataLabels"
+      [tooltip]="materialChartOptions.tooltip"
+      [grid]="materialChartOptions.grid">
+    </apx-chart>
+  </section>
+</div>

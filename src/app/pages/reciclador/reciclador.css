@@ -1,3 +1,8 @@
+.dashboard.administrador {
+	background: linear-gradient(180deg, #f3f6f4 0%, #eef3ef 100%);
+	min-height: 100vh;
+}
+
 .pagina-reciclador { padding: 12px; }
 .pagina-reciclador h4 { margin: 0; }
 
