@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UsuarioService } from '../../Services/usuario.service'; // ajusta ruta según tu estructura
 import { COMPARTIR_IMPORTS } from '../../shared/imports';
@@ -13,13 +13,15 @@ import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-u
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
 import { CardInscripcion } from "../../Logic/capacitaciones/card-inscripcion/card-inscripcion";
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
+import { DashboardCiudadanoComponent } from '../../Logic/ciudadano/dashboard-ciudadano/dashboard-ciudadano';
 
 @Component({
   selector: 'app-ciudadano',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, FormRegistro,
     EditarUsuario,
-    CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, CardInscripcion, Tabla],
+    CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, CardInscripcion, Tabla,
+    DashboardCiudadanoComponent],
 
   templateUrl: './ciudadano.html',
   styleUrls: ['./ciudadano.css']
@@ -104,6 +106,31 @@ export class Ciudadano {
 
   irAPaginaMapa(): void {
     this.router.navigate(['/puntos-reciclaje']);
+  }
+
+  verPuntoDesdeTabla(punto: any): void {
+    const id = this.obtenerIdPunto(punto);
+    const lat = Number(punto?.latitud);
+    const lng = Number(punto?.longitud);
+
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      this.router.navigate(['/puntos-reciclaje'], {
+        queryParams: { id, lat, lng, nombre: punto?.nombre || '' }
+      });
+      return;
+    }
+
+    this.irAPaginaMapa();
+  }
+
+  private obtenerIdPunto(punto: any): number | null {
+    const raw = punto?.id ?? punto?.idPunto ?? punto?.id_punto ?? null;
+    if (raw == null) {
+      return null;
+    }
+
+    const id = Number(raw);
+    return Number.isNaN(id) ? null : id;
   }
 
   toggleMenu(): void {

@@ -1,2 +1,33 @@
+.dashboard.administrador {
+	background: linear-gradient(180deg, #f3f6f4 0%, #eef3ef 100%);
+	min-height: 100vh;
+}
+
 .pagina-reciclador { padding: 12px; }
 .pagina-reciclador h4 { margin: 0; }
+
+.puntos-admin-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.puntos-admin-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.puntos-admin-actions .btn.active {
+	background: #198754;
+	border-color: #198754;
+	color: #fff;
+}
+
+.puntos-admin-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
