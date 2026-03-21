@@ -1,0 +1,124 @@
+<div class="empresa-kpi-grid">
+  <article class="empresa-kpi-card empresa-kpi-card-emerald">
+    <div class="empresa-kpi-head">
+      <span class="empresa-kpi-icon"><i class="bi bi-clipboard-data"></i></span>
+      <span class="empresa-kpi-label">Solicitudes registradas</span>
+    </div>
+    <strong class="empresa-kpi-value">{{ formatMetric(totalSolicitudes) }}</strong>
+    <small class="empresa-kpi-note">Volumen total consolidado en todos los estados</small>
+  </article>
+
+  <article class="empresa-kpi-card empresa-kpi-card-blue">
+    <div class="empresa-kpi-head">
+      <span class="empresa-kpi-icon"><i class="bi bi-pie-chart"></i></span>
+      <span class="empresa-kpi-label">Estado dominante</span>
+    </div>
+    <strong class="empresa-kpi-value empresa-kpi-value-text">{{ estadoDominante }}</strong>
+    <small class="empresa-kpi-note">Fase operativa con mayor concentración actual</small>
+  </article>
+
+  <article class="empresa-kpi-card empresa-kpi-card-forest">
+    <div class="empresa-kpi-head">
+      <span class="empresa-kpi-icon"><i class="bi bi-recycle"></i></span>
+      <span class="empresa-kpi-label">Material acumulado</span>
+    </div>
+    <strong class="empresa-kpi-value">{{ formatMetric(materialTotal) }}</strong>
+    <small class="empresa-kpi-note">Suma del material entregado o gestionado por tipo</small>
+  </article>
+
+  <article class="empresa-kpi-card empresa-kpi-card-teal">
+    <div class="empresa-kpi-head">
+      <span class="empresa-kpi-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      <span class="empresa-kpi-label">Mes mas activo</span>
+    </div>
+    <strong class="empresa-kpi-value empresa-kpi-value-text">{{ mejorMes }}</strong>
+    <small class="empresa-kpi-note">Periodo con mayor volumen de actividad registrada</small>
+  </article>
+</div>
+
+<div class="empresa-dashboard-grid">
+  <section class="empresa-chart-card empresa-chart-card-olive">
+    <header class="empresa-chart-header">
+      <h3 class="empresa-chart-title">Mis solicitudes por estado</h3>
+    </header>
+    <div class="empresa-chart-state" *ngIf="loadingEstado">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingEstado && errorEstado">{{ errorEstado }}</div>
+    <apx-chart
+      *ngIf="!loadingEstado && !errorEstado"
+      [series]="estadoChartOptions.series"
+      [chart]="estadoChartOptions.chart"
+      [labels]="estadoChartOptions.labels"
+      [colors]="estadoChartOptions.colors"
+      [legend]="estadoChartOptions.legend"
+      [dataLabels]="estadoChartOptions.dataLabels"
+      [title]="estadoChartOptions.title"
+      [tooltip]="estadoChartOptions.tooltip"
+      [stroke]="estadoChartOptions.stroke"
+      [plotOptions]="estadoChartOptions.plotOptions">
+    </apx-chart>
+  </section>
+
+  <section class="empresa-chart-card empresa-chart-card-blue-tone">
+    <header class="empresa-chart-header">
+      <h3 class="empresa-chart-title">Mis solicitudes por mes</h3>
+    </header>
+    <div class="empresa-chart-state" *ngIf="loadingMensual">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingMensual && errorMensual">{{ errorMensual }}</div>
+    <apx-chart
+      *ngIf="!loadingMensual && !errorMensual"
+      [series]="mensualChartOptions.series"
+      [chart]="mensualChartOptions.chart"
+      [plotOptions]="mensualChartOptions.plotOptions"
+      [fill]="mensualChartOptions.fill"
+      [xaxis]="mensualChartOptions.xaxis"
+      [yaxis]="mensualChartOptions.yaxis"
+      [colors]="mensualChartOptions.colors"
+      [dataLabels]="mensualChartOptions.dataLabels"
+      [title]="mensualChartOptions.title"
+      [tooltip]="mensualChartOptions.tooltip"
+      [grid]="mensualChartOptions.grid">
+    </apx-chart>
+  </section>
+
+  <section class="empresa-chart-card empresa-chart-card-wide empresa-chart-card-forest-tone">
+    <header class="empresa-chart-header">
+      <h3 class="empresa-chart-title">Material entregado por tipo</h3>
+    </header>
+    <div class="empresa-chart-state" *ngIf="loadingMaterial">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingMaterial && errorMaterial">{{ errorMaterial }}</div>
+    <apx-chart
+      *ngIf="!loadingMaterial && !errorMaterial"
+      [series]="materialChartOptions.series"
+      [chart]="materialChartOptions.chart"
+      [plotOptions]="materialChartOptions.plotOptions"
+      [xaxis]="materialChartOptions.xaxis"
+      [yaxis]="materialChartOptions.yaxis"
+      [colors]="materialChartOptions.colors"
+      [dataLabels]="materialChartOptions.dataLabels"
+      [title]="materialChartOptions.title"
+      [tooltip]="materialChartOptions.tooltip"
+      [grid]="materialChartOptions.grid">
+    </apx-chart>
+  </section>
+
+  <section class="empresa-chart-card empresa-chart-card-wide empresa-chart-card-teal-tone">
+    <header class="empresa-chart-header">
+      <h3 class="empresa-chart-title">Material gestionado por mes</h3>
+    </header>
+    <div class="empresa-chart-state" *ngIf="loadingTiempo">Cargando grafica...</div>
+    <div class="alert alert-warning mb-0" *ngIf="!loadingTiempo && errorTiempo">{{ errorTiempo }}</div>
+    <apx-chart
+      *ngIf="!loadingTiempo && !errorTiempo"
+      [series]="tiempoChartOptions.series"
+      [chart]="tiempoChartOptions.chart"
+      [stroke]="tiempoChartOptions.stroke"
+      [xaxis]="tiempoChartOptions.xaxis"
+      [yaxis]="tiempoChartOptions.yaxis"
+      [colors]="tiempoChartOptions.colors"
+      [dataLabels]="tiempoChartOptions.dataLabels"
+      [title]="tiempoChartOptions.title"
+      [tooltip]="tiempoChartOptions.tooltip"
+      [grid]="tiempoChartOptions.grid">
+    </apx-chart>
+  </section>
+</div>

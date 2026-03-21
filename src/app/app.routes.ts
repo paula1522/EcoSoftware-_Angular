@@ -33,7 +33,6 @@ import { Noticias } from './pages/noticias/noticias';
 import { SubirDocumentos } from './auth/subir-documentos/subir-documentos';
 import { CardInscripcion } from './Logic/capacitaciones/card-inscripcion/card-inscripcion';
 import { Solicitud } from './pages/solicitud/solicitud';
-
 export const routes: Routes = [
 
   { path: '', component: Inicio },

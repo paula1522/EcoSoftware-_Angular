@@ -1,132 +1,108 @@
-<div class="container mt-3">
-  <h4 class="text-center"></h4>
+<div class="capacitaciones-container">
 
-  <!-- ✅ Mensajes de carga o error -->
-  <div *ngIf="cargando" class="text-center">Cargando...</div>
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <!-- FILTROS Y EXPORTACIONES -->
+  <div class="filtros-container p-3">
+    <div class="d-flex flex-wrap align-items-end gap-3">
 
-  <!-- ✅ Mostrar tabla solo si hay datos -->
-<app-tabla
-  *ngIf="!cargando && data.length > 0"
-  [titulo]="'Listado de Capacitaciones'"
-  [columnas]="columnas"
-  [data]="data"
-  (ver)="abrirModalVerCapacitacion($event)"
-  (editar)="editar($event)"
-  (eliminar)="eliminar($event)">
-</app-tabla>
+      <!-- Filtro por nombre -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Nombre:</label>
+        <input type="text" class="form-control" [(ngModel)]="nombreFilter" placeholder="Filtrar por nombre">
+      </div>
 
+      <!-- Filtro por número de clases -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label"># Clases:</label>
+        <input type="number" class="form-control" [(ngModel)]="numeroClasesFilter" placeholder="Filtrar por número de clases">
+      </div>
 
-  <!-- ✅ Sin datos -->
-  <p *ngIf="!cargando && data.length === 0" class="text-center">
-    No hay capacitaciones registradas.
-  </p>
+      <!-- Filtro por duración -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Duración:</label> 
+        <input type="text" class="form-control" [(ngModel)]="duracionFilter" placeholder="Filtrar por duración">
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="botones-wrapper d-flex gap-2 ms-auto">
+        <app-boton icono="bi bi-funnel" color="custom-success-filled" (click)="aplicarFiltros()"></app-boton>
+        <app-boton icono="bi bi-x-circle" color="custom-gray-filled" (click)="limpiarFiltros()"></app-boton>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TABLA REUTILIZABLE -->
+  <app-tabla 
+    [columnas]="columnas" 
+    [data]="data" 
+    titulo="Capacitaciones"
+    [accionesVisibles]="['ver','editar','eliminar']"
+    (ver)="abrirModalVerCapacitacion($event)"
+    (editar)="editar($event)"
+    (eliminar)="eliminar($event)">
+  </app-tabla>
+
+  <!-- MODAL VER CAPACITACION -->
+  <app-modal #modalVerCapacitacion [title]="'Detalles de la Capacitación'" [headerColor]="'#4f69d9'" [isOpen]="false">
+    <div class="p-3 modal-perfil-container">
+      <div class="text-center mb-4">
+        <h3>{{ selectedCapacitacion?.nombre || 'Sin nombre' }}</h3>
+        <small class="text-muted">ID: {{ selectedCapacitacion?.id || '---' }}</small>
+      </div>
+
+      <div class="text-center mb-4">
+        <ng-container *ngIf="selectedCapacitacion?.imagen; else noImage">
+          <img [src]="selectedCapacitacion?.imagen" class="img-fluid rounded shadow" style="max-height:250px; object-fit:cover;" />
+        </ng-container>
+        <ng-template #noImage>
+          <div class="text-muted fst-italic">Sin imagen disponible</div>
+        </ng-template>
+      </div>
+
+      <h5 class="section-title">Información general</h5>
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="fw-bold">Número de clases:</label>
+          <div>{{ selectedCapacitacion?.numeroDeClases || 'No definido' }}</div>
+        </div>
+        <div class="col-6">
+          <label class="fw-bold">Duración:</label>
+          <div>{{ selectedCapacitacion?.duracion || 'No definida' }}</div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="fw-bold">Descripción:</label>
+        <div>{{ selectedCapacitacion?.descripcion || 'Sin descripción' }}</div>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- MODAL EDITAR -->
+  <app-modal #modalEditarCapacitacion [title]="'Editar Capacitación'" [headerColor]="'#ffc107'" [isOpen]="false">
+    <div class="p-3">
+      <app-form-comp [formGroup]="formEditarCapacitacion"
+                     [fields]="fieldsEditarCapacitacion"
+                     [submitButtonText]="'Actualizar'"
+                     [submitButtonIcon]="'bi bi-save'"
+                     [submitButtonColor]="'custom-success-filled'"
+                     (submitForm)="actualizarCapacitacion()"
+                     [showSubmitButton]="true">
+      </app-form-comp>
+    </div>
+  </app-modal>
+
+  <!-- MODAL ELIMINAR -->
+  <app-modal #modalEliminarCapacitacion [title]="'Eliminar Capacitación'" [headerColor]="'#dc3545'" [isOpen]="false">
+    <div class="p-3">
+      <p>¿Está seguro que desea eliminar la capacitación <strong>{{ capacitacionSeleccionada?.nombre }}</strong>?</p>
+    </div>
+    <ng-container modal-footer>
+      <div class="d-flex justify-content-end gap-2">
+        <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled" (click)="cerrarModalEliminarCapacitacion()"></app-boton>
+        <app-boton texto="Eliminar" icono="bi bi-trash" color="custom-danger-filled" (click)="confirmarEliminarCapacitacion()"></app-boton>
+      </div>
+    </ng-container>
+  </app-modal>
+
 </div>
-<app-modal
-  #modalVerCapacitacion
-  [title]="'Detalles de la Capacitación'"
-  [headerColor]="'#4f69d9'"
-  [isOpen]="false"
->
-
-  <div class="p-3 modal-perfil-container">
-
-    <!-- ENCABEZADO -->
-    <div class="text-center mb-4">
-
-      <h3 class="mt-2 mb-0">
-        {{ selectedCapacitacion?.nombre || 'Sin nombre' }}
-      </h3>
-
-      <small class="text-muted">
-        ID: {{ selectedCapacitacion?.id || '---' }}
-      </small>
-    </div>
-
-    <!-- IMAGEN -->
-    <div class="text-center mb-4">
-      <ng-container *ngIf="selectedCapacitacion?.imagen; else noImage">
-        <img 
-          [src]="selectedCapacitacion?.imagen"
-          alt="Imagen de capacitación"
-          class="img-fluid rounded shadow"
-          style="max-height: 250px; object-fit: cover;"
-        />
-      </ng-container>
-
-      <ng-template #noImage>
-        <div class="text-muted fst-italic">Sin imagen disponible</div>
-      </ng-template>
-    </div>
-
-    <!-- INFORMACIÓN GENERAL -->
-    <h5 class="section-title">Información general</h5>
-
-    <div class="row mb-3">
-      <div class="col-6">
-        <label class="fw-bold">Número de clases:</label>
-        <div>{{ selectedCapacitacion?.numeroDeClases || 'No definido' }}</div>
-      </div>
-
-      <div class="col-6">
-        <label class="fw-bold">Duración:</label>
-        <div>{{ selectedCapacitacion?.duracion || 'No definida' }}</div>
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <label class="fw-bold">Descripción:</label>
-      <div>{{ selectedCapacitacion?.descripcion || 'Sin descripción' }}</div>
-    </div>
-
-  
-
-    
-
-    <ng-template #noModules>
-      <div class="text-muted fst-italic">Esta capacitación no tiene módulos registrados.</div>
-    </ng-template>
-
-  </div>
-
-</app-modal>
-
-<app-modal
-  #modalEditarCapacitacion
-  [title]="'Editar Capacitación'"
-  [headerColor]="'#ffc107'"
-  [isOpen]="false"
->
-  <div class="p-3">
-    <app-form-comp
-      *ngIf="capacitacionSeleccionada"
-      [formGroup]="formEditarCapacitacion"
-      [fields]="fieldsEditarCapacitacion"
-      [submitButtonText]="'Actualizar'"
-      [submitButtonIcon]="'bi bi-save'"
-      [submitButtonColor]="'custom-success-filled'"
-      (submitForm)="actualizarCapacitacion()"
-      [showSubmitButton]="true">
-    </app-form-comp>
-  </div>
-  <ng-container modal-footer>
-    
-  </ng-container>
-</app-modal>
-
-<app-modal
-  #modalEliminarCapacitacion
-  [title]="'Eliminar Capacitación'"
-  [headerColor]="'#dc3545'"
-  [isOpen]="false"
->
-  <div class="p-3">
-    <p>¿Está seguro que desea eliminar la capacitación <strong>{{ capacitacionSeleccionada?.nombre }}</strong>?</p>
-  </div>
-  <ng-container modal-footer>
-    <div class="d-flex justify-content-end gap-2">
-      <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled" (click)="cerrarModalEliminarCapacitacion()"></app-boton>
-      <app-boton texto="Eliminar" icono="bi bi-trash" color="custom-danger-filled" (click)="confirmarEliminarCapacitacion()"></app-boton>
-    </div>
-  </ng-container>
-</app-modal>

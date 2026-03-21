@@ -10,6 +10,9 @@ import { Capacitacion, EstadoCurso, Modulo, Inscripcion, Progreso, UploadResultD
   providedIn: 'root'
 })
 export class CapacitacionesService {
+  exportarExcel() {
+    throw new Error('Method not implemented.');
+  }
 
 private apiUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/capacitaciones';
   constructor(private http: HttpClient) {}

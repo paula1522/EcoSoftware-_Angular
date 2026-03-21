@@ -5,22 +5,27 @@ import { COMPARTIR_IMPORTS } from '../../../shared/imports';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Boton } from '../../../shared/botones/boton/boton';
+import { Modal } from '../../../shared/modal/modal';
 
 @Component({
   selector: 'app-carga-masiva-capacitacion',
   standalone: true,
   templateUrl: './carga-masiva.html',
-  imports: [COMPARTIR_IMPORTS, CommonModule, FormsModule],
+  imports: [COMPARTIR_IMPORTS, CommonModule, FormsModule, Boton, Modal],
 })
 export class CargaMasiva {
 
   archivoSeleccionado: File | null = null;
   mensaje: string = '';
   cargando = false;
+    modalCargaMasivaOpen = false;
+
 
   // Resultado de validación
   errores: Capacitacion[] = [];
   avisos: Capacitacion[] = [];
+  
 
   // Para mostrar detalle seleccionado (opcional)
   detalleSeleccionado: Capacitacion | null = null;
@@ -41,40 +46,40 @@ export class CargaMasiva {
 
   // validar primero (no subir todavía)
   validarYMostrar(): void {
-    if (!this.archivoSeleccionado) {
-      this.mensaje = 'Seleccione un archivo Excel.';
-      return;
-    }
-
-    this.cargando = true;
-    this.service.validarExcel(this.archivoSeleccionado).subscribe({
-      next: (lista) => {
-        // lista contiene DTOs con campo observacion: ERROR | WARNING
-        this.errores = lista.filter(i => i.observacion?.startsWith('ERROR'));
-        this.avisos  = lista.filter(i => i.observacion?.startsWith('WARNING'));
-
-        if (this.errores.length > 0) {
-          // mostrar modal bloqueante con detalles de errores
-          this.modalService.open(this.modalErrores, { size: 'xl', backdrop: 'static' });
-        } else if (this.avisos.length > 0) {
-          // mostrar modal de warnings con opción continuar/abort
-          this.modalService.open(this.modalAvisos, { size: 'lg', backdrop: 'static' });
-        } else {
-          // No hay problemas: subir directamente
-          this.subirExcel();
-        }
-        this.cargando = false;
-      },
-      error: (err) => {
-        console.error('Error validarExcel', err);
-        this.mensaje = 'Error al validar el archivo. Revisa el archivo o el backend.';
-        this.cargando = false;
-      }
-    });
+  if (!this.archivoSeleccionado) {
+    this.mensaje = 'Seleccione un archivo Excel.';
+    return;
   }
 
+  this.cargando = true;
+  this.mensaje = '';
+  this.errores = [];
+  this.avisos = [];
+
+  this.service.validarExcel(this.archivoSeleccionado).subscribe({
+    next: (lista) => {
+      // separar errores y warnings
+      this.errores = lista.filter(i => i.observacion?.startsWith('ERROR'));
+      this.avisos  = lista.filter(i => i.observacion?.startsWith('WARNING'));
+
+      // si no hay errores, subir directamente
+      if (this.errores.length === 0) {
+        this.subirExcel();
+      }
+
+      // ya no abrimos otros modales, todo se muestra en el modal principal
+      this.cargando = false;
+    },
+    error: (err) => {
+      console.error('Error validarExcel', err);
+      this.mensaje = 'Error al validar el archivo. Revisa el archivo o el backend.';
+      this.cargando = false;
+    }
+  });
+}
+
   // sube el archivo al endpoint cargar-excel
-  private subirExcel(): void {
+  public subirExcel(): void {
     if (!this.archivoSeleccionado) {
       this.mensaje = 'Seleccione un archivo.';
       return;
@@ -152,5 +157,10 @@ export class CargaMasiva {
         this.mensaje = 'Error al descargar la plantilla.';
       }
     });
+  }
+
+
+  abrirModalCargaMasiva() {
+    this.modalCargaMasivaOpen = true;
   }
 }

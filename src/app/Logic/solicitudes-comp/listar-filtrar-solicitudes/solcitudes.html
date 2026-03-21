@@ -11,6 +11,7 @@
           <option value="Pendiente">Pendiente</option>
           <option value="Aceptada">Aceptada</option>
           <option value="Rechazada">Rechazada</option>
+          <option value="Cancelada">Cancelada</option>
         </select>
       </div>
 
@@ -48,7 +49,9 @@
   [accionesVisibles]="['ver','editar','rechazar']"
   (ver)="onVerSolicitud($event)" 
   (editar)="onEditarSolicitud($event)"
-  (rechazar)="onRechazarSolicitud($event)">
+  (rechazar)="onRechazarSolicitud($event)"
+  (descargar)="abrirModalReportes()"
+  >
 </app-tabla>
 
   
@@ -56,19 +59,24 @@
     <!-- =============================== -->
     <!-- MODAL DE REPORTES -->
     <!-- =============================== -->
-    <app-modal #modalReportes [title]="'Reportes de usuarios'" [headerColor]="'#6c757d'" [isOpen]="false">
+    <!-- Modal Reportes -->
+<app-modal #modalReportes [title]="'Reportes de usuarios'" [headerColor]="'#6c757d'" [isOpen]="false">
 
-      <div class="mb-3">
-        Seleccione el formato de reporte a descargar:
-      </div>
+  <div class="mb-3">
+    Seleccione el formato de reporte a descargar:
+  </div>
 
-      <div class="d-flex gap-2 justify-content-center flex-wrap">
-        <app-boton *ngFor="let btn of botonesReporte" [texto]="btn.texto" [icono]="btn.icono" [color]="btn.color"
-          (click)="btn.accion()">
-        </app-boton>
-      </div>
+  <div class="d-flex gap-2 justify-content-center flex-wrap">
+    <app-boton 
+      *ngFor="let btn of botonesReporte" 
+      [texto]="btn.texto" 
+      [icono]="btn.icono" 
+      [color]="btn.color"
+      (click)="btn.accion()">
+    </app-boton>
+  </div>
 
-    </app-modal>
+</app-modal>
 
     <app-modal #modalVerSolicitud [title]="'Detalles de la Solicitud'" [headerColor]="'#4f69d9'" [isOpen]="false">
 

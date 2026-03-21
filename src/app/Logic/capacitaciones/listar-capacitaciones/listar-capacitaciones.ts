@@ -38,6 +38,10 @@ export class CapacitacionesLista implements OnInit {
   fieldsEditarCapacitacion: FieldConfig[] = [];
   capacitacionSeleccionada: Capacitacion | undefined;
 
+  nombreFilter = '';
+numeroClasesFilter: number | '' = '';
+duracionFilter= '';
+
   constructor(private capacitacionesService: CapacitacionesService) {}
 
   ngOnInit(): void {
@@ -131,4 +135,36 @@ export class CapacitacionesLista implements OnInit {
   exportarCapacitaciones() {
     console.log("EXPORTAR");
   }
+
+
+aplicarFiltros() {
+  let resultados = [...this.data];
+
+  // Filtrar por nombre
+  if (this.nombreFilter && this.nombreFilter.trim() !== '') {
+    const nombre = this.nombreFilter.trim().toLowerCase();
+    resultados = resultados.filter(c => c.nombre?.toLowerCase().includes(nombre));
+  }
+
+  // Filtrar por número de clases (como string)
+  if (this.numeroClasesFilter !== '' && this.numeroClasesFilter !== null) {
+    const numClasesStr = this.numeroClasesFilter.toString();
+    resultados = resultados.filter(c => c.numeroDeClases === numClasesStr);
+  }
+
+  // Filtrar por duración
+  if (this.duracionFilter && this.duracionFilter.trim() !== '') {
+    const duracion = this.duracionFilter.trim().toLowerCase();
+    resultados = resultados.filter(c => c.duracion?.toLowerCase().includes(duracion));
+  }
+
+  this.data = resultados;
+}
+
+limpiarFiltros() {
+  this.nombreFilter = '';
+  this.numeroClasesFilter = '';
+  this.duracionFilter = '';
+  this.cargarCapacitaciones();
+}
 }

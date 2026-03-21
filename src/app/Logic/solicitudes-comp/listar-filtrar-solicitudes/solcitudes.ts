@@ -58,6 +58,7 @@ export class Solcitudes implements OnInit {
     { campo: 'idSolicitud', titulo: 'ID' },
     { campo: 'tipoResiduo', titulo: 'Tipo Residuo' },
     { campo: 'cantidad', titulo: 'Cantidad' },
+    { campo: 'fechaProgramada', titulo: 'Fecha Solicitud' },
     { campo: 'localidad', titulo: 'Localidad' },
     { campo: 'estadoPeticion', titulo: 'Estado' }
   ];
@@ -88,7 +89,14 @@ export class Solcitudes implements OnInit {
       }
 
       return `<span class="status-badge ${clase}">${icon} ${estado}</span>`;
-    }
+    },
+    fechaRecoleccion: (item: ServiceModel): string => {
+          if (!item.fechaProgramada) return 'Sin fecha';
+          return new Date(item.fechaProgramada).toLocaleString('es-CO', {
+            year: 'numeric', month: 'short', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+          });
+        }
   };
 
   ngOnInit(): void {
@@ -119,9 +127,9 @@ export class Solcitudes implements OnInit {
   // ===============================
   // MODALES
   // ===============================
-  abrirModalReportes(): void {
-    this.modalReportes.isOpen = true;
-  }
+ abrirModalReportes(): void {
+  this.modalReportes.isOpen = true;
+}
 
   abrirModalRechazo(solicitud: ServiceModel) {
     this.selectedSolicitud = solicitud;

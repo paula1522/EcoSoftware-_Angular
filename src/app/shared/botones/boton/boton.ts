@@ -16,7 +16,8 @@ export class Boton {
   @Input() size: string = '';            // sm | lg | ''
   @Input() tipo: string = 'button';      // button | submit
   @Input() deshabilitado: boolean = false;
-  
+    @Input() disabled: boolean = false;
+
 
   // Color del hover (Bootstrap)
   @Input() hoverColor: string = '';      // primary | danger | success | warning...
