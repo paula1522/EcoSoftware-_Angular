@@ -149,9 +149,15 @@ export class UsuarioService {
     }).pipe(catchError(err => throwError(() => err)));
   }
 
-cambiarEstado(id: number, estado: boolean) {
-  return this.http.put(`${this.apiUrlSpringboot}/estado/${id}?estado=${estado}`, {});
+  // METODO ANTIGUO Y FUNCIONAL
+// cambiarEstado(id: number, estado: boolean) {
+ // return this.http.put(`${this.apiUrlSpringboot}/estado/${id}?estado=${estado}`, {});
+//} 
+
+  cambiarEstado(id: number) {
+  return this.http.put(`${this.apiUrlSpringboot}/estado/${id}`, {});
 }
+
 
   // ============================================================
   // 5. ENDPOINTS DE EXCEL & PDF
