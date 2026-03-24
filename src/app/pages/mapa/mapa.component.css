@@ -213,6 +213,45 @@
   box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.18);
 }
 
+.address-feedback {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: #166534;
+}
+
+.address-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  padding: 0.45rem;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  border: 1px solid rgba(134, 239, 172, 0.75);
+  box-shadow: 0 10px 24px rgba(22, 101, 52, 0.08);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.address-suggestion {
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.8rem;
+  background: transparent;
+  color: #1f2937;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.address-suggestion:hover {
+  background: #dcfce7;
+  color: #14532d;
+  transform: translateX(2px);
+}
+
 button.primary,
 button.ghost {
   border: none;

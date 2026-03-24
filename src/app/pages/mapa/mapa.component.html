@@ -28,8 +28,28 @@
             type="text"
             placeholder="Escribe la dirección de partida (ej. carrera 59 #22b-31, Bogotá)"
             [(ngModel)]="origenInput"
+            (ngModelChange)="onOrigenInputChange($event)"
+            autocomplete="off"
           />
           <button type="button" class="ghost" (click)="usarMiUbicacion()">Ubicación actual</button>
+        </div>
+
+        <div class="address-feedback" *ngIf="mensajePrecisionUbicacion">
+          {{ mensajePrecisionUbicacion }}
+        </div>
+
+        <div class="address-suggestions" *ngIf="origenSugerencias.length">
+          <button
+            type="button"
+            class="address-suggestion"
+            *ngFor="let sugerencia of origenSugerencias"
+            (click)="seleccionarSugerenciaOrigen(sugerencia)">
+            {{ sugerencia.displayName }}
+          </button>
+        </div>
+
+        <div class="address-feedback" *ngIf="buscandoOrigen">
+          Buscando coincidencias en Bogotá...
         </div>
 
         <div class="nearby-toolbar" [class.nearby-toolbar--active]="mostrarPuntosCercanos">
@@ -88,11 +108,28 @@
       <div class="panel-field" *ngIf="destinoSeleccionadoId === -1">
         <label for="destino-input"></label>
         <input
+          #destinoInputRef
           id="destino-input"
           type="text"
           placeholder="Escribe la dirección de destino"
           [(ngModel)]="destinoInput"
+          (ngModelChange)="onDestinoInputChange($event)"
+          autocomplete="off"
         />
+
+        <div class="address-suggestions" *ngIf="destinoSugerencias.length">
+          <button
+            type="button"
+            class="address-suggestion"
+            *ngFor="let sugerencia of destinoSugerencias"
+            (click)="seleccionarSugerenciaDestino(sugerencia)">
+            {{ sugerencia.displayName }}
+          </button>
+        </div>
+
+        <div class="address-feedback" *ngIf="buscandoDestino">
+          Buscando coincidencias en Bogotá...
+        </div>
       </div>
 
       <button class="primary" type="button" (click)="calcularRuta()" [disabled]="rutaCalculando">

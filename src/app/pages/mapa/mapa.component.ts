@@ -63,6 +63,12 @@ interface RutaCalculada {
   geometria: [number, number][];
 }
 
+interface GeocodeSuggestion {
+  displayName: string;
+  lat: number;
+  lng: number;
+}
+
 @Component({
   selector: 'app-mapa',
   standalone: true,
@@ -74,6 +80,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private static instanceCounter = 0;
   private readonly bogotaCoords: [number, number] = [4.711, -74.0721];
   private readonly defaultZoom = 13;
+  private readonly bogotaViewBox = '-74.227,4.836,-73.986,4.469';
   private mapInstance?: LeafletMap;
   private resizeObserver?: ResizeObserver;
   private dataMarkers: Marker[] = [];
@@ -88,8 +95,15 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private queryParamsSub?: Subscription;
   private colorRutaActual = '#2563eb';
   private puntoEnfocado?: { id?: number; lat?: number; lng?: number; nombre?: string };
+  private origenBusquedaTimer?: ReturnType<typeof setTimeout>;
+  private destinoBusquedaTimer?: ReturnType<typeof setTimeout>;
+  private origenSugerenciaSeleccionada?: GeocodeSuggestion;
+  private destinoSugerenciaSeleccionada?: GeocodeSuggestion;
+  private usarOrigenCoordsConfirmadas = false;
+  private destinoCoordsConfirmadas?: { lat: number; lng: number };
 
   @ViewChild('mapHost') private mapHostRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('destinoInputRef') private destinoInputRef?: ElementRef<HTMLInputElement>;
 
   public readonly mapContainerId = `mapa-bogota-${++MapaComponent.instanceCounter}`;
   public puntos: PuntoReciclaje[] = [];
@@ -106,6 +120,11 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   public mostrarPuntosCercanos = false;
   public puntosFiltroCercano: PuntoReciclaje[] = [];
   public destinoDropdownAbierto = false;
+  public origenSugerencias: GeocodeSuggestion[] = [];
+  public destinoSugerencias: GeocodeSuggestion[] = [];
+  public buscandoOrigen = false;
+  public buscandoDestino = false;
+  public mensajePrecisionUbicacion = '';
 
   constructor(
     private readonly puntosService: PuntosReciclajeService,
@@ -157,6 +176,12 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.puntosSub?.unsubscribe();
     this.refreshSub?.unsubscribe();
     this.queryParamsSub?.unsubscribe();
+    if (this.origenBusquedaTimer) {
+      clearTimeout(this.origenBusquedaTimer);
+    }
+    if (this.destinoBusquedaTimer) {
+      clearTimeout(this.destinoBusquedaTimer);
+    }
     this.resizeObserver?.disconnect();
     this.routeLine?.remove();
     this.origenMarker?.remove();
@@ -286,27 +311,40 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        this.origenCoords = { lat: latitude, lng: longitude };
-        
-        // Guardar ubicación actual en localStorage
+    this.rutaError = '';
+    this.mensajePrecisionUbicacion = 'Buscando la mejor precisión disponible...';
+
+    this.obtenerMejorUbicacionActual()
+      .then(async (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        let origen = { lat: latitude, lng: longitude };
+
+        try {
+          origen = await this.snapToRoad(latitude, longitude);
+        } catch (snapErr) {
+          console.warn('No se pudo ajustar el origen a la vía', snapErr);
+        }
+
+        this.origenCoords = origen;
+        this.origenSugerenciaSeleccionada = undefined;
+        this.usarOrigenCoordsConfirmadas = true;
         localStorage.setItem('ubicacionActual', JSON.stringify({
-          lat: latitude,
-          lng: longitude,
+          lat: origen.lat,
+          lng: origen.lng,
+          accuracy,
           timestamp: new Date().toISOString()
         }));
-        
-        this.rutaError = '';
-        this.mapInstance?.setView([latitude, longitude], 15);
-        await this.actualizarDireccionDesdeCoordenadas(latitude, longitude);
-      },
-      (error) => {
+
+        this.mensajePrecisionUbicacion = this.crearMensajePrecision(accuracy);
+        this.mapInstance?.setView([origen.lat, origen.lng], 16);
+        this.marcarOrigen(origen);
+        await this.actualizarDireccionDesdeCoordenadas(origen.lat, origen.lng);
+      })
+      .catch((error: GeolocationPositionError | Error) => {
         console.error('Error geolocalización', error);
-        this.rutaError = 'No pudimos obtener tu ubicación.';
-      }
-    );
+        this.mensajePrecisionUbicacion = '';
+        this.rutaError = 'No pudimos obtener tu ubicación con precisión suficiente.';
+      });
   }
 
   public async calcularRuta(): Promise<void> {
@@ -328,6 +366,12 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       return;
     }
 
+    try {
+      origen = await this.snapToRoad(origen.lat, origen.lng);
+    } catch (snapErr) {
+      console.warn('No se pudo ajustar el origen a la vía', snapErr);
+    }
+
     let destLat: number;
     let destLng: number;
 
@@ -340,7 +384,11 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       }
 
       try {
-        const coords = await this.geocodificarDireccion(texto);
+        const coords = this.destinoCoordsConfirmadas
+          ? this.destinoCoordsConfirmadas
+          : this.destinoSugerenciaSeleccionada && this.destinoInput.trim() === this.destinoSugerenciaSeleccionada.displayName
+            ? this.destinoSugerenciaSeleccionada
+            : await this.geocodificarDireccion(texto);
         destLat = coords.lat;
         destLng = coords.lng;
       } catch (error) {
@@ -527,16 +575,30 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private async obtenerCoordenadasOrigen(): Promise<{ lat: number; lng: number }> {
     const valor = this.origenInput.trim();
 
+    if (this.usarOrigenCoordsConfirmadas && this.origenCoords) {
+      return this.origenCoords;
+    }
+
     if (valor) {
+      if (this.origenSugerenciaSeleccionada && valor === this.origenSugerenciaSeleccionada.displayName) {
+        this.origenCoords = {
+          lat: this.origenSugerenciaSeleccionada.lat,
+          lng: this.origenSugerenciaSeleccionada.lng,
+        };
+        this.usarOrigenCoordsConfirmadas = true;
+        return this.origenCoords;
+      }
+
       const parsed = this.parseLatLngString(valor);
       if (parsed) {
         this.origenCoords = parsed;
+        this.usarOrigenCoordsConfirmadas = true;
         return parsed;
       }
 
       const geocoded = await this.geocodificarDireccion(valor);
-      // geocodificarDireccion nunca devuelve null, siempre retorna lat/lng
       this.origenCoords = geocoded;
+      this.usarOrigenCoordsConfirmadas = true;
       return geocoded;
     }
 
@@ -694,29 +756,60 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   private normalizeAddress(termino: string): string {
-    // If the user didn't specify a city/country, append a default to improve
-    // geocoding results. Many addresses in this app are meant for Bogotá.
-    const lower = termino.toLowerCase();
-    const hasComma = termino.includes(',');
+    const compact = termino
+      .replace(/\s+#\s*/g, ' # ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const normalized = compact
+      .replace(/\b(cra|cr|kr)\b/gi, 'carrera')
+      .replace(/\b(cll|cl|cal)\b/gi, 'calle')
+      .replace(/\b(av|avda|aven)\b/gi, 'avenida')
+      .replace(/\b(dg|diag)\b/gi, 'diagonal')
+      .replace(/\b(tv|transv)\b/gi, 'transversal')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const lower = normalized.toLowerCase();
+    const hasComma = normalized.includes(',');
     const hasBogota = lower.includes('bogotá') || lower.includes('bogota');
     const hasColombia = lower.includes('colombia');
 
     if (!hasComma && !hasBogota && !hasColombia) {
-      return `${termino}, Bogotá, Colombia`;
+      return `${normalized}, Bogotá, Colombia`;
     }
-    return termino;
+
+    if (!hasBogota && hasColombia) {
+      return `${normalized}, Bogotá`;
+    }
+
+    return normalized;
   }
 
   private async geocodificarDireccion(termino: string): Promise<{ lat: number; lng: number }> {
+    const sugerencias = await this.buscarSugerenciasDireccion(termino, 1);
+    const coincidencia = sugerencias[0];
+
+    if (!coincidencia) {
+      throw new Error('No encontramos la dirección especificada. Prueba con calle, carrera y número.');
+    }
+
+    return { lat: coincidencia.lat, lng: coincidencia.lng };
+  }
+
+  private async buscarSugerenciasDireccion(termino: string, limite = 5): Promise<GeocodeSuggestion[]> {
     const url = 'https://nominatim.openstreetmap.org/search';
     const query = this.normalizeAddress(termino.trim());
     try {
       const respuesta = await firstValueFrom(
-        this.http.get<Array<{ lat: string; lon: string }>>(url, {
+        this.http.get<Array<{ lat: string; lon: string; display_name?: string }>>(url, {
           params: {
             format: 'json',
-            addressdetails: '0',
-            limit: '1',
+            addressdetails: '1',
+            limit: String(limite),
+            countrycodes: 'co',
+            viewbox: this.bogotaViewBox,
+            bounded: '1',
+            dedupe: '1',
             q: query,
           },
           headers: {
@@ -725,19 +818,13 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
         })
       );
 
-      const coincidencia = respuesta?.[0];
-      if (!coincidencia) {
-        throw new Error('No encontramos la dirección especificada.');
-      }
-
-      const lat = Number(coincidencia.lat);
-      const lng = Number(coincidencia.lon);
-      if (Number.isNaN(lat) || Number.isNaN(lng)) {
-        throw new Error('No pudimos interpretar la dirección proporcionada.');
-      }
-
-      // no modificamos originCoords aquí; let caller decide
-      return { lat, lng };
+      return (respuesta ?? [])
+        .map((item) => ({
+          displayName: item.display_name?.trim() || query,
+          lat: Number(item.lat),
+          lng: Number(item.lon),
+        }))
+        .filter((item) => !Number.isNaN(item.lat) && !Number.isNaN(item.lng));
     } catch (error) {
       console.error('Error geocodificando dirección', error);
       throw new Error('No pudimos convertir la dirección a coordenadas.');
@@ -753,6 +840,8 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
             format: 'json',
             lat: lat.toString(),
             lon: lng.toString(),
+            zoom: '18',
+            addressdetails: '1',
           },
           headers: {
             'Accept-Language': 'es',
@@ -761,10 +850,205 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       );
 
       this.origenInput = respuesta?.display_name ?? `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      this.origenSugerencias = [];
     } catch (error) {
       console.error('Error al obtener la dirección desde coordenadas', error);
       this.origenInput = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      this.origenSugerencias = [];
     }
+  }
+
+  public onOrigenInputChange(valor: string): void {
+    this.usarOrigenCoordsConfirmadas = false;
+    this.origenSugerenciaSeleccionada = undefined;
+    this.mensajePrecisionUbicacion = '';
+    this.programarBusquedaDireccion('origen', valor);
+  }
+
+  public onDestinoInputChange(valor: string): void {
+    this.destinoCoordsConfirmadas = undefined;
+    this.destinoSugerenciaSeleccionada = undefined;
+    this.programarBusquedaDireccion('destino', valor);
+  }
+
+  public seleccionarSugerenciaOrigen(sugerencia: GeocodeSuggestion): void {
+    this.origenSugerenciaSeleccionada = sugerencia;
+    this.usarOrigenCoordsConfirmadas = true;
+    this.origenInput = sugerencia.displayName;
+    this.origenCoords = { lat: sugerencia.lat, lng: sugerencia.lng };
+    this.origenSugerencias = [];
+    this.rutaError = '';
+  }
+
+  public seleccionarSugerenciaDestino(sugerencia: GeocodeSuggestion): void {
+    this.destinoSugerenciaSeleccionada = sugerencia;
+    this.destinoCoordsConfirmadas = { lat: sugerencia.lat, lng: sugerencia.lng };
+    this.destinoInput = sugerencia.displayName;
+    this.destinoSugerencias = [];
+    this.rutaError = '';
+  }
+
+  private programarBusquedaDireccion(tipo: 'origen' | 'destino', valor: string): void {
+    const texto = valor.trim();
+    const esOrigen = tipo === 'origen';
+
+    if (esOrigen && this.origenBusquedaTimer) {
+      clearTimeout(this.origenBusquedaTimer);
+    }
+
+    if (!esOrigen && this.destinoBusquedaTimer) {
+      clearTimeout(this.destinoBusquedaTimer);
+    }
+
+    if (texto.length < 3 || this.parseLatLngString(texto)) {
+      if (esOrigen) {
+        this.origenSugerencias = [];
+        this.buscandoOrigen = false;
+      } else {
+        this.destinoSugerencias = [];
+        this.buscandoDestino = false;
+      }
+      return;
+    }
+
+    const ejecutar = async () => {
+      if (esOrigen) {
+        this.buscandoOrigen = true;
+      } else {
+        this.buscandoDestino = true;
+      }
+
+      try {
+        const sugerencias = await this.buscarSugerenciasDireccion(texto);
+        if (esOrigen) {
+          this.origenSugerencias = sugerencias;
+        } else {
+          this.destinoSugerencias = sugerencias;
+        }
+      } catch {
+        if (esOrigen) {
+          this.origenSugerencias = [];
+        } else {
+          this.destinoSugerencias = [];
+        }
+      } finally {
+        if (esOrigen) {
+          this.buscandoOrigen = false;
+        } else {
+          this.buscandoDestino = false;
+        }
+      }
+    };
+
+    const timer = setTimeout(() => {
+      void ejecutar();
+    }, 220);
+
+    if (esOrigen) {
+      this.origenBusquedaTimer = timer;
+    } else {
+      this.destinoBusquedaTimer = timer;
+    }
+  }
+
+  private async obtenerMejorUbicacionActual(): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+      let mejorPosicion: GeolocationPosition | undefined;
+      let watcherId: number | undefined;
+      let cerrado = false;
+      const objetivoPrecisionAlta = 30;
+      const precisionAceptableRapida = 55;
+      const tiempoEsperaMaximo = 4500;
+      const inicio = Date.now();
+
+      const finalizar = (callback: () => void): void => {
+        if (cerrado) {
+          return;
+        }
+        cerrado = true;
+        if (watcherId != null) {
+          navigator.geolocation.clearWatch(watcherId);
+        }
+        callback();
+      };
+
+      const registrarPosicion = (position: GeolocationPosition): void => {
+        if (!mejorPosicion || position.coords.accuracy < mejorPosicion.coords.accuracy) {
+          mejorPosicion = position;
+        }
+
+        const tiempoTranscurrido = Date.now() - inicio;
+        if (
+          position.coords.accuracy <= objetivoPrecisionAlta ||
+          (tiempoTranscurrido >= 1800 && position.coords.accuracy <= precisionAceptableRapida)
+        ) {
+          clearTimeout(timeoutId);
+          finalizar(() => resolve(position));
+        }
+      };
+
+      const timeoutId = setTimeout(() => {
+        if (mejorPosicion) {
+          const posicionFinal = mejorPosicion;
+          finalizar(() => resolve(posicionFinal));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => finalizar(() => resolve(position)),
+          (error) => finalizar(() => reject(error)),
+          {
+            enableHighAccuracy: true,
+            timeout: 3500,
+            maximumAge: 0,
+          }
+        );
+      }, tiempoEsperaMaximo);
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (cerrado) {
+            return;
+          }
+
+          registrarPosicion(position);
+        },
+        () => {
+          // Ignoramos el fallo rápido y dejamos continuar la lectura precisa.
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 1800,
+          maximumAge: 20000,
+        }
+      );
+
+      watcherId = navigator.geolocation.watchPosition(
+        (position) => {
+          registrarPosicion(position);
+        },
+        (error) => {
+          clearTimeout(timeoutId);
+          finalizar(() => reject(error));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 6000,
+          maximumAge: 0,
+        }
+      );
+    });
+  }
+
+  private crearMensajePrecision(accuracy: number): string {
+    const precision = Math.round(accuracy);
+    if (precision <= 20) {
+      return `Ubicación detectada con alta precisión (${precision} m).`;
+    }
+    if (precision <= 50) {
+      return `Ubicación detectada con precisión aceptable (${precision} m).`;
+    }
+    return `Ubicación aproximada (${precision} m). Si puedes, activa GPS o vuelve a intentarlo.`;
   }
 
   private getIconoResiduo(tipo: string): Icon {
@@ -851,6 +1135,9 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   public onDestinoChange(): void {
     if (this.destinoSeleccionadoId !== -1) {
       this.destinoInput = '';
+      this.destinoCoordsConfirmadas = undefined;
+      this.destinoSugerenciaSeleccionada = undefined;
+      this.destinoSugerencias = [];
     }
   }
 
@@ -875,6 +1162,16 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.destinoSeleccionadoId = valor;
     this.destinoDropdownAbierto = false;
     this.onDestinoChange();
+
+    if (valor === -1) {
+      this.destinoCoordsConfirmadas = undefined;
+      setTimeout(() => {
+        this.destinoInputRef?.nativeElement.focus();
+        if (this.destinoInput.trim().length >= 3) {
+          this.programarBusquedaDireccion('destino', this.destinoInput);
+        }
+      });
+    }
   }
 
   public irAPaso(paso: RutaPaso): void {
