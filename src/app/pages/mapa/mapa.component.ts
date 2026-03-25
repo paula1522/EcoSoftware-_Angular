@@ -21,7 +21,6 @@ import {
   PuntosReciclajeService,
 } from '../../Services/puntos-reciclaje.service';
 import { OsrmService } from '../../Services/osrm.service';
-import { AuthService } from '../../auth/auth.service';
 
 interface OsrmStep {
   name: string;
@@ -69,6 +68,13 @@ interface GeocodeSuggestion {
   lng: number;
 }
 
+interface PuntoDecorado extends PuntoReciclaje {
+  cardColor: string;
+  borderColor: string;
+  chipBg: string;
+  chipColor: string;
+}
+
 @Component({
   selector: 'app-mapa',
   standalone: true,
@@ -101,13 +107,14 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   private destinoSugerenciaSeleccionada?: GeocodeSuggestion;
   private usarOrigenCoordsConfirmadas = false;
   private destinoCoordsConfirmadas?: { lat: number; lng: number };
+  private readonly materialesBase = ['papel', 'plastico', 'vidrio', 'metal'];
 
   @ViewChild('mapHost') private mapHostRef?: ElementRef<HTMLDivElement>;
   @ViewChild('destinoInputRef') private destinoInputRef?: ElementRef<HTMLInputElement>;
 
   public readonly mapContainerId = `mapa-bogota-${++MapaComponent.instanceCounter}`;
   public puntos: PuntoReciclaje[] = [];
-  public puntosDecorados: Array<PuntoReciclaje & { cardColor: string; borderColor: string; chipBg: string; chipColor: string }> = [];
+  public puntosDecorados: PuntoDecorado[] = [];
   public origenInput = '';
   public destinoInput = '';
   public destinoSeleccionadoId: number | null = null;
@@ -125,18 +132,20 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
   public buscandoOrigen = false;
   public buscandoDestino = false;
   public mensajePrecisionUbicacion = '';
+  public readonly materialesFiltro = [
+    { value: 'papel', label: 'Papel' },
+    { value: 'plastico', label: 'Plástico' },
+    { value: 'vidrio', label: 'Vidrio' },
+    { value: 'metal', label: 'Metal' },
+  ];
+  public materialesSeleccionados = new Set<string>();
 
   constructor(
     private readonly puntosService: PuntosReciclajeService,
     private readonly http: HttpClient,
     private readonly osrmService: OsrmService,
-    private readonly authService: AuthService,
     private readonly route: ActivatedRoute
   ) {}
-
-  public get requiereInicioSesion(): boolean {
-    return !this.authService.isLoggedIn();
-  }
 
   ngOnInit(): void {
     this.refreshSub = this.puntosService.refresh$.subscribe(() => this.cargarPuntos());
@@ -202,13 +211,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       next: (response) => {
         const puntos = response?.data ?? [];
         this.puntos = puntos;
-        this.puntosDecorados = puntos.map((punto) => ({
-          ...punto,
-          ...this.obtenerColoresTarjeta(punto.tipoResiduo ?? ''),
-        }));
-        this.limpiarMarcadores();
-        puntos.forEach((punto) => this.crearMarcador(punto));
-        this.ajustarVistaMapa();
+        this.aplicarFiltrosPuntos();
         this.aplicarEnfoquePunto();
         this.programarAjusteMapa();
       },
@@ -234,6 +237,10 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     })
       .addTo(this.mapInstance)
       .bindPopup(this.obtenerPopupContenido(punto));
+
+    nuevoMarcador.on('click', () => {
+      this.seleccionarPuntoComoDestino(punto, false);
+    });
 
     this.dataMarkers.push(nuevoMarcador);
     if (punto.id !== undefined) {
@@ -278,6 +285,41 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
 
     const bounds = latLngBounds(this.dataMarkers.map((mk) => mk.getLatLng()));
     this.mapInstance.fitBounds(bounds, { padding: [24, 24] });
+  }
+
+  private aplicarFiltrosPuntos(): void {
+    const puntosBase = this.mostrarPuntosCercanos ? this.puntosFiltroCercano : this.puntos;
+    const puntosFiltrados = puntosBase.filter((punto) => this.coincideConFiltrosMateriales(punto.tipoResiduo ?? ''));
+
+    this.puntosDecorados = puntosFiltrados.map((punto) => ({
+      ...punto,
+      ...this.obtenerColoresTarjeta(punto.tipoResiduo ?? ''),
+    }));
+
+    this.limpiarMarcadores();
+    puntosFiltrados.forEach((punto) => this.crearMarcador(punto));
+    this.ajustarVistaMapa();
+  }
+
+  private coincideConFiltrosMateriales(tipoResiduo: string): boolean {
+    if (!this.materialesSeleccionados.size) {
+      return true;
+    }
+
+    const tokens = this.extraerMateriales(tipoResiduo);
+    return Array.from(this.materialesSeleccionados).some((material) => tokens.includes(material));
+  }
+
+  private extraerMateriales(tipoResiduo: string): string[] {
+    const normalized = this.normalizarTextoResiduo(tipoResiduo);
+    return this.materialesBase.filter((material) => normalized.includes(material));
+  }
+
+  private normalizarTextoResiduo(valor: string): string {
+    return (valor || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 
   private inicializarObservadorRedimension(): void {
@@ -492,15 +534,52 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       return;
     }
 
-    this.mapInstance.setView([lat, lng], 16, { animate: true } as any);
+    const centrarMarcador = (markerRef?: Marker): void => {
+      this.mapInstance?.setView([lat, lng], 16, { animate: true } as any);
+      markerRef?.openPopup();
+
+      // Leaflet hace auto-pan al abrir el popup y desplaza el marcador.
+      // Recentramos después para mantener el punto en la perspectiva principal del usuario.
+      setTimeout(() => {
+        this.mapInstance?.panTo([lat, lng], { animate: true } as any);
+      }, 120);
+    };
+
     if (punto.id !== undefined) {
       const markerRef = this.markerIndex.get(punto.id);
-      markerRef?.openPopup();
+      centrarMarcador(markerRef);
       return;
     }
 
     const markerRef = this.buscarMarcadorPorCoordenadas(lat, lng);
-    markerRef?.openPopup();
+    centrarMarcador(markerRef);
+  }
+
+  public seleccionarPuntoComoDestino(punto: PuntoReciclaje, centrar = true): void {
+    const lat = Number(punto.latitud);
+    const lng = Number(punto.longitud);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      return;
+    }
+
+    this.destinoSeleccionadoId = punto.id ?? null;
+    this.destinoCoordsConfirmadas = undefined;
+    this.destinoSugerenciaSeleccionada = undefined;
+    this.destinoSugerencias = [];
+    this.destinoInput = '';
+    this.destinoDropdownAbierto = false;
+    this.rutaError = '';
+
+    if (centrar) {
+      this.centrarEnPunto(punto);
+      return;
+    }
+
+    this.marcarDestino({ lat, lng });
+  }
+
+  public esDestinoSeleccionado(punto: PuntoReciclaje): boolean {
+    return punto.id !== undefined && this.destinoSeleccionadoId === punto.id;
   }
 
   private aplicarEnfoquePunto(): void {
@@ -673,9 +752,15 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.origenMarker = marker([coords.lat, coords.lng], {
       icon: divIcon({
         className: 'origin-dot-wrapper',
-        html: '<div class="origin-dot">🟢</div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        html: `
+          <div style="position: relative; width: 42px; height: 42px; pointer-events: none;">
+            <span style="position: absolute; inset: 0; border-radius: 999px; background: rgba(14, 165, 233, 0.22); box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.08);"></span>
+            <span style="position: absolute; left: 50%; top: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); border-radius: 999px; background: rgba(255, 255, 255, 0.96); border: 2px solid rgba(14, 165, 233, 0.45); box-shadow: 0 0 0 6px rgba(14, 165, 233, 0.14);"></span>
+            <span style="position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); border-radius: 999px; background: radial-gradient(circle at 30% 30%, #67e8f9, #0ea5e9 70%, #0369a1 100%); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.94), 0 6px 16px rgba(14, 165, 233, 0.42);"></span>
+          </div>
+        `,
+        iconSize: [42, 42],
+        iconAnchor: [21, 21],
       }),
     }).addTo(this.mapInstance);
   }
@@ -1158,6 +1243,30 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.destinoDropdownAbierto = !this.destinoDropdownAbierto;
   }
 
+  public toggleMaterial(material: string): void {
+    if (this.materialesSeleccionados.has(material)) {
+      this.materialesSeleccionados.delete(material);
+    } else {
+      this.materialesSeleccionados.add(material);
+    }
+
+    this.materialesSeleccionados = new Set(this.materialesSeleccionados);
+    this.aplicarFiltrosPuntos();
+  }
+
+  public limpiarFiltrosMateriales(): void {
+    if (!this.materialesSeleccionados.size) {
+      return;
+    }
+
+    this.materialesSeleccionados = new Set<string>();
+    this.aplicarFiltrosPuntos();
+  }
+
+  public materialSeleccionado(material: string): boolean {
+    return this.materialesSeleccionados.has(material);
+  }
+
   public seleccionarDestino(valor: number | null): void {
     this.destinoSeleccionadoId = valor;
     this.destinoDropdownAbierto = false;
@@ -1278,16 +1387,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
       this.puntosFiltroCercano = puntosCercanos;
       this.mostrarPuntosCercanos = true;
       this.rutaError = '';
-
-      // Actualizar vista del mapa para mostrar solo estos puntos
-      this.limpiarMarcadores();
-      puntosCercanos.forEach((punto) => this.crearMarcador(punto));
-      
-      if (puntosCercanos.length > 0) {
-        const bounds = latLngBounds(this.dataMarkers.map((mk) => mk.getLatLng()));
-        this.mapInstance?.fitBounds(bounds, { padding: [24, 24] });
-      }
-
+      this.aplicarFiltrosPuntos();
       this.programarAjusteMapa();
     } catch (error) {
       console.error('Error procesando ubicación:', error);
@@ -1302,6 +1402,6 @@ export class MapaComponent implements AfterViewInit, OnDestroy, OnInit {
     this.mostrarPuntosCercanos = false;
     this.puntosFiltroCercano = [];
     this.rutaError = '';
-    this.cargarPuntos();
+    this.aplicarFiltrosPuntos();
   }
 }

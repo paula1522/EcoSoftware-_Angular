@@ -1,10 +1,10 @@
 
 <app-header />
-<section class="mapa-shell" [class.mapa-shell--bloqueado]="requiereInicioSesion">
+<section class="mapa-shell">
   <div class="mapa-shell__map">
     <div #mapHost class="map-wrapper" [id]="mapContainerId"></div>
 
-    <div class="route-overlay" *ngIf="mostrarPasosOverlay && pasosVisibles.length">
+    <div class="route-overlay route-overlay--desktop" *ngIf="mostrarPasosOverlay && pasosVisibles.length">
       <div class="overlay-header">
         <strong>{{ rutasCalculadas[rutaSeleccionadaIndex]?.etiqueta }}</strong>
         <button type="button" (click)="mostrarPasosOverlay = false">✕</button>
@@ -19,6 +19,23 @@
   </div>
 
   <aside class="mapa-shell__sidebar">
+    <div class="mapa-mobile-handle" aria-hidden="true">
+      <span></span>
+    </div>
+
+    <div class="route-overlay route-overlay--mobile" *ngIf="mostrarPasosOverlay && pasosVisibles.length">
+      <div class="overlay-header">
+        <strong>{{ rutasCalculadas[rutaSeleccionadaIndex]?.etiqueta }}</strong>
+        <button type="button" (click)="mostrarPasosOverlay = false">✕</button>
+      </div>
+      <ol>
+        <li *ngFor="let step of pasosVisibles; let idx = index" (click)="irAPaso(step)">
+          <span class="step-index">{{ idx + 1 }}.</span>
+          <span>{{ step.texto }}</span>
+        </li>
+      </ol>
+    </div>
+
     <section class="panel panel-rutas">
       <div class="panel-field">
         <label for="origen-input">Origen</label>
@@ -132,6 +149,30 @@
         </div>
       </div>
 
+      <div class="panel-field">
+        <div class="material-filter__header">
+          <label>Filtrar puntos por material</label>
+          <button
+            type="button"
+            class="material-filter__clear"
+            [disabled]="!materialesSeleccionados.size"
+            (click)="limpiarFiltrosMateriales()">
+            Limpiar
+          </button>
+        </div>
+
+        <div class="material-filter">
+          <button
+            type="button"
+            class="material-filter__chip"
+            *ngFor="let material of materialesFiltro"
+            [class.material-filter__chip--active]="materialSeleccionado(material.value)"
+            (click)="toggleMaterial(material.value)">
+            {{ material.label }}
+          </button>
+        </div>
+      </div>
+
       <button class="primary" type="button" (click)="calcularRuta()" [disabled]="rutaCalculando">
         {{ rutaCalculando ? 'Calculando...' : 'Calcular rutas' }}
       </button>
@@ -154,17 +195,18 @@
       </div>
     </section>
 
-    <section class="panel panel-puntos" *ngIf="!requiereInicioSesion">
+    <section class="panel panel-puntos">
       <div class="panel-header">
         <h2>Listado de puntos</h2>
-        <span>{{ puntos.length }} activos</span>
+        <span>{{ puntosDecorados.length }} visibles</span>
       </div>
 
       <div class="puntos-lista">
         <article
           class="punto-card"
           *ngFor="let punto of puntosDecorados"
-          (click)="centrarEnPunto(punto)"
+          [class.punto-card--active]="esDestinoSeleccionado(punto)"
+          (click)="seleccionarPuntoComoDestino(punto)"
           [style.background]="punto.cardColor"
           [style.borderColor]="punto.borderColor"
         >
@@ -190,14 +232,4 @@
     </section>
   </aside>
 
-  <div class="mapa-auth-overlay" *ngIf="requiereInicioSesion">
-    <div class="mapa-auth-modal">
-      <h2>Inicia sesión para continuar</h2>
-      <p>
-        Para ver las ubicaciones de los puntos de reciclaje y sus respectivas rutas,
-        debes iniciar sesión.
-      </p>
-      <a class="mapa-auth-btn btn-ecosoft" href="/login">Iniciar sesión</a>
-    </div>
-  </div>
 </section>
