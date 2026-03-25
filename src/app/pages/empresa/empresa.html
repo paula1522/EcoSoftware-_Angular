@@ -106,7 +106,9 @@
 
       <div class="puntos-admin-list mt-3">
         <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
-          [mostrarAcciones]="true" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
+          [mostrarAcciones]="true" [accionesVisibles]="accionesPuntosVisibles" [accionVisiblePorFila]="accionPuntoVisible.bind(this)"
+          (editar)="editarPuntoDesdeTabla($event)"
+          (eliminar)="eliminarPuntoDesdeTabla($event)"
           (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
         </app-tabla>
       </div>

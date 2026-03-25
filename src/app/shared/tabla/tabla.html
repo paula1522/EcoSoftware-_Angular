@@ -31,20 +31,21 @@
         <tr *ngFor="let item of datosPaginados">
           <td *ngFor="let col of columnas">
             <span *ngIf="cellTemplates[col.campo]; else normal">
-  <span [innerHTML]="cellTemplates[col.campo](item)"></span>
-</span>
+              <span [innerHTML]="cellTemplates[col.campo](item)"></span>
+            </span>
 
-<ng-template #normal>
-  {{ item[col.campo] }}
-</ng-template>
+            <ng-template #normal>
+              {{ item[col.campo] }}
+            </ng-template>
           </td>
 
 
           <td class="table-actions-cell" *ngIf="mostrarAcciones">
-            <app-boton *ngFor="let a of acciones" [icono]="a.icon" [texto]="a.texto" [color]="a.color"
-              [hoverColor]="a.hover" size="sm" (click)="a.evento(item)">
-            </app-boton>
-
+            <ng-container *ngFor="let a of acciones">
+              <app-boton *ngIf="esAccionVisible(a.nombre, item)" [icono]="a.icon" [texto]="a.texto" [color]="a.color"
+                [hoverColor]="a.hover" size="sm" (click)="a.evento(item)">
+              </app-boton>
+            </ng-container>
           </td>
 
         </tr>

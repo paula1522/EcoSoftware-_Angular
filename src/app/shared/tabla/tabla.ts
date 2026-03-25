@@ -23,6 +23,7 @@ export class Tabla implements OnChanges {
   @Input() cellTemplates: { [campo: string]: (item: any) => string } = {};
   @Input() mostrarAcciones: boolean = true;
   @Input() accionesVisibles: string[] = ['ver', 'editar', 'eliminar'];
+  @Input() accionVisiblePorFila?: (accion: string, item: any) => boolean;
   @Output() ver = new EventEmitter<any>();
   @Output() editar = new EventEmitter<any>();
   @Output() eliminar = new EventEmitter<any>();
@@ -49,6 +50,7 @@ export class Tabla implements OnChanges {
 
     if (this.accionesVisibles.includes('editar')) {
       this.acciones.push({
+        nombre: 'editar',
         icon: this.iconosAcciones.editar || 'bi-pencil',
         color: 'pastel-success',
         hover: 'btn-pastel-success',
@@ -58,6 +60,7 @@ export class Tabla implements OnChanges {
 
     if (this.accionesVisibles.includes('eliminar')) {
       this.acciones.push({
+        nombre: 'eliminar',
         icon: this.iconosAcciones.eliminar || 'bi-trash',
         color: 'pastel-danger',
         hover: 'btn-pastel-danger',
@@ -67,6 +70,7 @@ export class Tabla implements OnChanges {
 
     if (this.accionesVisibles.includes('ver')) {
       this.acciones.push({
+        nombre: 'ver',
         icon: this.iconosAcciones.ver || 'bi-eye',
         color: 'pastel-info',
         hover: 'btn-pastel-info',
@@ -76,6 +80,7 @@ export class Tabla implements OnChanges {
 
     if (this.accionesVisibles.includes('rechazar')) {
       this.acciones.push({
+        nombre: 'rechazar',
         icon: this.iconosAcciones.rechazar || 'bi-x-circle',
         color: 'pastel-danger',
         hover: 'btn-pastel-danger',
@@ -137,5 +142,9 @@ export class Tabla implements OnChanges {
     let end = Math.min(start + max - 1, total);
     for (let i = start; i <= end; i++) arr.push(i);
     return arr;
+  }
+
+  esAccionVisible(nombreAccion: string, item: any): boolean {
+    return this.accionVisiblePorFila ? this.accionVisiblePorFila(nombreAccion, item) : true;
   }
 }

@@ -90,6 +90,7 @@ export class Empresa {
     horario: (item: any) => item?.horario || 'No informado',
     tipoResiduo: (item: any) => item?.tipoResiduo || item?.tipo_residuo || 'General',
   };
+  accionesPuntosVisibles: string[] = ['ver', 'editar', 'eliminar'];
 
   menu: MenuItem[] = [
     { vista: 'panel', label: 'Panel de Control', icon: 'bi bi-speedometer2' },
@@ -285,6 +286,10 @@ export class Empresa {
   }
 
   editarPuntoDesdeTabla(punto: any): void {
+    if (!this.accionPuntoVisible('editar', punto)) {
+      return;
+    }
+
     const id = this.obtenerIdPunto(punto);
     if (id == null) {
       this.errorRegistroPunto = 'No se pudo identificar el punto a editar.';
@@ -306,6 +311,10 @@ export class Empresa {
   }
 
   eliminarPuntoDesdeTabla(punto: any): void {
+    if (!this.accionPuntoVisible('eliminar', punto)) {
+      return;
+    }
+
     const id = this.obtenerIdPunto(punto);
     if (id == null) {
       return;
@@ -342,6 +351,22 @@ export class Empresa {
     this.irAPaginaMapa();
   }
 
+  accionPuntoVisible(accion: string, punto: PuntoReciclaje): boolean {
+    if (accion === 'ver') {
+      return true;
+    }
+
+    if (accion === 'editar') {
+      return this.vistaPuntos === 'mis' && this.esPuntoDelUsuario(punto);
+    }
+
+    if (accion === 'eliminar') {
+      return this.vistaPuntos === 'mis' && this.esPuntoDelUsuario(punto);
+    }
+
+    return false;
+  }
+
   private obtenerIdPunto(punto: any): number | null {
     const raw = punto?.id ?? punto?.idPunto ?? punto?.id_punto ?? null;
     if (raw == null) {
@@ -350,6 +375,16 @@ export class Empresa {
 
     const id = Number(raw);
     return Number.isNaN(id) ? null : id;
+  }
+
+  private esPuntoDelUsuario(punto: any): boolean {
+    const userId = this.authService.getUserId();
+    if (userId == null) {
+      return false;
+    }
+
+    const ownerId = punto?.usuario_id ?? punto?.usuarioId ?? punto?.idUsuario ?? null;
+    return Number(ownerId) === Number(userId);
   }
 
   private normalizeAddress(termino: string): string {
