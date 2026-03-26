@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Localidad, EstadoPeticion, TipoResiduo, ServiceModel } from '../../../../Models/solicitudes.model';
 import { Service } from '../../../../Services/solicitud.service';
-import { COMPARTIR_IMPORTS } from '../../../../shared/imports';
 import { Router } from '@angular/router';
 import { LocalidadNombrePipe } from "../../../../core/pipes/LocalidadNombrePipe";
+import { EstadoPeticion, Localidad, ServiceModel, TipoResiduo } from '../../../../Models/solicitudes.model';
+import { COMPARTIR_IMPORTS } from '../../../../shared/imports';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-form-registro',
@@ -19,62 +20,85 @@ export class FormRegistro {
   localidades = Object.values(Localidad);
   mensaje = '';
   error = '';
+  hoy: string;
+  evidencia: File [] = [];
 
-  constructor(private fb: FormBuilder, private solicitudService: Service, private router:Router) {
+
+  constructor(private fb: FormBuilder, private Service: Service, private router: Router) {
+    const hoyDate = new Date();
+    this.hoy = hoyDate.toISOString().split('T')[0];
 
     this.registroForm = this.fb.group({
-      usuarioId: [{ value: 3, disabled: true }], // ⚡ ID fijo para prueba
-      aceptadaPorId: [{ value: null, disabled: true }], // se asigna luego al aceptar
       tipoResiduo: ['', Validators.required],
       cantidad: ['', Validators.required],
-      estadoPeticion: [{ value: EstadoPeticion.Pendiente, disabled: true }],
       descripcion: ['', Validators.required],
       localidad: ['', Validators.required],
       ubicacion: ['', Validators.required],
-      evidencia: [''],
-      fechaProgramada: ['', Validators.required]
+      fechaProgramada: ['', Validators.required],
+      horaProgramada: ['', Validators.required],
+      evidencia: [''] // valor opcional
     });
   }
 
-  onSubmit(): void {
-    if (this.registroForm.invalid) {
-      this.mensaje = '';
-      this.error = 'Por favor complete todos los campos obligatorios';
+  // Capturar archivo seleccionado
+  onFilesSelected(event: Event): void {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    const selectedFiles = Array.from(target.files);
+
+    // Limitar a máximo 5 fotos
+    if (selectedFiles.length + this.evidencia.length > 5) {
+      this.error = 'No puedes subir más de 5 fotos';
       return;
     }
 
-    const raw = this.registroForm.getRawValue();
-
-    // ⚡ Ya no hace falta validar usuarioId porque ahora siempre es 3
-    const fechaProgramada = raw.fechaProgramada.includes('T')
-      ? raw.fechaProgramada
-      : raw.fechaProgramada + 'T00:00:00';
-
-    const nuevaSolicitud: Partial<ServiceModel> = {
-      usuarioId: raw.usuarioId,
-      aceptadaPorId: null, // puede ser null al crear
-      tipoResiduo: raw.tipoResiduo as TipoResiduo,
-      cantidad: raw.cantidad,
-      estadoPeticion: EstadoPeticion.Pendiente,
-      descripcion: raw.descripcion,
-      localidad: raw.localidad as Localidad,
-      ubicacion: raw.ubicacion,
-      evidencia: raw.evidencia && raw.evidencia.trim() !== '' ? raw.evidencia : 'Sin evidencia',
-      fechaCreacionSolicitud: new Date().toISOString(),
-      fechaProgramada: fechaProgramada
-    };
-
-    this.solicitudService.crearSolicitud(nuevaSolicitud as ServiceModel).subscribe({
-      next: () => {
-        this.mensaje = 'Solicitud registrada correctamente';
-        this.error = '';
-        this.registroForm.reset();
-        this.router.navigate(['/ciudadano']);
-      },
-      error: (err) => {
-        this.mensaje = '';
-        this.error = 'Error al registrar la solicitud: ' + (err.error?.message || err.message || 'Servidor');
-      }
-    });
+    this.evidencia.push(...selectedFiles);
+    this.error = '';
   }
+}
+
+  onSubmit(): void {
+  if (this.registroForm.invalid) {
+    this.error = 'Por favor complete todos los campos obligatorios';
+    this.mensaje = '';
+    return;
+  }
+
+  const raw = this.registroForm.getRawValue();
+
+  // Asegurarse que hora tenga segundos
+  const horaCompleta = raw.horaProgramada.includes(':') 
+      ? raw.horaProgramada + ':00'
+      : raw.horaProgramada;
+
+  const nuevaSolicitud: Partial<ServiceModel> = {
+    usuarioId: 3, // ID fijo para prueba
+    tipoResiduo: raw.tipoResiduo,
+    cantidad: raw.cantidad,
+    estadoPeticion: EstadoPeticion.Pendiente,
+    descripcion: raw.descripcion,
+    localidad: raw.localidad,
+    ubicacion: raw.ubicacion,
+    evidencia: 'Sin evidencia', // Subiremos archivos después
+    fechaCreacionSolicitud: new Date().toISOString(),
+    fechaProgramada: raw.fechaProgramada, // yyyy-MM-dd
+    horaProgramada: horaCompleta           // HH:mm:ss
+  };
+
+  this.Service.crearSolicitud(nuevaSolicitud as ServiceModel).subscribe({
+    next: (resp) => {
+      this.mensaje = 'Solicitud registrada correctamente';
+      this.error = '';
+      this.registroForm.reset();
+      this.router.navigate(['/ciudadano']);
+    },
+    error: (err) => {
+      this.error = 'Error al registrar la solicitud: ' + (err.error?.message || err.message || 'Servidor');
+      this.mensaje = '';
+    }
+  });
+}
+
+
+  
 }

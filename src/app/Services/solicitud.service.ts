@@ -26,39 +26,30 @@ export interface SolicitudesPorLocalidad {
 })
 export class Service {
   
-  private api = 'https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes';
+  private api = 'http://localhost:8082/api/solicitudes';
   solicitud: ServiceModel[] = [];
 
   constructor(private http: HttpClient) {}
 
-  // ================================
-  // CRUD BÁSICO
-  // ================================
-
-  listar(): Observable<ServiceModel[]> {
+   // CRUD
+   listar(): Observable<ServiceModel[]> {
     return this.http.get<ServiceModel[]>(this.api);
   }
+
+  crearSolicitud(solicitud: ServiceModel): Observable<ServiceModel> {
+  const token = localStorage.getItem('token') || '';
+  return this.http.post<ServiceModel>(this.api, solicitud, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+}
 
   obtenerPorId(id: number): Observable<ServiceModel> {
     return this.http.get<ServiceModel>(`${this.api}/${id}`);
   }
 
-  crearSolicitud(solicitud: ServiceModel): Observable<ServiceModel> {
-    return this.http.post<ServiceModel>(this.api, solicitud);
-  }
-
-  subirEvidencia(id: number, file: File): Observable<string> {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  return this.http.post(`${this.api}/${id}/evidencia`, formData, {
-    responseType: 'text'
-  });
-}
-
-cancelarSolicitud(id: number) {
-  return this.http.post<ServiceModel>(`${this.api}/${id}/cancelar`, {});
-}
+  
 
   actualizarSolicitud(id: number, solicitud: ServiceModel): Observable<ServiceModel> {
     return this.http.put<ServiceModel>(`${this.api}/${id}`, solicitud);
@@ -68,47 +59,45 @@ cancelarSolicitud(id: number) {
     return this.http.delete<void>(`${this.api}/${id}`);
   }
 
-  listarPorUsuario(id: number): Observable<ServiceModel[]> {
-    return this.http.get<ServiceModel[]>(`${this.api}/usuario/${id}`);
+  subirEvidencia(id: number, file: File): Observable<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.api}/${id}/evidencia`, formData, { responseType: 'text' });
   }
 
-obtenerIdUsuarioActual(): number {
-  const token = localStorage.getItem('token');
-  if (!token) return 0;
+  cancelarSolicitud(id: number): Observable<ServiceModel> {
+    return this.http.post<ServiceModel>(`${this.api}/${id}/cancelar`, {});
+  }
 
-  const payload = JSON.parse(atob(token.split('.')[1]));
-  return payload.idUsuario;
-}
-
-  // ================================
-  // FILTROS Y ESTADOS
-  // ================================
-
+  // Filtros y estados
   listarPorEstado(estado: string): Observable<ServiceModel[]> {
     return this.http.get<ServiceModel[]>(`${this.api}/estado/${estado}`);
   }
 
+  listarPorUsuario(id: number): Observable<ServiceModel[]> {
+    return this.http.get<ServiceModel[]>(`${this.api}/usuario/${id}`);
+  }
 
-  // ================================
-  // ACCIONES: ACEPTAR / RECHAZAR
-  // ================================
+  listarPorUsuarioYEstado(id: number, estado: string): Observable<ServiceModel[]> {
+    return this.http.get<ServiceModel[]>(`${this.api}/usuario/${id}/estado/${estado}`);
+  }
 
+  // Acciones
   aceptarSolicitud(id: number): Observable<ServiceModel> {
     return this.http.post<ServiceModel>(`${this.api}/${id}/aceptar`, {});
   }
 
   rechazarSolicitud(id: number, motivo: string): Observable<ServiceModel> {
-    const body = { razon: motivo };
-    console.log('[rechazarSolicitud] enviando:', { id, motivo, body });
-    return this.http.post<ServiceModel>(`${this.api}/${id}/rechazar`, body);
+    return this.http.post<ServiceModel>(
+      `${this.api}/${id}/rechazar`,
+      null,
+      { params: { motivo } }
+    );
   }
 
   
 
-  // ================================
-  // EXPORTACIONES
-  // ================================
-
+  // Exportaciones
   exportarExcel(estado?: string, localidad?: string, fechaDesde?: string, fechaHasta?: string): Observable<Blob> {
     let params = new HttpParams();
     if (estado) params = params.set('estado', estado);
@@ -116,10 +105,7 @@ obtenerIdUsuarioActual(): number {
     if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
     if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
-    return this.http.get(`${this.api}/export/excel`, {
-      params,
-      responseType: 'blob'
-    });
+    return this.http.get(`${this.api}/export/excel`, { params, responseType: 'blob' });
   }
 
   exportarPDF(estado?: string, localidad?: string, fechaDesde?: string, fechaHasta?: string): Observable<Blob> {
@@ -129,10 +115,7 @@ obtenerIdUsuarioActual(): number {
     if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
     if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
 
-    return this.http.get(`${this.api}/export/pdf`, {
-      params,
-      responseType: 'blob'
-    });
+    return this.http.get(`${this.api}/export/pdf`, { params, responseType: 'blob' });
   }
 
   // ================================

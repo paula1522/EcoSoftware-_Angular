@@ -258,7 +258,7 @@ export class Solcitudes implements OnInit {
 const datosActualizados: ServiceModel = {
   idSolicitud: this.selectedSolicitud!.idSolicitud!,
   usuarioId: this.selectedSolicitud!.usuarioId,
-  aceptadaPorId: this.selectedSolicitud!.aceptadaPorId || null,
+  aceptadaPorId: this.selectedSolicitud!.aceptadaPorId,
   tipoResiduo: formValue.tipoResiduo,
   cantidad: String(formValue.cantidad),
   descripcion: formValue.descripcion,

@@ -46,18 +46,24 @@ export enum TipoResiduo {
 
 
 export interface ServiceModel {
-  idSolicitud?: number;         // Se genera en backend, opcional al crear
-  usuarioId: number;            // Obligatorio
-  aceptadaPorId?: number | null;       // Opcional, null al crear
-  tipoResiduo: TipoResiduo;
+   idSolicitud: number;
+  usuarioId: number;
+  aceptadaPorId?: number;
+
+  tipoResiduo: string;
   cantidad: string;
-  estadoPeticion?: EstadoPeticion; // Opcional, backend asigna Pendiente
-  descripcion: string;
-  localidad: Localidad;
-  ubicacion: string;
-  evidencia?: string;           // Opcional
-  fechaCreacionSolicitud?: string; // Opcional, backend puede asignar
-  fechaProgramada: string;
-  recoleccionId?: number;       // Opcional
+  estadoPeticion: string;
+  descripcion?: string;
+  localidad: string;
+  ubicacion?: string;
+  latitude?: number;
+  longitude?: number;
+  evidencia?: string;
+  fechaCreacionSolicitud?: string; // ISO string
+  fechaProgramada?: string;        // yyyy-MM-dd
+  horaProgramada?: string;         // HH:mm:ss
+
+  recoleccionId?: number;
+  motivoRechazo?: string;
 }
 

@@ -23,10 +23,20 @@
     <label>Ubicación</label>
     <input type="text" formControlName="ubicacion" placeholder="Dirección completa">
 
-
-
     <label>Fecha Programada</label>
-    <input type="date" formControlName="fechaProgramada">
+    <input type="date" formControlName="fechaProgramada" [min]="hoy">
+
+    <label>Hora Programada</label>
+    <input type="time" formControlName="horaProgramada">
+
+    <label>Evidencia (máx. 5 fotos)</label>
+<input type="file" (change)="onFilesSelected($event)" multiple accept="image/*">
+<div *ngIf="evidencia.length > 0">
+  <p>Archivos seleccionados:</p>
+  <ul>
+    <li *ngFor="let file of evidencia">{{ file.name }}</li>
+  </ul>
+</div>
 
     <button type="submit">Registrar Solicitud</button>
   </form>
