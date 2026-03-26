@@ -61,7 +61,6 @@ export interface ServiceModel {
   evidencia?: string;
   fechaCreacionSolicitud?: string; // ISO string
   fechaProgramada?: string;        // yyyy-MM-dd
-  horaProgramada?: string;         // HH:mm:ss
 
   recoleccionId?: number;
   motivoRechazo?: string;

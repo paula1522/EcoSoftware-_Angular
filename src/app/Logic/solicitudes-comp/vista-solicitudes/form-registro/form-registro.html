@@ -23,11 +23,8 @@
     <label>Ubicación</label>
     <input type="text" formControlName="ubicacion" placeholder="Dirección completa">
 
-    <label>Fecha Programada</label>
-    <input type="date" formControlName="fechaProgramada" [min]="hoy">
-
-    <label>Hora Programada</label>
-    <input type="time" formControlName="horaProgramada">
+   <label>Fecha Programada</label>
+<input type="datetime-local" formControlName="fechaProgramada" [min]="hoy">
 
     <label>Evidencia (máx. 5 fotos)</label>
 <input type="file" (change)="onFilesSelected($event)" multiple accept="image/*">

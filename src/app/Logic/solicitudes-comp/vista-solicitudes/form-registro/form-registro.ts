@@ -35,7 +35,6 @@ export class FormRegistro {
       localidad: ['', Validators.required],
       ubicacion: ['', Validators.required],
       fechaProgramada: ['', Validators.required],
-      horaProgramada: ['', Validators.required],
       evidencia: [''] // valor opcional
     });
   }
@@ -66,24 +65,26 @@ export class FormRegistro {
 
   const raw = this.registroForm.getRawValue();
 
-  // Asegurarse que hora tenga segundos
-  const horaCompleta = raw.horaProgramada.includes(':') 
-      ? raw.horaProgramada + ':00'
-      : raw.horaProgramada;
+// Asegurarse de que tenga segundos
+let fechaHora = raw.fechaProgramada;
+if (!fechaHora.includes(':')) {
+  fechaHora += ':00'; // añade minutos si falta
+} else if (fechaHora.split(':').length === 2) {
+  fechaHora += ':00'; // añade segundos
+}
 
-  const nuevaSolicitud: Partial<ServiceModel> = {
-    usuarioId: 3, // ID fijo para prueba
-    tipoResiduo: raw.tipoResiduo,
-    cantidad: raw.cantidad,
-    estadoPeticion: EstadoPeticion.Pendiente,
-    descripcion: raw.descripcion,
-    localidad: raw.localidad,
-    ubicacion: raw.ubicacion,
-    evidencia: 'Sin evidencia', // Subiremos archivos después
-    fechaCreacionSolicitud: new Date().toISOString(),
-    fechaProgramada: raw.fechaProgramada, // yyyy-MM-dd
-    horaProgramada: horaCompleta           // HH:mm:ss
-  };
+const nuevaSolicitud: Partial<ServiceModel> = {
+  usuarioId: 3,
+  tipoResiduo: raw.tipoResiduo,
+  cantidad: raw.cantidad,
+  estadoPeticion: EstadoPeticion.Pendiente,
+  descripcion: raw.descripcion,
+  localidad: raw.localidad,
+  ubicacion: raw.ubicacion,
+  evidencia: 'Sin evidencia',
+  fechaCreacionSolicitud: new Date().toISOString(),
+  fechaProgramada: fechaHora, // ya incluye fecha y hora
+};
 
   this.Service.crearSolicitud(nuevaSolicitud as ServiceModel).subscribe({
     next: (resp) => {
