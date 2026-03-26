@@ -1,19 +1,15 @@
 export interface ModeloRecoleccion {
-  tipoResiduo: string;
   idRecoleccion: number;
   solicitudId: number;
   recolectorId: number;
   rutaId?: number | null;
 
-  estado: EstadoRecoleccion; // ✅ usar enum
-
-  fechaRecoleccion?: string | null;
-  ordenParada?: number | null;
-
+  estado: EstadoRecoleccion;
+  fechaRecoleccion?: string;  // yyyy-MM-ddTHH:mm:ss
+  ordenParada?: number;
   observaciones?: string;
   evidencia?: string;
-
-  fechaCreacionRecoleccion?: string;
+  fechaCreacionRecoleccion?: string; 
 }
 
 export enum EstadoRecoleccion {

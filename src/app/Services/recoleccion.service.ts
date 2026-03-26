@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ModeloRecoleccion, EstadoRecoleccion } from '../Models/modelo-recoleccion';
 
@@ -24,25 +24,26 @@ export class RecoleccionService {
     return this.http.get<ModeloRecoleccion[]>(`${this.URL}/mis-recolecciones`);
   }
 
-  listarTodasMisRecolecciones(id:number): Observable<ModeloRecoleccion[]> {
+  listarPorRecolector(id: number): Observable<ModeloRecoleccion[]> {
     return this.http.get<ModeloRecoleccion[]>(`${this.URL}/recolector/${id}`);
   }
 
   listarTodas(): Observable<ModeloRecoleccion[]> {
-  return this.http.get<ModeloRecoleccion[]>(`${this.URL}`);
-}
+    return this.http.get<ModeloRecoleccion[]>(this.URL);
+  }
 
-  listarPorRuta(idRuta: number): Observable<ModeloRecoleccion[]> {
-    return this.http.get<ModeloRecoleccion[]>(`${this.URL}/ruta/${idRuta}`);
+  listarPorRuta(rutaId: number): Observable<ModeloRecoleccion[]> {
+    return this.http.get<ModeloRecoleccion[]>(`${this.URL}/ruta/${rutaId}`);
   }
 
   actualizarEstado(id: number, estado: EstadoRecoleccion): Observable<ModeloRecoleccion> {
-    return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}/estado?estado=${estado}`, {});
+    const params = new HttpParams().set('estado', estado);
+    return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}/estado`, null, { params });
   }
 
-  actualizarRecoleccion(id: number, data: Partial<ModeloRecoleccion>): Observable<ModeloRecoleccion> {
-  return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}`, data);
-}
+  actualizarRecoleccion(id: number, recoleccion: Partial<ModeloRecoleccion>): Observable<ModeloRecoleccion> {
+    return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}`, recoleccion);
+  }
 
   eliminarLogicamente(id: number): Observable<void> {
     return this.http.delete<void>(`${this.URL}/${id}`);

@@ -1,46 +1,42 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { RutaRecoleccion } from '../Models/ruta-recoleccion';
+import { EstadoRuta, RutaRecoleccion } from '../Models/ruta-recoleccion';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RutaRecoleccionService {
 
-  private baseUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/rutas';
+  private readonly URL = 'http://localhost:8082/api/rutas';
 
   constructor(private http: HttpClient) {}
 
-  crearRuta(dto: Partial<RutaRecoleccion>): Observable<RutaRecoleccion> {
-  return this.http.post<RutaRecoleccion>(`${this.baseUrl}`, dto);
-}
-
-
-  getRutaById(id: number): Observable<RutaRecoleccion> {
-    return this.http.get<RutaRecoleccion>(`${this.baseUrl}/${id}`);
+  crearRuta(ruta: Partial<RutaRecoleccion>): Observable<RutaRecoleccion> {
+    return this.http.post<RutaRecoleccion>(this.URL, ruta);
   }
 
-  getRutas(): Observable<RutaRecoleccion[]> {
-    return this.http.get<RutaRecoleccion[]>(`${this.baseUrl}`);
+  obtenerPorId(id: number): Observable<RutaRecoleccion> {
+    return this.http.get<RutaRecoleccion>(`${this.URL}/${id}`);
   }
 
-  getRutasPorRecolector(recolectorId: number): Observable<RutaRecoleccion[]> {
-    return this.http.get<RutaRecoleccion[]>(`${this.baseUrl}/recolector/${recolectorId}`);
+  listarTodas(): Observable<RutaRecoleccion[]> {
+    return this.http.get<RutaRecoleccion[]>(this.URL);
   }
 
-  actualizarRuta(id: number, dto: RutaRecoleccion): Observable<RutaRecoleccion> {
-    return this.http.put<RutaRecoleccion>(`${this.baseUrl}/${id}`, dto);
+  listarPorEstado(estado: EstadoRuta): Observable<RutaRecoleccion[]> {
+    return this.http.get<RutaRecoleccion[]>(`${this.URL}/estado/${estado}`);
   }
 
-  eliminarRuta(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  listarMisRutas(): Observable<RutaRecoleccion[]> {
+    return this.http.get<RutaRecoleccion[]>(`${this.URL}/mis-rutas`);
   }
 
-  asignarRecolecciones(rutaId: number, recoleccionIds: number[]): Observable<RutaRecoleccion> {
-    return this.http.post<RutaRecoleccion>(
-      `${this.baseUrl}/${rutaId}/recolecciones`,
-      recoleccionIds
-    );
+  iniciarRuta(id: number): Observable<RutaRecoleccion> {
+    return this.http.put<RutaRecoleccion>(`${this.URL}/${id}/iniciar`, {});
+  }
+
+  finalizarRuta(id: number): Observable<RutaRecoleccion> {
+    return this.http.put<RutaRecoleccion>(`${this.URL}/${id}/finalizar`, {});
   }
 }
