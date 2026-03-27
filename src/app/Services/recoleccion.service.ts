@@ -8,7 +8,7 @@ import { ModeloRecoleccion, EstadoRecoleccion } from '../Models/modelo-recolecci
 })
 export class RecoleccionService {
 
-  private readonly URL = 'https://ecosoftware-spring-boot.azurewebsites.net/api/recolecciones';
+  private readonly URL = 'http://localhost:8082/api/recolecciones';
 
   constructor(private http: HttpClient) {}
 
@@ -40,6 +40,16 @@ export class RecoleccionService {
   listarPorRuta(rutaId: number): Observable<ModeloRecoleccion[]> {
     return this.http.get<ModeloRecoleccion[]>(`${this.URL}/ruta/${rutaId}`);
   }
+
+  // Listar todas las recolecciones del recolector autenticado (incluye canceladas)
+listarMisRecoleccionesTodas(): Observable<ModeloRecoleccion[]> {
+  return this.http.get<ModeloRecoleccion[]>(`${this.URL}/mis-recolecciones/todas`);
+}
+
+// Listar recolecciones del ciudadano autenticado (basado en sus solicitudes)
+listarMisRecoleccionesCiudadano(): Observable<ModeloRecoleccion[]> {
+  return this.http.get<ModeloRecoleccion[]>(`${this.URL}/mis-recolecciones-ciudadano`);
+}
 
   // Cambiar el estado de una recolección (validado por backend)
   actualizarEstado(id: number, estado: EstadoRecoleccion): Observable<ModeloRecoleccion> {

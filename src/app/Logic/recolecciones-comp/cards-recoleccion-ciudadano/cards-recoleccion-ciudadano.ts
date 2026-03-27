@@ -1,13 +1,23 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { COMPARTIR_IMPORTS } from '../../../shared/imports';
+import { Boton } from "../../../shared/botones/boton/boton";
+import { Modal } from '../../../shared/modal/modal';
 import { RecoleccionService } from '../../../Services/recoleccion.service';
 import { ModeloRecoleccion, EstadoRecoleccion } from '../../../Models/modelo-recoleccion';
-import { Boton } from '../../../shared/botones/boton/boton';
-import { Modal } from '../../../shared/modal/modal';
+import { AuthService } from '../../../auth/auth.service';
 
 @Component({
   selector: 'app-cards-recoleccion-ciudadano',
-  imports: [COMPARTIR_IMPORTS, Boton, Modal],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    COMPARTIR_IMPORTS,
+    Boton,
+    Modal
+  ],
   templateUrl: './cards-recoleccion-ciudadano.html',
   styleUrls: ['./cards-recoleccion-ciudadano.css']
 })
@@ -17,157 +27,84 @@ export class CardsRecoleccionCiudadano implements OnInit {
   cargando = true;
   error = '';
   EstadoRecoleccion = EstadoRecoleccion;
-  recoleccionSeleccionada: ModeloRecoleccion | null = null;
 
-  // Campos editables
-  fechaProgramadaEditable: string = '';
-  observacionesEditable: string = '';
-  evidenciaEditable: string = '';
-
-  // ===================== FILTROS =====================
+  // Filtros
   estadoSeleccionado: EstadoRecoleccion | '' = '';
-  tipoResiduoSeleccionado: string | '' = '';
+  fechaDesde: string = '';
+  fechaHasta: string = '';
+  ordenFecha: 'asc' | 'desc' = 'desc';
 
-  // ===================== ORDENAMIENTO =====================
-  ordenSeleccionado: 'reciente' | 'antiguo' = 'reciente';
-  campoOrden: keyof ModeloRecoleccion = 'idRecoleccion';
-
-  // ===================== PAGINACIÓN =====================
+  // Paginación
   paginaActual: number = 1;
-  itemsPorPagina: number = 8;
+  itemsPorPagina: number = 4;
 
-  // ===================== MODALES =====================
+  // Modales
   @ViewChild('modalVerRecoleccion') modalVerRecoleccion!: Modal;
   @ViewChild('modalEdicion') modalEdicion!: Modal;
   @ViewChild('modalCancelar') modalCancelar!: Modal;
 
-  constructor(private recoleccionService: RecoleccionService) {}
+  recoleccionSeleccionada: ModeloRecoleccion | null = null;
+  fechaProgramadaEditable: string = '';
+  observacionesEditable: string = '';
+
+  constructor(
+    private recoleccionService: RecoleccionService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
-    this.cargarMisRecolecciones();
+    this.cargarRecolecciones();
   }
 
-  // ===================== CARGAR RECOLECCIONES =====================
-  cargarMisRecolecciones(): void {
+  cargarRecolecciones(): void {
     this.cargando = true;
-    this.recoleccionService.listarActivas().subscribe({
+    // Usar el nuevo endpoint que devuelve recolecciones por solicitante
+    this.recoleccionService.listarMisRecoleccionesCiudadano().subscribe({
       next: data => {
         this.recolecciones = data;
         this.cargando = false;
+        this.paginaActual = 1;
       },
-      error: () => {
-        this.error = 'Error al cargar mis recolecciones';
+      error: err => {
+        console.error('Error al cargar recolecciones:', err);
+        this.error = 'No se pudieron cargar tus recolecciones.';
         this.cargando = false;
       }
     });
   }
 
-  mostrarBotones(estado: string): boolean {
-    return estado !== 'Completada' && estado !== 'Cancelada';
-  }
-
-  // ===================== CANCELAR RECOLECCIÓN =====================
-  cancelarRecoleccion(id: number) {
-    this.recoleccionService.actualizarEstado(id, EstadoRecoleccion.Cancelada)
-      .subscribe(() => {
-        this.recolecciones = this.recolecciones.filter(r => r.idRecoleccion !== id);
-      });
-  }
-
-  // ===================== MODAL EDICIÓN =====================
-  abrirModalEdicion(reco: ModeloRecoleccion) {
-    this.recoleccionSeleccionada = { ...reco };
-    this.fechaProgramadaEditable = reco.fechaRecoleccion
-      ? new Date(reco.fechaRecoleccion).toISOString().slice(0, 16)
-      : '';
-    this.observacionesEditable = reco.observaciones || '';
-    this.evidenciaEditable = reco.evidencia || '';
-
-    if (this.modalEdicion) this.modalEdicion.isOpen = true;
-  }
-
-  guardarEdicion() {
-  if (!this.recoleccionSeleccionada) return;
-
-  const datosActualizar: Partial<ModeloRecoleccion> = {
-    observaciones: this.observacionesEditable,
-    evidencia: this.evidenciaEditable,
-    fechaRecoleccion: this.fechaProgramadaEditable
-      ? `${this.fechaProgramadaEditable}:00`
-      : undefined,
-    estado: this.recoleccionSeleccionada.estado 
-  };
-
-  this.recoleccionService.actualizarRecoleccion(
-    this.recoleccionSeleccionada.idRecoleccion!,
-    datosActualizar 
-  ).subscribe({
-    next: actualizado => {
-      console.log('Recolección actualizada', actualizado);
-      this.recoleccionSeleccionada = actualizado;
-
-      this.recolecciones = this.recolecciones.map(r =>
-        r.idRecoleccion === actualizado.idRecoleccion ? actualizado : r
-      );
-
-      alert('Actualización exitosa');
-      this.cerrarModalEdicion();
-    },
-    error: err => {
-      console.error('Error al actualizar', err);
-      alert('No se pudo actualizar. Revisa la consola.');
-    }
-  });
-}
-
-  cerrarModalEdicion() {
-    if (this.modalEdicion) this.modalEdicion.isOpen = false;
-    this.recoleccionSeleccionada = null;
-    this.fechaProgramadaEditable = '';
-    this.observacionesEditable = '';
-    this.evidenciaEditable = '';
-  }
-
-  // ===================== MODAL VER =====================
-  abrirModalVerRecoleccion(reco: ModeloRecoleccion) {
-    this.recoleccionSeleccionada = reco;
-    if (this.modalVerRecoleccion) this.modalVerRecoleccion.isOpen = true;
-  }
-
-  cerrarModalVerRecoleccion() {
-    if (this.modalVerRecoleccion) this.modalVerRecoleccion.isOpen = false;
-    this.recoleccionSeleccionada = null;
-  }
-
-  // ===================== MODAL CANCELAR =====================
-  abrirModalCancelar(reco: ModeloRecoleccion) {
-    this.recoleccionSeleccionada = reco;
-    if (this.modalCancelar) this.modalCancelar.isOpen = true;
-  }
-
-  cerrarModalCancelar() {
-    if (this.modalCancelar) this.modalCancelar.isOpen = false;
-    this.recoleccionSeleccionada = null;
-  }
-
-  confirmarCancelar() {
-    if (!this.recoleccionSeleccionada) return;
-    this.cancelarRecoleccion(this.recoleccionSeleccionada.idRecoleccion!);
-    this.cerrarModalCancelar();
-  }
-
-  // ===================== FILTROS Y ORDENAMIENTO =====================
+  // ===============================
+  // FILTROS Y ORDENAMIENTO
+  // ===============================
   get recoleccionesFiltradas(): ModeloRecoleccion[] {
-    let filtradas = this.recolecciones;
+    let filtradas = [...this.recolecciones];
 
     if (this.estadoSeleccionado) {
       filtradas = filtradas.filter(r => r.estado === this.estadoSeleccionado);
     }
 
+    if (this.fechaDesde) {
+      const desde = new Date(this.fechaDesde);
+      desde.setHours(0, 0, 0, 0);
+      filtradas = filtradas.filter(r => {
+        if (!r.fechaRecoleccion) return false;
+        return new Date(r.fechaRecoleccion) >= desde;
+      });
+    }
+
+    if (this.fechaHasta) {
+      const hasta = new Date(this.fechaHasta);
+      hasta.setHours(23, 59, 59, 999);
+      filtradas = filtradas.filter(r => {
+        if (!r.fechaRecoleccion) return false;
+        return new Date(r.fechaRecoleccion) <= hasta;
+      });
+    }
+
     filtradas.sort((a, b) => {
       const fechaA = a.fechaCreacionRecoleccion ? new Date(a.fechaCreacionRecoleccion).getTime() : 0;
       const fechaB = b.fechaCreacionRecoleccion ? new Date(b.fechaCreacionRecoleccion).getTime() : 0;
-      return this.ordenSeleccionado === 'reciente' ? fechaB - fechaA : fechaA - fechaB;
+      return this.ordenFecha === 'desc' ? fechaB - fechaA : fechaA - fechaB;
     });
 
     return filtradas;
@@ -175,16 +112,167 @@ export class CardsRecoleccionCiudadano implements OnInit {
 
   get recoleccionesPaginadas(): ModeloRecoleccion[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
-    const fin = inicio + this.itemsPorPagina;
-    return this.recoleccionesFiltradas.slice(inicio, fin);
+    return this.recoleccionesFiltradas.slice(inicio, inicio + this.itemsPorPagina);
   }
 
   get totalPaginas(): number {
     return Math.ceil(this.recoleccionesFiltradas.length / this.itemsPorPagina);
   }
 
-  cambiarPagina(p: number) {
+  cambiarPagina(p: number): void {
     if (p < 1 || p > this.totalPaginas) return;
     this.paginaActual = p;
+  }
+
+  limpiarFiltros(): void {
+    this.estadoSeleccionado = '';
+    this.fechaDesde = '';
+    this.fechaHasta = '';
+    this.ordenFecha = 'desc';
+    this.paginaActual = 1;
+  }
+
+  // ===============================
+  // VISIBILIDAD DE BOTONES SEGÚN ESTADO
+  // ===============================
+  mostrarBoton(accion: string, estado: EstadoRecoleccion): boolean {
+    switch (accion) {
+      case 'editar':
+        return estado === EstadoRecoleccion.Pendiente;
+      case 'cancelar':
+        return estado === EstadoRecoleccion.Pendiente;
+      case 'completar':
+        return estado === EstadoRecoleccion.En_Progreso;
+      case 'fallida':
+        return estado === EstadoRecoleccion.En_Progreso;
+      case 'ver':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // ===============================
+  // MODAL VER
+  // ===============================
+  abrirModalVer(reco: ModeloRecoleccion): void {
+    this.recoleccionSeleccionada = reco;
+    this.modalVerRecoleccion.isOpen = true;
+  }
+
+  cerrarModalVer(): void {
+    this.modalVerRecoleccion.isOpen = false;
+    this.recoleccionSeleccionada = null;
+  }
+
+  // ===============================
+  // MODAL EDITAR (solo para Pendiente)
+  // ===============================
+  abrirModalEdicion(reco: ModeloRecoleccion): void {
+    if (reco.estado !== EstadoRecoleccion.Pendiente) {
+      alert('Solo puedes editar recolecciones en estado Pendiente.');
+      return;
+    }
+    this.recoleccionSeleccionada = { ...reco };
+    this.fechaProgramadaEditable = reco.fechaRecoleccion
+      ? new Date(reco.fechaRecoleccion).toISOString().slice(0, 16)
+      : '';
+    this.observacionesEditable = reco.observaciones || '';
+    this.modalEdicion.isOpen = true;
+  }
+
+  cerrarModalEdicion(): void {
+    this.modalEdicion.isOpen = false;
+    this.recoleccionSeleccionada = null;
+    this.fechaProgramadaEditable = '';
+    this.observacionesEditable = '';
+  }
+
+  guardarEdicion(): void {
+    if (!this.recoleccionSeleccionada) return;
+
+    const datosActualizar: Partial<ModeloRecoleccion> = {
+      observaciones: this.observacionesEditable,
+      fechaRecoleccion: this.fechaProgramadaEditable
+        ? `${this.fechaProgramadaEditable}:00`
+        : undefined,
+    };
+
+    this.recoleccionService.actualizarRecoleccion(
+      this.recoleccionSeleccionada.idRecoleccion!,
+      datosActualizar
+    ).subscribe({
+      next: actualizado => {
+        // Reemplazar en la lista local
+        const index = this.recolecciones.findIndex(r => r.idRecoleccion === actualizado.idRecoleccion);
+        if (index !== -1) this.recolecciones[index] = actualizado;
+        alert('Recolección actualizada correctamente.');
+        this.cerrarModalEdicion();
+      },
+      error: err => {
+        console.error('Error al actualizar:', err);
+        alert(err.error?.message || 'Error al actualizar la recolección.');
+      }
+    });
+  }
+
+  // ===============================
+  // CANCELAR (solo para Pendiente)
+  // ===============================
+  abrirModalCancelar(reco: ModeloRecoleccion): void {
+    if (reco.estado !== EstadoRecoleccion.Pendiente) {
+      alert('Solo puedes cancelar recolecciones en estado Pendiente.');
+      return;
+    }
+    this.recoleccionSeleccionada = reco;
+    this.modalCancelar.isOpen = true;
+  }
+
+  cerrarModalCancelar(): void {
+    this.modalCancelar.isOpen = false;
+    this.recoleccionSeleccionada = null;
+  }
+
+  confirmarCancelar(): void {
+    if (!this.recoleccionSeleccionada) return;
+    this.recoleccionService.actualizarEstado(
+      this.recoleccionSeleccionada.idRecoleccion!,
+      EstadoRecoleccion.Cancelada
+    ).subscribe({
+      next: () => {
+        alert('Recolección cancelada correctamente.');
+        this.cargarRecolecciones(); // recargar lista
+        this.cerrarModalCancelar();
+      },
+      error: err => {
+        console.error('Error al cancelar:', err);
+        alert(err.error?.message || 'Error al cancelar la recolección.');
+      }
+    });
+  }
+
+  // ===============================
+  // COMPLETAR / FALLIDA (solo para En_Progreso)
+  // ===============================
+  completarRecoleccion(reco: ModeloRecoleccion): void {
+    if (reco.estado !== EstadoRecoleccion.En_Progreso) return;
+    if (confirm(`¿Completar la recolección #REC-${reco.idRecoleccion}?`)) {
+      this.recoleccionService.actualizarEstado(reco.idRecoleccion!, EstadoRecoleccion.Completada)
+        .subscribe({
+          next: () => this.cargarRecolecciones(),
+          error: err => alert(err.error?.message || 'Error al completar la recolección.')
+        });
+    }
+  }
+
+  marcarFallida(reco: ModeloRecoleccion): void {
+    if (reco.estado !== EstadoRecoleccion.En_Progreso) return;
+    if (confirm(`¿Marcar como fallida la recolección #REC-${reco.idRecoleccion}?`)) {
+      this.recoleccionService.actualizarEstado(reco.idRecoleccion!, EstadoRecoleccion.Fallida)
+        .subscribe({
+          next: () => this.cargarRecolecciones(),
+          error: err => alert(err.error?.message || 'Error al marcar como fallida.')
+        });
+    }
   }
 }
