@@ -11,7 +11,7 @@
         </select>
       </div>
 
-      <!-- Localidad (select) -->
+      <!-- Localidad -->
       <div class="flex-grow-1">
         <label class="form-label">Localidad:</label>
         <select class="form-select" [(ngModel)]="localidadFilter" (change)="aplicarFiltrosLocal()">
@@ -20,7 +20,7 @@
         </select>
       </div>
 
-      <!-- Tipo de Residuo (select) -->
+      <!-- Tipo de Residuo -->
       <div class="flex-grow-1">
         <label class="form-label">Tipo Residuo:</label>
         <select class="form-select" [(ngModel)]="tipoResiduoFilter" (change)="aplicarFiltrosLocal()">
@@ -82,7 +82,7 @@
     <p>No hay solicitudes que coincidan con los filtros.</p>
   </div>
 
-  <!-- MODAL VER SOLICITUD (completo) -->
+  <!-- MODAL VER SOLICITUD -->
   <app-modal #modalVerSolicitud [title]="'Detalles de la Solicitud'" [headerColor]="'#4f69d9'">
     <div class="p-3 modal-perfil-container">
       <div class="text-center mb-4">
@@ -127,18 +127,17 @@
       </div>
 
       <!-- Fechas -->
-<!-- Fechas -->
-<h5 class="section-title">Fechas</h5>
-<div class="row mb-3">
-  <div class="col-6">
-    <label class="fw-bold">Fecha de creación:</label>
-    {{ (selectedSolicitud?.fechaCreacionSolicitud | date:'dd/MM/yyyy HH:mm') ?? 'No registrada' }}
-  </div>
-  <div class="col-6">
-    <label class="fw-bold">Fecha programada:</label>
-    {{ (selectedSolicitud?.fechaProgramada | date:'dd/MM/yyyy HH:mm') ?? 'No definida' }}
-  </div>
-</div>
+      <h5 class="section-title">Fechas</h5>
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="fw-bold">Fecha de creación:</label>
+          {{ (selectedSolicitud?.fechaCreacionSolicitud | date:'dd/MM/yyyy HH:mm') ?? 'No registrada' }}
+        </div>
+        <div class="col-6">
+          <label class="fw-bold">Fecha programada:</label>
+          {{ (selectedSolicitud?.fechaProgramada | date:'dd/MM/yyyy HH:mm') ?? 'No definida' }}
+        </div>
+      </div>
 
       <!-- Recolección -->
       <h5 class="section-title">Información de recolección</h5>
@@ -149,7 +148,7 @@
     </div>
   </app-modal>
 
-  <!-- MODAL EDITAR SOLICITUD (con evidencia) -->
+  <!-- MODAL EDITAR SOLICITUD (con fecha/hora y previsualización) -->
   <app-modal
     #modalEditarSolicitud
     [title]="'Editar Solicitud'"
@@ -157,30 +156,72 @@
     [isOpen]="mostrarModalEditar"
   >
     <div class="p-3">
-      <!-- Formulario de edición -->
+      <!-- Formulario sin el campo fechaProgramada y sin botón -->
       <app-form-comp
         [formGroup]="formEditarSolicitud"
         [fields]="fieldsEditarSolicitud"
-        [submitButtonText]="'Actualizar'"
-        [submitButtonIcon]="'bi bi-save'"
-        [submitButtonColor]="'custom-success-filled'"
-        (submitForm)="actualizarSolicitud()"
-        [showSubmitButton]="true"
+        [showSubmitButton]="false"
       ></app-form-comp>
 
-      <!-- Campo para nueva evidencia (fuera del form-comp) -->
-      <div class="mt-3">
-        <label class="form-label fw-bold">Actualizar evidencia (opcional):</label>
-        <input type="file" class="form-control" (change)="onEvidenciaSeleccionada($event)" accept="image/*">
-        <div *ngIf="nuevaEvidenciaFile" class="mt-2 small text-success">
-          <i class="bi bi-check-circle"></i> Archivo seleccionado: {{ nuevaEvidenciaFile.name }}
+      <!-- Campo fecha con hora manual -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">Fecha programada (con hora)</label>
+        <input
+          type="datetime-local"
+          class="form-control"
+          [(ngModel)]="fechaProgramadaValue"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <!-- Evidencia con previsualización -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">Evidencia</label>
+        <input
+          type="file"
+          class="form-control"
+          (change)="onEvidenciaSeleccionada($event)"
+          accept="image/*"
+        />
+
+        <!-- Imagen actual (si no hay nueva seleccionada) -->
+        <div *ngIf="evidenciaActualUrl && !nuevaEvidenciaFile" class="mt-2">
+          <p class="small text-muted">Imagen actual:</p>
+          <img
+            [src]="evidenciaActualUrl"
+            class="img-fluid rounded border"
+            style="max-height: 150px"
+            alt="Evidencia actual"
+          />
         </div>
-        <div *ngIf="evidenciaActualUrl" class="mt-2 small text-muted">
-          <i class="bi bi-image"></i> Evidencia actual: <a [href]="evidenciaActualUrl" target="_blank">ver imagen</a>
+
+        <!-- Previsualización de nueva imagen -->
+        <div *ngIf="nuevaEvidenciaFile && previewEvidenciaUrl" class="mt-2">
+          <p class="small text-success">Nueva imagen seleccionada:</p>
+          <img
+            [src]="previewEvidenciaUrl"
+            class="img-fluid rounded border"
+            style="max-height: 150px"
+            alt="Nueva evidencia"
+          />
+        </div>
+
+        <!-- Solo texto si no hay evidencia actual ni nueva -->
+        <div *ngIf="!evidenciaActualUrl && !nuevaEvidenciaFile" class="mt-2">
+          <p class="small text-muted">No hay evidencia adjunta.</p>
         </div>
       </div>
+
+      <!-- Botón de actualizar al final -->
+      <div class="d-flex justify-content-end mt-3">
+        <app-boton
+          texto="Actualizar"
+          icono="bi bi-save"
+          color="custom-success-filled"
+          (click)="actualizarSolicitud()"
+        ></app-boton>
+      </div>
     </div>
-    <ng-container modal-footer> </ng-container>
   </app-modal>
 
   <!-- MODAL RECHAZO -->

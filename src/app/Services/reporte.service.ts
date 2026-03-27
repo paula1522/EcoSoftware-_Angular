@@ -230,7 +230,7 @@ export class ReporteService {
     this.pdfDoc.text(lines, x, yy);
   }
 
-  private agregarResumenModernSolicitudes(solicitudes: ServiceModel[], x: number, y: number, w: number): void {
+  private agregarResumenModernSolicitudes(solicitudes: SolicitudRecoleccion[], x: number, y: number, w: number): void {
     if (!this.pdfDoc) return;
 
     const total = solicitudes.length;
@@ -288,7 +288,7 @@ export class ReporteService {
     }
   }
 
-  private agregarTablaMiniSolicitudes(solicitudes: ServiceModel[], x: number, y: number, w: number): void {
+  private agregarTablaMiniSolicitudes(solicitudes: SolicitudRecoleccion[], x: number, y: number, w: number): void {
     if (!this.pdfDoc) return;
     const rows = solicitudes.slice(0, 7);
     let yy = this.agregarEncabezadoSeccionModern('Listado (muestra)', x, y + 6);

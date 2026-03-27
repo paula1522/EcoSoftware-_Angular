@@ -39,7 +39,7 @@ import { Solicitudes } from "../../Logic/solicitudes-comp/listar-filtrar-solicit
   imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
     PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton],
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })

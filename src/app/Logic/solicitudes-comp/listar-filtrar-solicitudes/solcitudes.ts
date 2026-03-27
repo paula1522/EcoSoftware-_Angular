@@ -3,7 +3,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../auth/auth.service';
 import { SolicitudRecoleccionService } from '../../../Services/solicitud.service';
-import {SolicitudRecoleccion,EstadoPeticion,Localidad,TipoResiduo,} from '../../../Models/solicitudes.model';
+import {SolicitudRecoleccion,EstadoPeticion,Localidad,TipoResiduo} from '../../../Models/solicitudes.model';
 import { COMPARTIR_IMPORTS } from '../../../shared/imports';
 import { ColumnaTabla, Tabla } from '../../../shared/tabla/tabla';
 import { Modal } from '../../../shared/modal/modal';
@@ -29,7 +29,7 @@ export class Solicitudes implements OnInit, OnDestroy {
 
   // Filtros
   estadoFilter: EstadoPeticion | '' = '';
-  localidadFilter: Localidad | '' = ''; // ahora es enum
+  localidadFilter: Localidad | '' = '';
   tipoResiduoFilter: TipoResiduo | '' = '';
   fechaDesde: string = '';
   fechaHasta: string = '';
@@ -50,6 +50,10 @@ export class Solicitudes implements OnInit, OnDestroy {
   // Edición de evidencia
   nuevaEvidenciaFile: File | null = null;
   evidenciaActualUrl: string = '';
+  previewEvidenciaUrl: string | null = null; // Para previsualización
+
+  // Fecha con hora en edición
+  fechaProgramadaValue: string = '';
 
   // Formulario edición
   formEditarSolicitud: FormGroup = new FormGroup({});
@@ -116,10 +120,8 @@ export class Solicitudes implements OnInit, OnDestroy {
   // Función para controlar qué acciones son visibles por fila
   accionVisiblePorFila = (accion: string, item: SolicitudRecoleccion): boolean => {
     if (accion === 'editar') {
-      // Solo se puede editar si está Pendiente
       return item.estadoPeticion === EstadoPeticion.Pendiente;
     }
-    // Las demás acciones siempre visibles (ver, rechazar)
     return true;
   };
 
@@ -192,7 +194,6 @@ export class Solicitudes implements OnInit, OnDestroy {
     this.solicitudes = resultados;
   }
 
-  // Debounce (ya no es necesario para selects, pero lo dejamos por si acaso)
   onLocalidadFilterChange(): void {
     if (this.filterTimeout) clearTimeout(this.filterTimeout);
     this.filterTimeout = setTimeout(() => {
@@ -246,6 +247,7 @@ export class Solicitudes implements OnInit, OnDestroy {
     this.selectedSolicitud = solicitud;
     this.evidenciaActualUrl = solicitud.evidencia || '';
     this.nuevaEvidenciaFile = null;
+    this.previewEvidenciaUrl = null;
     this.initFormEditarSolicitud(solicitud);
     this.mostrarModalEditar = true;
   }
@@ -256,6 +258,10 @@ export class Solicitudes implements OnInit, OnDestroy {
     this.formEditarSolicitud.reset();
     this.nuevaEvidenciaFile = null;
     this.evidenciaActualUrl = '';
+    if (this.previewEvidenciaUrl) {
+      URL.revokeObjectURL(this.previewEvidenciaUrl);
+      this.previewEvidenciaUrl = null;
+    }
   }
 
   abrirModalRechazo(solicitud: SolicitudRecoleccion): void {
@@ -297,9 +303,14 @@ export class Solicitudes implements OnInit, OnDestroy {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
       this.nuevaEvidenciaFile = file;
+      if (this.previewEvidenciaUrl) {
+        URL.revokeObjectURL(this.previewEvidenciaUrl);
+      }
+      this.previewEvidenciaUrl = URL.createObjectURL(file);
     } else {
       alert('Por favor seleccione una imagen válida.');
       this.nuevaEvidenciaFile = null;
+      this.previewEvidenciaUrl = null;
     }
   }
 
@@ -312,6 +323,11 @@ export class Solicitudes implements OnInit, OnDestroy {
     }
 
     const formValue = this.formEditarSolicitud.value;
+    let fechaProgramadaBackend = '';
+    if (this.fechaProgramadaValue) {
+      fechaProgramadaBackend = this.fechaProgramadaValue + ':00';
+    }
+
     const datosActualizados: SolicitudRecoleccion = {
       ...this.selectedSolicitud,
       tipoResiduo: formValue.tipoResiduo,
@@ -319,11 +335,10 @@ export class Solicitudes implements OnInit, OnDestroy {
       descripcion: formValue.descripcion,
       localidad: formValue.localidad,
       ubicacion: formValue.ubicacion,
-      fechaProgramada: this.formatFechaParaBackend(formValue.fechaProgramada),
+      fechaProgramada: fechaProgramadaBackend,
     };
 
     try {
-      // Si hay nueva evidencia, la subimos primero
       if (this.nuevaEvidenciaFile) {
         const evidenciaUrl = await this.solicitudService
           .subirEvidencia(this.selectedSolicitud.idSolicitud, this.nuevaEvidenciaFile)
@@ -372,7 +387,7 @@ export class Solicitudes implements OnInit, OnDestroy {
       },
       { type: 'text', name: 'ubicacion', label: 'Ubicación exacta', cols: 6 },
       { type: 'textarea', name: 'descripcion', label: 'Descripción', cols: 12 },
-      { type: 'date', name: 'fechaProgramada', label: 'Fecha programada', cols: 6 },
+      // fechaProgramada se maneja aparte
     ];
 
     const group: any = {};
@@ -382,12 +397,19 @@ export class Solicitudes implements OnInit, OnDestroy {
       group[fieldName] = new FormControl(value, [Validators.required]);
     });
     this.formEditarSolicitud = new FormGroup(group);
-  }
 
-  // Convierte fecha YYYY-MM-DD a YYYY-MM-DDT00:00:00
-  private formatFechaParaBackend(fecha: string): string {
-    if (!fecha) return '';
-    return `${fecha}T00:00:00`;
+    // Inicializar fechaProgramadaValue con formato YYYY-MM-DDTHH:MM
+    if (solicitud.fechaProgramada) {
+      const fecha = new Date(solicitud.fechaProgramada);
+      const year = fecha.getFullYear();
+      const month = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const day = fecha.getDate().toString().padStart(2, '0');
+      const hours = fecha.getHours().toString().padStart(2, '0');
+      const minutes = fecha.getMinutes().toString().padStart(2, '0');
+      this.fechaProgramadaValue = `${year}-${month}-${day}T${hours}:${minutes}`;
+    } else {
+      this.fechaProgramadaValue = '';
+    }
   }
 
   // ========================
