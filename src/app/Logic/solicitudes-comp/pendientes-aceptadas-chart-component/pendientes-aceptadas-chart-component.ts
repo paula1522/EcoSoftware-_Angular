@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { PendientesAceptadas, SolicitudRecoleccionService } from '../../../Services/solicitud.service';
+import { SolicitudesEstadoItem, SolicitudRecoleccionService } from '../../../Services/solicitud.service';
 
 @Component({
   selector: 'app-pendientes-aceptadas-chart',
@@ -19,10 +19,29 @@ export class PendientesAceptadasChartComponent implements OnInit {
   ngOnInit(): void {
     this.initializeEmptyChart();
 
-    this.solicitudService.getPendientesYAceptadas().subscribe({
-      next: (data: PendientesAceptadas) => {
+    this.solicitudService.getAdminSolicitudesEstadoDetalle().subscribe({
+      next: (items: SolicitudesEstadoItem[]) => {
+        const data = (items || [])
+          .map(i => ({ estado: String(i?.estado ?? ''), cantidad: Number(i?.cantidad ?? 0) }))
+          .filter(i => i.estado.trim().length > 0);
+
+        const total = data.reduce((sum, d) => sum + d.cantidad, 0);
+        console.log('[EstadoSolicitudesChart][admin] items:', data.length, 'total:', total, 'data:', data);
+
+        if (!data.length || total <= 0) {
+          this.errorMessage = 'Sin datos para mostrar.';
+          this.chartOptions.labels = ['Sin datos'];
+          this.chartOptions.series = [0];
+          return;
+        }
+
         this.errorMessage = null;
-        this.updateChart(data);
+
+        const labels = data.map(d => this.formatEstado(d.estado));
+        const series = data.map(d => d.cantidad);
+
+        this.chartOptions.labels = labels;
+        this.chartOptions.series = series;
       },
       error: () => {
         this.errorMessage = 'No se pudo cargar el estado de solicitudes.';
@@ -32,15 +51,15 @@ export class PendientesAceptadasChartComponent implements OnInit {
 
   private initializeEmptyChart(): void {
     this.chartOptions = {
-      series: [0, 0],
-      labels: ['Pendientes', 'Aceptadas'],
+      series: [0],
+      labels: ['Sin datos'],
       chart: {
         type: 'donut',
         height: '100%',
         toolbar: { show: false },
         animations: { enabled: false }
       },
-      colors: ['#1e88e5', '#2e7d32'],
+      colors: ['#A5D6A7', '#90CAF9', '#FFE082', '#EF9A9A', '#B39DDB', '#80CBC4', '#FFCCBC'],
       dataLabels: {
         enabled: true,
         dropShadow: { enabled: false }
@@ -88,7 +107,17 @@ export class PendientesAceptadasChartComponent implements OnInit {
     };
   }
 
-  private updateChart(data: PendientesAceptadas): void {
-    this.chartOptions.series = [data.pendientes, data.aceptadas];
+  private formatEstado(estado: string): string {
+    const clean = String(estado || '').trim();
+    if (!clean) return 'Sin estado';
+
+    const upper = clean.toUpperCase();
+    const mapping: Record<string, string> = {
+      PENDIENTE: 'Pendiente',
+      ACEPTADA: 'Aceptada',
+      RECHAZADA: 'Rechazada',
+      CANCELADA: 'Cancelada'
+    };
+    return mapping[upper] ?? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
   }
 }

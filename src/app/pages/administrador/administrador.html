@@ -79,35 +79,27 @@
         </button>
       </div>
 
-      <!-- FILA 1: Gráficos principales -->
-      <div class="analytics-grid">
-
-        <!-- Gráfico 1: Solicitudes por Localidad -->
-        <div class="analytics-card analytics-card-blue-tone">
+      <!-- GRÁFICA: Usuarios por Localidad -->
+      <div class="analytics-grid mt-4">
+        <div class="analytics-card analytics-card-blue">
           <header class="analytics-card-header">
-            <h6 class="card-title">Solicitudes por Localidad</h6>
-          </header>
-          <div class="chart-container" #solicitudesLocalidadGrafico>
-            <app-solicitudes-localidad-chart></app-solicitudes-localidad-chart>
-          </div>
-        </div>
-
-        <!-- Gráfico 2: Estado de Solicitudes -->
-        <div class="analytics-card analytics-card-teal-tone">
-          <header class="analytics-card-header">
-            <h6 class="card-title">Estado de Solicitudes</h6>
+            <h6 class="card-title">Usuarios pendientes</h6>
           </header>
           <div class="chart-container" #estadoGrafico>
-            <app-pendientes-aceptadas-chart></app-pendientes-aceptadas-chart>
+            <div class="alert alert-warning w-100 text-center" *ngIf="usuariosPendientesError">
+              {{ usuariosPendientesError }}
+            </div>
+            <div class="text-center w-100" *ngIf="!usuariosPendientesError">
+              <div style="font-size: 44px; font-weight: 800; line-height: 1; color: #0b3d1a;">
+                {{ formatMetric(totalUsuariosPendientes) }}
+              </div>
+              <div style="margin-top: 8px; color: #365241; font-weight: 600;">
+                Requieren validación administrativa
+              </div>
+            </div>
           </div>
         </div>
 
-      </div>
-
-      <!-- FILA 2: Indicadores complementarios -->
-      <div class="analytics-grid mt-4">
-
-        <!-- Gráfico 3: Usuarios por Localidad (debajo de las dos de solicitudes) -->
         <div class="analytics-card analytics-card-olive">
           <header class="analytics-card-header">
             <h6 class="card-title">Usuarios por Localidad</h6>
@@ -116,7 +108,18 @@
             <app-grafico-usuarios-localidad></app-grafico-usuarios-localidad>
           </div>
         </div>
+      </div>
 
+      <!-- GRÁFICA: Solicitudes por Localidad (ancho completo) -->
+      <div class="analytics-grid mt-4">
+        <div class="analytics-card analytics-card-emerald" style="grid-column: 1 / -1;">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Solicitudes por Localidad</h6>
+          </header>
+          <div class="chart-container" #solicitudesLocalidadGrafico>
+            <app-solicitudes-localidad-chart></app-solicitudes-localidad-chart>
+          </div>
+        </div>
       </div>
 
     </ng-container>

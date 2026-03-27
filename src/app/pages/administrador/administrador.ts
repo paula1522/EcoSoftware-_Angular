@@ -17,7 +17,6 @@ import { BarraLateral } from '../../shared/barra-lateral/barra-lateral';
 import { PuntosReciclajeService, PuntosResponse } from '../../Services/puntos-reciclaje.service';
 import { PuntoReciclaje } from '../../Models/puntos-reciclaje.model';
 import { SolicitudesLocalidadChartComponent } from "../../Logic/solicitudes-comp/solicitudes-localidad-chart-component/solicitudes-localidad-chart-component";
-import { PendientesAceptadasChartComponent } from '../../Logic/solicitudes-comp/pendientes-aceptadas-chart-component/pendientes-aceptadas-chart-component';
 import { Titulo } from '../../shared/titulo/titulo';
 import { Modal } from '../../shared/modal/modal';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
@@ -30,14 +29,12 @@ import { firstValueFrom } from 'rxjs';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { Boton } from '../../shared/botones/boton/boton';
 import { SolicitudRecoleccionService } from '../../Services/solicitud.service';
-import { Solicitud } from "../solicitud/solicitud";
 import { Solicitudes } from "../../Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes";
 
 
 @Component({
   selector: 'app-administrador',
-  imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
-    PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
+  imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
     EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes],
   templateUrl: './administrador.html',
@@ -52,6 +49,7 @@ export class Administrador {
   totalSolicitudes = 0;
   totalPuntos = 0;
   totalUsuariosPendientes = 0;
+  usuariosPendientesError: string = '';
 
   filtroNombre: string = '';
   filtroCorreo: string = '';
@@ -134,8 +132,6 @@ export class Administrador {
 
   // Referencias a gráficos para captura
   @ViewChild('usuariosGrafico') usuariosGrafico!: ElementRef;
-  @ViewChild('solicitudesLocalidadGrafico') solicitudesLocalidadGrafico!: ElementRef;
-  @ViewChild('estadoGrafico') estadoGrafico!: ElementRef;
 
   @ViewChild(MapaComponent) mapaComponent?: MapaComponent;
 
@@ -527,8 +523,8 @@ export class Administrador {
 
       // Obtener referencias a los elementos de los gráficos
       const graficoElements = {
-        localidad: this.solicitudesLocalidadGrafico?.nativeElement || null,
-        estado: this.estadoGrafico?.nativeElement || null
+        localidad: null,
+        estado: null
       };
 
       // Generar el reporte
@@ -595,22 +591,21 @@ export class Administrador {
 
 
 
-    this.usuarioService.contarPendientes().subscribe({
+    this.usuarioService.contarPendientesAdminDashboard().subscribe({
       next: (pendientes: number) => {
-        this.totalUsuariosPendientes = pendientes;
+        this.usuariosPendientesError = '';
+        this.totalUsuariosPendientes = Number(pendientes ?? 0);
 
-        // Si hay pendientes → mostrar vista Aceptar/Rechazar
-        if (pendientes > 0) {
+        // Mantener la navegación existente: si hay pendientes → vista Aceptar/Rechazar
+        if (this.totalUsuariosPendientes > 0) {
           this.vistaActual = 'Aceptar-Rechazar-Usuarios';
         } else {
-          //Si  no hay pendientes → mostrar panel
           this.vistaActual = 'panel';
         }
       },
       error: (err) => {
-        console.error('Error contando usuarios pendientes:', err);
-
-        // Por seguridad, mostrar panel si falla
+        console.error('Error contando usuarios pendientes (admin dashboard):', err);
+        this.usuariosPendientesError = 'No se pudo cargar usuarios pendientes.';
         this.vistaActual = 'panel';
       }
     });
@@ -695,41 +690,7 @@ export class Administrador {
       }
     });
 
-    // También intentar los endpoints específicos de gráficos
-    console.group('ENDPOINTS ESPECÍFICOS DE GRÁFICOS');
-
-    this.solicitudService.getSolicitudesPorLocalidad().subscribe({
-      next: (data) => {
-        console.log('getSolicitudesPorLocalidad:', data);
-      },
-      error: (err) => {
-        console.warn('getSolicitudesPorLocalidad falló:', err.message);
-        this.solicitudService.getSolicitudesPorLocalidadFactory().subscribe({
-          next: (data) => console.log('getSolicitudesPorLocalidadFactory (fallback):', data),
-          error: (e) => console.warn('Fallback también falló:', e.message)
-        });
-      }
-    });
-
-    this.solicitudService.getPendientesYAceptadas().subscribe({
-      next: (data) => {
-        console.log('getPendientesYAceptadas:', data);
-      },
-      error: (err) => {
-        console.warn('getPendientesYAceptadas falló:', err.message);
-      }
-    });
-
-    this.solicitudService.getRechazadasPorMotivo().subscribe({
-      next: (data) => {
-        console.log('getRechazadasPorMotivo:', data);
-      },
-      error: (err) => {
-        console.warn('getRechazadasPorMotivo falló:', err.message);
-      }
-    });
-
-    console.groupEnd();
+    // Endpoints de gráficas de solicitudes removidos del panel
     console.groupEnd();
   }
 

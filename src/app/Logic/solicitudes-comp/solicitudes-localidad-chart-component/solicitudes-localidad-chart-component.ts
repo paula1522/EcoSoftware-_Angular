@@ -23,36 +23,28 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
   constructor(private solicitudService: SolicitudRecoleccionService) {}
 
   ngOnInit() {
-    // Obtener TODAS las solicitudes y agrupar por localidad en el frontend
-      // Mostrar una gráfica placeholder inmediatamente para acelerar render
-      try {
-        this.initChart([{ localidad: 'Sin datos para mostrar', cantidad: 0 }]);
-      } catch (e) {
-        console.warn('[SolicitudesLocalidad] No se pudo inicializar chart placeholder', e);
-      }
+    // Placeholder inmediato
+    try {
+      this.initChart([{ localidad: 'Sin datos para mostrar', cantidad: 0 }]);
+    } catch (e) {
+      console.warn('[SolicitudesLocalidad] No se pudo inicializar chart placeholder', e);
+    }
 
-    // Así los datos siempre están sincronizados con la BD
-    this.solicitudService.listar().subscribe({
-      next: (todasLasSolicitudes: any[]) => {
-        console.log('[SolicitudesLocalidad] Todas las solicitudes:', todasLasSolicitudes);
-        
-        // Agrupar por localidad
-        const porLocalidad: { [key: string]: number } = {};
-        
-        todasLasSolicitudes.forEach((sol: any) => {
-          const loc = sol.localidad || 'Sin localidad';
-          porLocalidad[loc] = (porLocalidad[loc] || 0) + 1;
-        });
-
-        // Convertir a array
-        const data = Object.keys(porLocalidad).map(localidad => ({
-          localidad,
-          cantidad: porLocalidad[localidad]
-        }));
-
-        console.log('[SolicitudesLocalidad] Datos agrupados por localidad:', data);
+    // Admin: consumir endpoint agregado (no agrupar en frontend)
+    this.solicitudService.getAdminSolicitudesPorLocalidad().subscribe({
+      next: (data: SolicitudesPorLocalidad[]) => {
         this.errorMessage = null;
-        
+        const total = (data || []).reduce((sum, d) => sum + Number(d?.cantidad ?? 0), 0);
+        console.log('[SolicitudesLocalidad][admin] items:', data?.length ?? 0, 'total:', total, 'data:', data);
+
+        // Si el backend devuelve un total demasiado bajo, validar con conteo en frontend.
+        // Esto ayuda a detectar rápidamente filtros/paginación/joins en Spring Boot.
+        if (total > 0 && total < 10) {
+          console.warn('[SolicitudesLocalidad] total admin sospechoso, recalculando desde listar() para validar. totalAdmin=', total);
+          this.recalcularDesdeListar();
+          return;
+        }
+
         if (data && data.length > 0) {
           this.initChart(data);
         } else {
@@ -60,8 +52,38 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Error cargando solicitudes:', err);
+        console.error('Error cargando solicitudes por localidad (admin):', err);
         this.errorMessage = 'Error cargando datos: ' + (err?.message || err);
+
+        // Fallback de validación si falla el endpoint
+        this.recalcularDesdeListar();
+      }
+    });
+  }
+
+  private recalcularDesdeListar(): void {
+    this.solicitudService.listar().subscribe({
+      next: (solicitudes: any[]) => {
+        const porLocalidad: Record<string, number> = {};
+        (solicitudes || []).forEach((s: any) => {
+          const loc = String(s?.localidad ?? 'Sin localidad');
+          porLocalidad[loc] = (porLocalidad[loc] || 0) + 1;
+        });
+        const data: SolicitudesPorLocalidad[] = Object.keys(porLocalidad).map(localidad => ({
+          localidad,
+          cantidad: porLocalidad[localidad]
+        }));
+        const total = data.reduce((sum, d) => sum + Number(d?.cantidad ?? 0), 0);
+        console.log('[SolicitudesLocalidad][listar fallback] items:', data.length, 'total:', total, 'data:', data);
+        if (data.length > 0) {
+          this.errorMessage = null;
+          this.initChart(data);
+        } else {
+          this.errorMessage = 'No hay solicitudes para mostrar.';
+        }
+      },
+      error: (err) => {
+        console.error('[SolicitudesLocalidad][listar fallback] error:', err);
       }
     });
   }
