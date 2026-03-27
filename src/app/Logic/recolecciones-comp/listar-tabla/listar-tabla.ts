@@ -23,6 +23,7 @@ export class ListarTabla implements OnInit, OnDestroy {
     { campo: 'idRecoleccion', titulo: 'ID' },
     { campo: 'solicitudId', titulo: 'Solicitud' },
     { campo: 'recolectorId', titulo: 'Recolector' },
+    { campo: 'rutaId', titulo: 'Ruta' },
     { campo: 'fechaRecoleccion', titulo: 'Fecha' },
     { campo: 'observaciones', titulo: 'Observaciones' },
     { campo: 'estado', titulo: 'Estado' }
@@ -156,6 +157,17 @@ export class ListarTabla implements OnInit, OnDestroy {
     }
   };
 
+  // Función para controlar visibilidad de acciones por fila
+accionVisiblePorFila = (accion: string, item: ModeloRecoleccion): boolean => {
+  // Siempre mostrar ver
+  if (accion === 'ver') return true;
+  // Para editar y eliminar, solo si está Pendiente
+  if (accion === 'editar' || accion === 'eliminar') {
+    return item.estado === EstadoRecoleccion.Pendiente;
+  }
+  return true;
+};
+
   // =========================
   // FILTROS
   // =========================
@@ -263,20 +275,14 @@ export class ListarTabla implements OnInit, OnDestroy {
     if (!this.selectedRecoleccion?.idRecoleccion) return;
 
     const formValue = this.formEditarRecoleccion.value;
-    // Construir el DTO con el formato correcto para el backend
     const dto: Partial<ModeloRecoleccion> = {};
 
     if (formValue.fechaRecoleccion) {
-      // El backend espera "yyyy-MM-ddTHH:mm:ss", enviamos con hora 00:00:00
       dto.fechaRecoleccion = `${formValue.fechaRecoleccion}T00:00:00`;
     }
     if (formValue.observaciones !== undefined && formValue.observaciones !== null) {
       dto.observaciones = formValue.observaciones;
     }
-
-    // Nota: evidencia no se está manejando en este formulario, se podría agregar después
-
-    console.log('📤 Enviando actualización:', dto);
 
     const sub = this.service.actualizarRecoleccion(this.selectedRecoleccion.idRecoleccion, dto)
       .subscribe({
@@ -285,7 +291,6 @@ export class ListarTabla implements OnInit, OnDestroy {
           this.cargarDatos();
         },
         error: (err) => {
-          console.error('❌ Error al actualizar:', err);
           const mensaje = err.error?.message || 'Error al actualizar la recolección.';
           alert(mensaje);
         }
