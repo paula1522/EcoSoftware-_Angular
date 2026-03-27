@@ -51,7 +51,7 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
           this.errorMessage = 'No hay solicitudes para mostrar.';
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error cargando solicitudes por localidad (admin):', err);
         this.errorMessage = 'Error cargando datos: ' + (err?.message || err);
 
@@ -82,7 +82,7 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
           this.errorMessage = 'No hay solicitudes para mostrar.';
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('[SolicitudesLocalidad][listar fallback] error:', err);
       }
     });
@@ -160,4 +160,4 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
 
     return [...colorPalette, ...additionalColors].slice(0, count);
   }
-}
+}// correcciones para graficas

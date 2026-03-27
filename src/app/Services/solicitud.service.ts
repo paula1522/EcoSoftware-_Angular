@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import {
@@ -26,11 +26,17 @@ export interface SolicitudesPorLocalidad {
   cantidad: number;
 }
 
+export interface SolicitudesEstadoItem {
+  estado: string;
+  cantidad: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class SolicitudRecoleccionService {
   private apiUrl = `https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes`;
+  private adminDashboardUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/admin/dashboard';
 
   constructor(private http: HttpClient) {}
 
@@ -225,6 +231,55 @@ private getMockSolicitudesPorLocalidad(): SolicitudesPorLocalidad[] {
     { localidad: 'Rafael Uribe Uribe', cantidad: 1 }
   ];
 }
+
+  // ================================
+  // ADMIN DASHBOARD
+  // ================================
+  getAdminSolicitudesEstadoDetalle(): Observable<SolicitudesEstadoItem[]> {
+    return this.http.get<any>(`${this.adminDashboardUrl}/solicitudes-estado`).pipe(
+      map((res: any) => {
+        if (Array.isArray(res)) {
+          return res.map((item: any) => ({
+            estado: String(item?.estado ?? item?.Estado ?? item?.[0] ?? item?.label ?? 'Sin estado'),
+            cantidad: Number(item?.cantidad ?? item?.Cantidad ?? item?.[1] ?? item?.value ?? 0)
+          }));
+        }
+
+        if (res && typeof res === 'object') {
+          return Object.keys(res).map((key: string) => ({
+            estado: key,
+            cantidad: Number((res as Record<string, unknown>)[key] ?? 0)
+          }));
+        }
+
+        return [];
+      }),
+      catchError(() => of([]))
+    );
+  }
+
+  getAdminSolicitudesPorLocalidad(): Observable<SolicitudesPorLocalidad[]> {
+    return this.http.get<any>(`${this.adminDashboardUrl}/solicitudes-localidad`).pipe(
+      map((res: any) => {
+        if (Array.isArray(res)) {
+          return res.map((item: any) => ({
+            localidad: String(item?.localidad ?? item?.Localidad ?? item?.[0] ?? 'Sin localidad'),
+            cantidad: Number(item?.cantidad ?? item?.Cantidad ?? item?.[1] ?? 0)
+          }));
+        }
+
+        if (res && typeof res === 'object') {
+          return Object.keys(res).map((localidad: string) => ({
+            localidad,
+            cantidad: Number((res as Record<string, unknown>)[localidad] ?? 0)
+          }));
+        }
+
+        return [];
+      }),
+      catchError(() => of(this.getMockSolicitudesPorLocalidad()))
+    );
+  }
 
 
  // ================================
