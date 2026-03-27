@@ -21,7 +21,11 @@ export class Usuario implements OnInit {
   usuarios: UsuarioModel[] = [];
   cargando = false;
 
-
+  iconosAcciones = {
+  eliminar: 'bi-arrow-clockwise', // icono base (luego se controla en tabla)
+  editar: 'bi-pencil',
+  ver: 'bi-eye'
+};
 
 
 
@@ -179,26 +183,7 @@ export class Usuario implements OnInit {
     }
   ];
 
-  get accionesEliminar() {
-  if (!this.usuarioSeleccionado) return [];
-
-  const esActivo = this.usuarioSeleccionado.estado;
-
-  return [
-    {
-      texto: esActivo ? 'Inactivar' : 'Activar',
-      icono: esActivo ? 'bi-pause-circle' : 'bi-play-circle',
-      color: esActivo ? 'warning' : 'success',
-      accion: () => this.toggleEstadoUsuario()
-    },
-    {
-      texto: 'Eliminar',
-      icono: 'bi-trash',
-      color: 'danger',
-      accion: () => this.confirmarEliminacionFisica()
-    }
-  ];
-}
+accionesEliminar: any[] = [];
 
 
   accionesEliminarFisico = [
@@ -249,9 +234,30 @@ export class Usuario implements OnInit {
 
   abrirModalEliminar(usuario: UsuarioModel): void {
     this.usuarioSeleccionado = usuario;
+    this.configurarAccionesEliminar(); 
     this.modalEliminar.isOpen = true;
   }
 
+  configurarAccionesEliminar(): void {
+  if (!this.usuarioSeleccionado) return;
+
+  const esActivo = this.usuarioSeleccionado.estado;
+
+  this.accionesEliminar = [
+    {
+      texto: esActivo ? 'Inactivar' : 'Activar',
+      icono: esActivo ? 'bi-pause-circle' : 'bi-play-circle',
+      color: esActivo ? 'warning' : 'success',
+      accion: () => this.toggleEstadoUsuario()
+    },
+    {
+      texto: 'Eliminar',
+      icono: 'bi-trash',
+      color: 'danger',
+      accion: () => this.confirmarEliminacionFisica()
+    }
+  ];
+}
 
 
   abrirModalVer(usuario: UsuarioModel): void {

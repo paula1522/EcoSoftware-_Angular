@@ -78,10 +78,18 @@
 <!-- =============================== -->
 <!-- TABLA DE USUARIOS -->
 <!-- =============================== -->
-<app-tabla [columnas]="columnasUsuarios" [data]="usuarios" [cellTemplates]="cellTemplatesUsuarios" titulo="Usuarios"
-  (descargar)="abrirModalReportes()" (ver)="abrirModalVer($event)" (editar)="abrirModalEditar($event)"
+<app-tabla
+  [columnas]="columnasUsuarios"
+  [data]="usuarios"
+  [cellTemplates]="cellTemplatesUsuarios"
+  [iconosAcciones]="iconosAcciones"  
+  titulo="Usuarios"
+  (descargar)="abrirModalReportes()"
+  (ver)="abrirModalVer($event)"
+  (editar)="abrirModalEditar($event)"
   (eliminar)="abrirModalEliminar($event)">
 </app-tabla>
+
 
 <!-- MENSAJE CUANDO NO HAY USUARIOS -->
 <div *ngIf="usuarios.length === 0 && !cargando" class="mensaje info">

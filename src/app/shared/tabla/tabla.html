@@ -42,9 +42,13 @@
 
           <td class="table-actions-cell" *ngIf="mostrarAcciones">
             <ng-container *ngFor="let a of acciones">
-              <app-boton *ngIf="esAccionVisible(a.nombre, item)" [icono]="a.icon" [texto]="a.texto" [color]="a.color"
-                [hoverColor]="a.hover" size="sm" (click)="a.evento(item)">
+              <app-boton *ngIf="esAccionVisible(a.nombre, item)" [icono]="a.nombre === 'eliminar' && item?.estado !== undefined
+            ? (item.estado ? 'bi-trash' : 'bi-arrow-clockwise')
+            : a.icon" [texto]="a.texto" [color]="a.nombre === 'eliminar' && item?.estado !== undefined
+            ? (item.estado ? 'pastel-danger' : 'pastel-success')
+            : a.color" [hoverColor]="a.hover" size="sm" (click)="a.evento(item)">
               </app-boton>
+
             </ng-container>
           </td>
 
