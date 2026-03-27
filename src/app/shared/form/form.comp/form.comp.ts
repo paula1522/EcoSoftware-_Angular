@@ -4,7 +4,6 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Boton } from '../../botones/boton/boton';
 
 export interface FieldConfig {
-  validators: FormControlOptions & { nonNullable: true; };
   type: 'text' | 'email' | 'password' | 'select' | 'textarea' | 'date' | 'radio' | 'separator';
   name?: string;
   label?: string;
