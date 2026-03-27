@@ -17,7 +17,6 @@ import { BarraLateral } from '../../shared/barra-lateral/barra-lateral';
 import { PuntosReciclajeService, PuntosResponse } from '../../Services/puntos-reciclaje.service';
 import { PuntoReciclaje } from '../../Models/puntos-reciclaje.model';
 import { SolicitudesLocalidadChartComponent } from "../../Logic/solicitudes-comp/solicitudes-localidad-chart-component/solicitudes-localidad-chart-component";
-import { RechazadasMotivoChartComponent } from '../../Logic/solicitudes-comp/rechazadas-motivo-chart-component/rechazadas-motivo-chart-component';
 import { PendientesAceptadasChartComponent } from '../../Logic/solicitudes-comp/pendientes-aceptadas-chart-component/pendientes-aceptadas-chart-component';
 import { Titulo } from '../../shared/titulo/titulo';
 import { Modal } from '../../shared/modal/modal';
@@ -38,9 +37,9 @@ import { Solicitudes } from "../../Logic/solicitudes-comp/listar-filtrar-solicit
 @Component({
   selector: 'app-administrador',
   imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
-    RechazadasMotivoChartComponent, PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
+    PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitud, Solicitudes],
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -136,7 +135,6 @@ export class Administrador {
   // Referencias a gráficos para captura
   @ViewChild('usuariosGrafico') usuariosGrafico!: ElementRef;
   @ViewChild('solicitudesLocalidadGrafico') solicitudesLocalidadGrafico!: ElementRef;
-  @ViewChild('rechazadasGrafico') rechazadasGrafico!: ElementRef;
   @ViewChild('estadoGrafico') estadoGrafico!: ElementRef;
 
   @ViewChild(MapaComponent) mapaComponent?: MapaComponent;
@@ -530,7 +528,6 @@ export class Administrador {
       // Obtener referencias a los elementos de los gráficos
       const graficoElements = {
         localidad: this.solicitudesLocalidadGrafico?.nativeElement || null,
-        rechazadas: this.rechazadasGrafico?.nativeElement || null,
         estado: this.estadoGrafico?.nativeElement || null
       };
 
