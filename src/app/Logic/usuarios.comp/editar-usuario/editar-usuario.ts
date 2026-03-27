@@ -9,8 +9,9 @@ import { LocalidadNombrePipe } from "../../../core/pipes/LocalidadNombrePipe";
 
 @Component({
   selector: 'app-editar-usuario',
+  standalone: true,
   templateUrl: './editar-usuario.html',
-  imports: [COMPARTIR_IMPORTS, LocalidadNombrePipe],
+  imports: [...COMPARTIR_IMPORTS, LocalidadNombrePipe],
   styleUrls: ['./editar-usuario.css']
 })
 export class EditarUsuario implements OnInit {

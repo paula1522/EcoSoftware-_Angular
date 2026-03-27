@@ -1,6 +1,6 @@
 import { RegistroAdmin } from './../../auth/registro-admin/registro-admin';
 // src/app/usuario/administrador/administrador.ts
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { UsuarioService } from '../../Services/usuario.service';
@@ -37,13 +37,10 @@ import { ModulosAdminPageComponent } from '../../features/capacitaciones/pages/m
 
 @Component({
   selector: 'app-administrador',
-  imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
+  standalone: true,
+  imports: [...COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes],
-  imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
-    RechazadasMotivoChartComponent, PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
-    RegistroAdmin, Usuario, ListarTabla, Solcitudes,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton,
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes,
     ModulosAdminPageComponent],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
@@ -156,13 +153,13 @@ export class Administrador {
 
   // Lista de solicitudes para reportes
   solicitudes: SolicitudRecoleccion[] = [];
+  private readonly solicitudService = inject(SolicitudRecoleccionService);
 
   constructor(
     private usuarioService: UsuarioService,
     private router: Router,
     private authService: AuthService,
     private puntosService: PuntosReciclajeService,
-    private solicitudService: SolicitudRecoleccionService,
     private reporteService: ReporteService,
     private capacitacionesService: CapacitacionesService,
     private readonly http: HttpClient
@@ -735,85 +732,6 @@ export class Administrador {
 
     // Cargar solicitudes para reportes
     this.solicitudService.listar().subscribe({
-      next: (data) => {
-        this.solicitudes = data;
-        this.totalSolicitudes = data.length;
-      },
-      error: (err) => {
-        console.error('Error al cargar solicitudes:', err);
-      }
-    });
-
-    // Cargar puntos para el mapa cuando el admin abra la sección
-    this.cargarPuntos();
-
-    // Recuperar usuario logueado
-    this.usuarioActual = this.usuarioService.obtenerUsuarioActual();
-    if (this.usuarioActual) {
-      this.nombreUsuario = this.usuarioActual.nombre;
-      this.nombreRol = this.obtenerNombreRol(this.usuarioActual.rolId!);
-    } else {
-      // Si no hay sesión, redirige al login
-
-    }
-
-    // DEBUGGING opcional (puede impactar rendimiento si hay muchos registros)
-    if (this.habilitarDebugSolicitudes) {
-      this.cargarDatosRealesParaDebug();
-    }
-  }
-
-  private cargarDatosRealesParaDebug(): void {
-    console.group('ANÁLISIS DE SOLICITUDES - DEBUG');
-
-    // Obtener TODAS las solicitudes
-    this.solicitudService.obtenerTodasLasSolicitudes().subscribe({
-      next: (todas) => {
-        console.log('TODAS LAS SOLICITUDES:', todas);
-
-        // Agrupar por localidad
-        const porLocalidad: { [key: string]: number } = {};
-        const porEstado: { [key: string]: number } = {};
-        const porEstadoYLocalidad: { [estado: string]: { [localidad: string]: number } } = {};
-
-        todas.forEach((sol: any) => {
-          const loc = sol.localidad || sol.localidadDescripcion || 'Sin localidad';
-          const estRaw = sol.estadoPeticion ?? sol.estado ?? 'Sin estado';
-          const est = String(estRaw);
-
-          // Contar por localidad
-          porLocalidad[loc] = (porLocalidad[loc] || 0) + 1;
-
-          // Contar por estado
-          porEstado[est] = (porEstado[est] || 0) + 1;
-
-          // Contar por estado Y localidad
-          if (!porEstadoYLocalidad[est]) {
-            porEstadoYLocalidad[est] = {};
-          }
-          porEstadoYLocalidad[est][loc] = (porEstadoYLocalidad[est][loc] || 0) + 1;
-        });
-
-        console.log('SOLICITUDES POR LOCALIDAD:', porLocalidad);
-        console.log('SOLICITUDES POR ESTADO:', porEstado);
-        console.log('SOLICITUDES POR ESTADO Y LOCALIDAD:', porEstadoYLocalidad);
-
-        // Resumen
-        console.log(`RESUMEN:
-- Total solicitudes: ${todas.length}
-- Localidades: ${Object.keys(porLocalidad).length}
-- Estados: ${Object.keys(porEstado).length}
-- Pendientes: ${porEstado['Pendiente'] || 0}
-- Aceptadas: ${porEstado['Aceptada'] || 0}
-- Rechazadas: ${porEstado['Rechazada'] || 0}`);
-      },
-      error: (err) => {
-        console.error('Error al obtener solicitudes:', err);
-      }
-    });
-
-    // Endpoints de gráficas de solicitudes removidos del panel
- this.solicitudService.listar().subscribe({
       next: (data) => {
         this.solicitudes = data;
         this.totalSolicitudes = data.length;
