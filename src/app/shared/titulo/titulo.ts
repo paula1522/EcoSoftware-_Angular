@@ -4,7 +4,8 @@ import { COMPARTIR_IMPORTS } from '../imports';
 
 @Component({
   selector: 'app-titulo',
-  imports: [Boton, COMPARTIR_IMPORTS],
+  standalone: true,
+  imports: [Boton, ...COMPARTIR_IMPORTS],
   templateUrl: './titulo.html',
   styleUrl: './titulo.css',
 })

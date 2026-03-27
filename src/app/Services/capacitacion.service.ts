@@ -1,9 +1,23 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { from, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 // ✅ Importa tus modelos
-import { Capacitacion, EstadoCurso, Modulo, Inscripcion, Progreso, UploadResultDto } from '../Models/capacitacion.model';
+import {
+  Capacitacion,
+  CapacitacionDTO,
+  EstadoCurso,
+  Modulo,
+  ModuloDTO,
+  EvaluacionDTO,
+  IntentoEvaluacionDTO,
+  Inscripcion,
+  Progreso,
+  ProgresoDTO,
+  UploadResultDto,
+  CloudinaryUploadResponse,
+} from '../Models/capacitacion.model';
 
 
 @Injectable({
@@ -14,34 +28,41 @@ export class CapacitacionesService {
     throw new Error('Method not implemented.');
   }
 
-private apiUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/capacitaciones';
+private readonly baseApiUrl = (environment.apiBaseUrl || environment.apiUrl || '').replace(/\/$/, '');
+private readonly apiUrl = `${this.baseApiUrl}/api/capacitaciones`;
   constructor(private http: HttpClient) {}
 
   // ===========================
   // CAPACITACIONES
   // ===========================
-  crearCapacitacion(dto: Capacitacion): Observable<Capacitacion> {
-    return this.http.post<Capacitacion>(this.apiUrl, dto);
+  crearCapacitacion(dto: CapacitacionDTO): Observable<CapacitacionDTO> {
+    return this.http.post<CapacitacionDTO>(this.apiUrl, dto, this.withAuthHeaderIfAvailable());
   }
 
-  actualizarCapacitacion(id: number, dto: Capacitacion): Observable<Capacitacion> {
-    return this.http.put<Capacitacion>(`${this.apiUrl}/${id}`, dto);
+  actualizarCapacitacion(id: number, dto: CapacitacionDTO): Observable<CapacitacionDTO> {
+    return this.http.put<CapacitacionDTO>(`${this.apiUrl}/${id}`, dto);
   }
 
   eliminarCapacitacion(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  obtenerCapacitacionPorId(id: number): Observable<Capacitacion> {
-    return this.http.get<Capacitacion>(`${this.apiUrl}/${id}`);
+  obtenerCapacitacionPorId(id: number): Observable<CapacitacionDTO> {
+    return this.http.get<CapacitacionDTO>(`${this.apiUrl}/${id}`);
   }
 
-  listarTodasCapacitaciones(): Observable<Capacitacion[]> {
-    return this.http.get<Capacitacion[]>(this.apiUrl);
+  subirImagenCapacitacion(id: number, file: File): Observable<CloudinaryUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CloudinaryUploadResponse>(`${this.apiUrl}/${id}/imagen`, formData);
+  }
+
+  listarTodasCapacitaciones(): Observable<CapacitacionDTO[]> {
+    return this.http.get<CapacitacionDTO[]>(this.apiUrl);
   }
 
   obtenerMisCapacitaciones(usuarioId: number){
-  return this.http.get<Capacitacion[]>(
+  return this.http.get<CapacitacionDTO[]>(
     `${this.apiUrl}/mis-capacitaciones/${usuarioId}`
   );
 }
@@ -82,20 +103,67 @@ obtenerCapacitacionPorNombre(nombre: string): Observable<any> {
   // ===========================
   // MODULOS
   // ===========================
-  crearModulo(dto: Modulo): Observable<Modulo> {
-    return this.http.post<Modulo>(`${this.apiUrl}/modulos`, dto);
+  crearModulo(dto: ModuloDTO): Observable<ModuloDTO> {
+    return this.http.post<ModuloDTO>(`${this.apiUrl}/modulos`, dto);
   }
 
-  actualizarModulo(id: number, dto: Modulo): Observable<Modulo> {
-    return this.http.put<Modulo>(`${this.apiUrl}/modulos/${id}`, dto);
+  crearModuloPorCapacitacion(capacitacionId: number, dto: ModuloDTO): Observable<ModuloDTO> {
+    return this.http.post<ModuloDTO>(`${this.apiUrl}/${capacitacionId}/modulos`, dto);
+  }
+
+  actualizarModulo(id: number, dto: ModuloDTO): Observable<ModuloDTO> {
+    return this.http.put<ModuloDTO>(`${this.apiUrl}/modulos/${id}`, dto);
   }
 
   eliminarModulo(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/modulos/${id}`);
   }
 
-  listarModulosPorCapacitacion(capacitacionId: number): Observable<Modulo[]> {
-    return this.http.get<Modulo[]>(`${this.apiUrl}/${capacitacionId}/modulos`);
+  listarModulosPorCapacitacion(capacitacionId: number): Observable<ModuloDTO[]> {
+    return this.http.get<ModuloDTO[]>(`${this.apiUrl}/${capacitacionId}/modulos`);
+  }
+
+  subirPdfModulo(moduloId: number, file: File): Observable<CloudinaryUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CloudinaryUploadResponse>(`${this.apiUrl}/modulos/${moduloId}/pdf`, formData);
+  }
+
+  // ===========================
+  // EVALUACIONES
+  // ===========================
+  crearEvaluacion(moduloId: number, dto: EvaluacionDTO): Observable<EvaluacionDTO> {
+    return this.http.post<EvaluacionDTO>(`${this.apiUrl}/modulos/${moduloId}/evaluaciones`, dto);
+  }
+
+  listarEvaluacionesPorModulo(moduloId: number): Observable<EvaluacionDTO[]> {
+    return this.http.get<EvaluacionDTO[]>(`${this.apiUrl}/modulos/${moduloId}/evaluaciones`);
+  }
+
+  actualizarEvaluacion(evaluacionId: number, dto: EvaluacionDTO): Observable<EvaluacionDTO> {
+    return this.http.put<EvaluacionDTO>(`${this.apiUrl}/evaluaciones/${evaluacionId}`, dto);
+  }
+
+  eliminarEvaluacion(evaluacionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/evaluaciones/${evaluacionId}`);
+  }
+
+  // ===========================
+  // INTENTOS DE EVALUACION
+  // ===========================
+  registrarIntentoEvaluacion(evaluacionId: number, payload: { usuarioId: number; puntajeObtenido: number }): Observable<IntentoEvaluacionDTO> {
+    return this.http.post<IntentoEvaluacionDTO>(`${this.apiUrl}/evaluaciones/${evaluacionId}/intentos`, payload);
+  }
+
+  listarIntentosPorEvaluacionYUsuario(evaluacionId: number, usuarioId: number): Observable<IntentoEvaluacionDTO[]> {
+    return this.http.get<IntentoEvaluacionDTO[]>(`${this.apiUrl}/evaluaciones/${evaluacionId}/intentos/usuario/${usuarioId}`);
+  }
+
+  // ===========================
+  // PROGRESO
+  // ===========================
+  obtenerProgresoUsuarioPorCurso(usuarioId: number, cursoId: number): Observable<ProgresoDTO> {
+    return this.http.get<ProgresoDTO>(`${this.apiUrl}/progreso/usuario/${usuarioId}/curso/${cursoId}`);
   }
 
   // Cargar módulos por Excel
@@ -154,6 +222,37 @@ obtenerCapacitacionPorNombre(nombre: string): Observable<any> {
 
   listarProgresosPorCurso(cursoId: number): Observable<Progreso[]> {
     return this.http.get<Progreso[]>(`${this.apiUrl}/progreso/curso/${cursoId}`);
+  }
+
+  private withAuthHeaderIfAvailable(): { headers?: HttpHeaders } {
+    const rawToken = localStorage.getItem('jwt_token') || localStorage.getItem('token') || '';
+    const normalized = this.normalizeToken(rawToken);
+    if (!normalized) {
+      return {};
+    }
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${normalized}`,
+      }),
+    };
+  }
+
+  private normalizeToken(raw: string): string {
+    let token = (raw || '').trim();
+    if (!token) {
+      return '';
+    }
+
+    if (token.toLowerCase().startsWith('bearer ')) {
+      token = token.slice(7).trim();
+    }
+
+    if ((token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"))) {
+      token = token.slice(1, -1).trim();
+    }
+
+    return token;
   }
 
 }

@@ -17,11 +17,12 @@ import { Modal } from '../../shared/modal/modal';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { AuthService } from '../../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
+import { ModulosUsuarioPageComponent } from '../../features/capacitaciones/pages/modulos-usuario-page.component';
 /**
  * Interfaz para los elementos del menú lateral.
  */
 interface MenuItem {
-  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'puntos' | 'noticias'|'editar-perfil';
+  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias'|'editar-perfil';
   label: string;
   icon: string;
 }
@@ -34,7 +35,7 @@ interface MenuItem {
   selector: 'app-empresa',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, CardARSolicitud, CardsRecoleccion, DashboardEmpresaComponent,
-    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla],
+    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, ModulosUsuarioPageComponent],
   templateUrl: './empresa.html',
   styleUrls: ['./empresa.css']
 })
@@ -97,6 +98,7 @@ export class Empresa {
     { vista: 'solicitudes', label: 'Solicitudes', icon: 'bi bi-bar-chart-line' },
     { vista: 'recolecciones', label: 'Recolecciones', icon: 'bi bi-truck' },
     { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
+    { vista: 'capacitaciones', label: 'Capacitaciones', icon: 'bi bi-mortarboard-fill' },
     { vista: 'noticias', label: 'Noticias', icon: 'bi bi-newspaper' },
   ];
 

@@ -81,7 +81,24 @@
   <!-- MODAL EDITAR -->
   <app-modal #modalEditarCapacitacion [title]="'Editar Capacitación'" [headerColor]="'#ffc107'" [isOpen]="false">
     <div class="p-3">
-      <app-form-comp [formGroup]="formEditarCapacitacion"
+
+      <div class="mt-3">
+        <label class="fw-bold d-block mb-2">Imagen actual</label>
+        <div class="text-center mb-3">
+          <ng-container *ngIf="imagenPreviewEdit; else noEditImage">
+            <img [src]="imagenPreviewEdit" class="img-fluid rounded shadow" style="max-height:220px; object-fit:cover;" />
+          </ng-container>
+          <ng-template #noEditImage>
+            <div class="text-muted fst-italic">Sin imagen disponible</div>
+          </ng-template>
+        </div>
+
+        <label class="form-label">Cambiar imagen (opcional)</label>
+        <input type="file" class="form-control" accept="image/*" (change)="onImagenEditarSeleccionada($event)">
+      </div>
+    </div>
+
+    <app-form-comp [formGroup]="formEditarCapacitacion"
                      [fields]="fieldsEditarCapacitacion"
                      [submitButtonText]="'Actualizar'"
                      [submitButtonIcon]="'bi bi-save'"
@@ -89,7 +106,6 @@
                      (submitForm)="actualizarCapacitacion()"
                      [showSubmitButton]="true">
       </app-form-comp>
-    </div>
   </app-modal>
 
   <!-- MODAL ELIMINAR -->

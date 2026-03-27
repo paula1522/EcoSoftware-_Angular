@@ -1,6 +1,6 @@
 import { RegistroAdmin } from './../../auth/registro-admin/registro-admin';
 // src/app/usuario/administrador/administrador.ts
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { UsuarioService } from '../../Services/usuario.service';
@@ -17,7 +17,6 @@ import { BarraLateral } from '../../shared/barra-lateral/barra-lateral';
 import { PuntosReciclajeService, PuntosResponse } from '../../Services/puntos-reciclaje.service';
 import { PuntoReciclaje } from '../../Models/puntos-reciclaje.model';
 import { SolicitudesLocalidadChartComponent } from "../../Logic/solicitudes-comp/solicitudes-localidad-chart-component/solicitudes-localidad-chart-component";
-import { PendientesAceptadasChartComponent } from '../../Logic/solicitudes-comp/pendientes-aceptadas-chart-component/pendientes-aceptadas-chart-component';
 import { Titulo } from '../../shared/titulo/titulo';
 import { Modal } from '../../shared/modal/modal';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
@@ -30,16 +29,19 @@ import { firstValueFrom } from 'rxjs';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { Boton } from '../../shared/botones/boton/boton';
 import { SolicitudRecoleccionService } from '../../Services/solicitud.service';
-import { Solicitud } from "../solicitud/solicitud";
 import { Solicitudes } from "../../Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes";
+import { CapacitacionesService } from '../../Services/capacitacion.service';
+import { CapacitacionDTO } from '../../Models/capacitacion.model';
+import { ModulosAdminPageComponent } from '../../features/capacitaciones/pages/modulos-admin-page.component';
 
 
 @Component({
   selector: 'app-administrador',
-  imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
-    PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
+  standalone: true,
+  imports: [...COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes],
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes,
+    ModulosAdminPageComponent],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -52,6 +54,7 @@ export class Administrador {
   totalSolicitudes = 0;
   totalPuntos = 0;
   totalUsuariosPendientes = 0;
+  usuariosPendientesError: string = '';
 
   filtroNombre: string = '';
   filtroCorreo: string = '';
@@ -129,26 +132,36 @@ export class Administrador {
   // botones de alternar vistas
   mostrarNuevoUsuario = false;
   capacitaciones = false;
+  creandoCapacitacion = false;
+  errorCapacitacion = '';
+  mensajeCapacitacion = '';
+  imagenCapacitacionFile: File | null = null;
+  nuevaCapacitacion: CapacitacionDTO = {
+    nombre: '',
+    descripcion: '',
+    numeroDeClases: '',
+    duracion: '',
+    imagen: null,
+  };
   registro: any;
   private readonly habilitarDebugSolicitudes = false;
 
   // Referencias a gráficos para captura
   @ViewChild('usuariosGrafico') usuariosGrafico!: ElementRef;
-  @ViewChild('solicitudesLocalidadGrafico') solicitudesLocalidadGrafico!: ElementRef;
-  @ViewChild('estadoGrafico') estadoGrafico!: ElementRef;
 
   @ViewChild(MapaComponent) mapaComponent?: MapaComponent;
 
   // Lista de solicitudes para reportes
   solicitudes: SolicitudRecoleccion[] = [];
+  private readonly solicitudService = inject(SolicitudRecoleccionService);
 
   constructor(
     private usuarioService: UsuarioService,
     private router: Router,
     private authService: AuthService,
     private puntosService: PuntosReciclajeService,
-    private solicitudService: SolicitudRecoleccionService,
     private reporteService: ReporteService,
+    private capacitacionesService: CapacitacionesService,
     private readonly http: HttpClient
   ) { }
 
@@ -527,8 +540,8 @@ export class Administrador {
 
       // Obtener referencias a los elementos de los gráficos
       const graficoElements = {
-        localidad: this.solicitudesLocalidadGrafico?.nativeElement || null,
-        estado: this.estadoGrafico?.nativeElement || null
+        localidad: null,
+        estado: null
       };
 
       // Generar el reporte
@@ -584,6 +597,108 @@ export class Administrador {
   // Alternar vista de capacitaciones
   toggleVista(): void {
     this.capacitaciones = !this.capacitaciones;
+    this.errorCapacitacion = '';
+    this.mensajeCapacitacion = '';
+  }
+
+  crearCapacitacionDesdeAdmin(): void {
+    this.errorCapacitacion = '';
+    this.mensajeCapacitacion = '';
+
+    if (!this.nuevaCapacitacion.nombre.trim() || !this.nuevaCapacitacion.descripcion.trim()) {
+      this.errorCapacitacion = 'Nombre y descripcion son obligatorios.';
+      return;
+    }
+
+    if (!String(this.nuevaCapacitacion.numeroDeClases || '').trim() || !String(this.nuevaCapacitacion.duracion || '').trim()) {
+      this.errorCapacitacion = 'Numero de clases y duracion son obligatorios.';
+      return;
+    }
+
+    this.creandoCapacitacion = true;
+
+    const payload: CapacitacionDTO = {
+      ...this.nuevaCapacitacion,
+      numeroDeClases: String(this.nuevaCapacitacion.numeroDeClases).trim(),
+      duracion: String(this.nuevaCapacitacion.duracion).trim(),
+    };
+
+    this.capacitacionesService.crearCapacitacion(payload).subscribe({
+      next: (capacitacionCreada) => {
+        const capacitacionId = capacitacionCreada?.id;
+
+        if (this.imagenCapacitacionFile && capacitacionId) {
+          this.capacitacionesService.subirImagenCapacitacion(capacitacionId, this.imagenCapacitacionFile).subscribe({
+            next: () => {
+              this.mensajeCapacitacion = 'Capacitacion creada correctamente.';
+              this.creandoCapacitacion = false;
+              this.restablecerFormularioCapacitacion();
+              this.capacitaciones = false;
+            },
+            error: (err) => {
+              const backendMessage =
+                err?.error?.message ||
+                err?.error?.error ||
+                (typeof err?.error === 'string' ? err.error : '');
+              this.errorCapacitacion = backendMessage || 'Capacitacion creada, pero no se pudo subir la imagen.';
+              this.creandoCapacitacion = false;
+            }
+          });
+          return;
+        }
+
+        this.mensajeCapacitacion = 'Capacitacion creada correctamente.';
+        this.creandoCapacitacion = false;
+        this.restablecerFormularioCapacitacion();
+        this.capacitaciones = false;
+      },
+      error: (err) => {
+        const backendMessage =
+          err?.error?.message ||
+          err?.error?.error ||
+          (typeof err?.error === 'string' ? err.error : '');
+        this.errorCapacitacion = backendMessage || 'No se pudo crear la capacitacion.';
+        this.creandoCapacitacion = false;
+      }
+    });
+  }
+
+  onImagenCapacitacionSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      this.imagenCapacitacionFile = null;
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.errorCapacitacion = 'Solo se permiten archivos de imagen.';
+      this.imagenCapacitacionFile = null;
+      input.value = '';
+      return;
+    }
+
+    this.errorCapacitacion = '';
+    this.imagenCapacitacionFile = file;
+  }
+
+  cancelarCreacionCapacitacion(): void {
+    this.restablecerFormularioCapacitacion();
+    this.capacitaciones = false;
+  }
+
+  private restablecerFormularioCapacitacion(): void {
+    this.errorCapacitacion = '';
+    this.mensajeCapacitacion = '';
+    this.imagenCapacitacionFile = null;
+    this.nuevaCapacitacion = {
+      nombre: '',
+      descripcion: '',
+      numeroDeClases: '',
+      duracion: '',
+      imagen: null,
+    };
   }
 
   // Alternar vista de nuevo usuario
@@ -595,22 +710,21 @@ export class Administrador {
 
 
 
-    this.usuarioService.contarPendientes().subscribe({
+    this.usuarioService.contarPendientesAdminDashboard().subscribe({
       next: (pendientes: number) => {
-        this.totalUsuariosPendientes = pendientes;
+        this.usuariosPendientesError = '';
+        this.totalUsuariosPendientes = Number(pendientes ?? 0);
 
-        // Si hay pendientes → mostrar vista Aceptar/Rechazar
-        if (pendientes > 0) {
+        // Mantener la navegación existente: si hay pendientes → vista Aceptar/Rechazar
+        if (this.totalUsuariosPendientes > 0) {
           this.vistaActual = 'Aceptar-Rechazar-Usuarios';
         } else {
-          //Si  no hay pendientes → mostrar panel
           this.vistaActual = 'panel';
         }
       },
       error: (err) => {
-        console.error('Error contando usuarios pendientes:', err);
-
-        // Por seguridad, mostrar panel si falla
+        console.error('Error contando usuarios pendientes (admin dashboard):', err);
+        this.usuariosPendientesError = 'No se pudo cargar usuarios pendientes.';
         this.vistaActual = 'panel';
       }
     });
@@ -903,7 +1017,7 @@ export class Administrador {
         const mensaje =
           err?.error?.mensaje ||
           err?.error?.detalle ||
-          '❌ Error inesperado al cargar archivo';
+          'Error inesperado al cargar archivo';
 
         this.mostrarAlertaGlobal(mensaje, 'error');
 

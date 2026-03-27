@@ -163,6 +163,16 @@
       </app-modal>
     </ng-container>
 
+    <!-- CAPACITACIONES -->
+    <ng-container *ngIf="vistaActual === 'capacitaciones'">
+      <app-titulo
+        titulo="Capacitaciones"
+        subtitulo="Consulta tus capacitaciones inscritas y avance del curso">
+      </app-titulo>
+
+      <app-modulos-usuario-page></app-modulos-usuario-page>
+    </ng-container>
+
     <!-- NOTICIAS -->
     <ng-container *ngIf="vistaActual === 'noticias'">
       <app-titulo

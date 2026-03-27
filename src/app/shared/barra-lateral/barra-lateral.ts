@@ -9,7 +9,8 @@ export interface MenuItem<V> {
 
 @Component({
   selector: 'app-barra-lateral',
-  imports: [COMPARTIR_IMPORTS],
+  standalone: true,
+  imports: [...COMPARTIR_IMPORTS],
   templateUrl: './barra-lateral.html',
   styleUrl: './barra-lateral.css',
 })

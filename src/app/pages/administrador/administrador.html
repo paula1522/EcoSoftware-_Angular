@@ -79,35 +79,27 @@
         </button>
       </div>
 
-      <!-- FILA 1: Gráficos principales -->
-      <div class="analytics-grid">
-
-        <!-- Gráfico 1: Solicitudes por Localidad -->
-        <div class="analytics-card analytics-card-blue-tone">
+      <!-- GRÁFICA: Usuarios por Localidad -->
+      <div class="analytics-grid mt-4">
+        <div class="analytics-card analytics-card-blue">
           <header class="analytics-card-header">
-            <h6 class="card-title">Solicitudes por Localidad</h6>
-          </header>
-          <div class="chart-container" #solicitudesLocalidadGrafico>
-            <app-solicitudes-localidad-chart></app-solicitudes-localidad-chart>
-          </div>
-        </div>
-
-        <!-- Gráfico 2: Estado de Solicitudes -->
-        <div class="analytics-card analytics-card-teal-tone">
-          <header class="analytics-card-header">
-            <h6 class="card-title">Estado de Solicitudes</h6>
+            <h6 class="card-title">Usuarios pendientes</h6>
           </header>
           <div class="chart-container" #estadoGrafico>
-            <app-pendientes-aceptadas-chart></app-pendientes-aceptadas-chart>
+            <div class="alert alert-warning w-100 text-center" *ngIf="usuariosPendientesError">
+              {{ usuariosPendientesError }}
+            </div>
+            <div class="text-center w-100" *ngIf="!usuariosPendientesError">
+              <div style="font-size: 44px; font-weight: 800; line-height: 1; color: #0b3d1a;">
+                {{ formatMetric(totalUsuariosPendientes) }}
+              </div>
+              <div style="margin-top: 8px; color: #365241; font-weight: 600;">
+                Requieren validación administrativa
+              </div>
+            </div>
           </div>
         </div>
 
-      </div>
-
-      <!-- FILA 2: Indicadores complementarios -->
-      <div class="analytics-grid mt-4">
-
-        <!-- Gráfico 3: Usuarios por Localidad (debajo de las dos de solicitudes) -->
         <div class="analytics-card analytics-card-olive">
           <header class="analytics-card-header">
             <h6 class="card-title">Usuarios por Localidad</h6>
@@ -116,7 +108,18 @@
             <app-grafico-usuarios-localidad></app-grafico-usuarios-localidad>
           </div>
         </div>
+      </div>
 
+      <!-- GRÁFICA: Solicitudes por Localidad (ancho completo) -->
+      <div class="analytics-grid mt-4">
+        <div class="analytics-card analytics-card-emerald" style="grid-column: 1 / -1;">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Solicitudes por Localidad</h6>
+          </header>
+          <div class="chart-container" #solicitudesLocalidadGrafico>
+            <app-solicitudes-localidad-chart></app-solicitudes-localidad-chart>
+          </div>
+        </div>
       </div>
 
     </ng-container>
@@ -385,21 +388,64 @@
 
       <div class="contenedor-toggle">
 
-        <!-- Lista de capacitaciones -->
         <ng-container *ngIf="capacitaciones">
           <div class="contenido-solicitud">
+
+            <div class="card shadow-sm mb-4">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Añadir Capacitación</h5>
+
+                <div *ngIf="mensajeCapacitacion" class="alert alert-success py-2">{{ mensajeCapacitacion }}</div>
+                <div *ngIf="errorCapacitacion" class="alert alert-danger py-2">{{ errorCapacitacion }}</div>
+
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCapacitacion.nombre">
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Número de clases</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCapacitacion.numeroDeClases">
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Duración</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCapacitacion.duracion">
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Imagen (opcional)</label>
+                    <input type="file" class="form-control" accept="image/*" (change)="onImagenCapacitacionSeleccionada($event)">
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">Descripción</label>
+                    <textarea rows="3" class="form-control" [(ngModel)]="nuevaCapacitacion.descripcion"></textarea>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                  <button class="btn btn-outline-secondary" type="button" [disabled]="creandoCapacitacion" (click)="cancelarCreacionCapacitacion()">
+                    Cancelar
+                  </button>
+                  <button class="btn btn-success" [disabled]="creandoCapacitacion" (click)="crearCapacitacionDesdeAdmin()">
+                    {{ creandoCapacitacion ? 'Creando...' : 'Crear capacitación' }}
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <app-carga-masiva-capacitacion></app-carga-masiva-capacitacion>
           </div>
         </ng-container>
 
-        <!-- Módulos -->
         <ng-container *ngIf="!capacitaciones">
           <div class="contenido-solicitud">
             <app-listar-capacitaciones></app-listar-capacitaciones>
+            <app-modulos-admin-page></app-modulos-admin-page>
           </div>
         </ng-container>
-
       </div>
     </ng-container>
 
@@ -418,4 +464,4 @@
 
   </main>
 
-</div>
+</div>// correcciones para graficas

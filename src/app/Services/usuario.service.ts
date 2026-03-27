@@ -13,9 +13,10 @@ import { environment } from '../../environments/environment';
 export class UsuarioService {
 
   // ============================================================
-  //  URL BASE DEL BACKEND SPRINGBOOT
+  //  URL BASE DEL BACKEND 
   // ============================================================
   private apiUrlSpringboot = 'https://ecosoftware-spring-boot.azurewebsites.net/api/personas';
+  private adminDashboardUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/admin/dashboard';
 
   constructor(private http: HttpClient, private api: ApiService) {}
 
@@ -283,6 +284,16 @@ export class UsuarioService {
   );
 }
 
+  /** Contador de usuarios pendientes (Admin Dashboard) */
+  contarPendientesAdminDashboard(): Observable<number> {
+    return this.http.get<any>(`${this.adminDashboardUrl}/usuarios-pendientes`).pipe(
+      map((res: any) => {
+        if (typeof res === 'number') return res;
+        return Number(res?.pendientes ?? res?.total ?? res?.cantidad ?? 0);
+      }),
+      catchError(() => of(0))
+    );
+  }
 
   /** Aprobar usuario */
   aprobarUsuario(id: number): Observable<string> {

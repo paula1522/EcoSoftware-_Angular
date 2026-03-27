@@ -10,10 +10,11 @@ import { CardARSolicitud } from '../../Logic/solicitudes-comp/card-a-r-solicitud
 import { CardsRecoleccion } from '../../Logic/recolecciones-comp/cards-recoleccion/cards-recoleccion';
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 import { DashboardRecicladorComponent } from '../../Logic/reciclador/dashboard-reciclador/dashboard-reciclador';
+import { ModulosUsuarioPageComponent } from '../../features/capacitaciones/pages/modulos-usuario-page.component';
 
 
 interface MenuItem {
-  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'puntos' | 'noticias'|'editar-perfil';
+  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias'|'editar-perfil';
   label: string;
   icon: string;
 }
@@ -21,7 +22,7 @@ interface MenuItem {
   selector: 'app-reciclador',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, BarraLateral, Titulo, EditarUsuario, CardARSolicitud, CardsRecoleccion, Tabla,
-    DashboardRecicladorComponent],
+    DashboardRecicladorComponent, ModulosUsuarioPageComponent],
   templateUrl: './reciclador.html',
   styleUrls: ['./reciclador.css']
 })
@@ -55,6 +56,7 @@ export class Reciclador {
     { vista: 'solicitudes', label: 'Solicitudes', icon: 'bi bi-bar-chart-line' },
     { vista: 'recolecciones', label: 'Recolecciones', icon: 'bi bi-truck' },
     { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
+    { vista: 'capacitaciones', label: 'Capacitaciones', icon: 'bi bi-mortarboard-fill' },
     { vista: 'noticias', label: 'Noticias', icon: 'bi bi-newspaper' },
   ];
 

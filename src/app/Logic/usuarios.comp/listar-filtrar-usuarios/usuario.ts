@@ -12,9 +12,10 @@ import { LocalidadNombrePipe } from "../../../core/pipes/LocalidadNombrePipe";
 
 @Component({
   selector: 'app-usuario-tabla',
+  standalone: true,
   templateUrl: './usuario.html',
   styleUrls: ['./usuario.css'],
-  imports: [COMPARTIR_IMPORTS, Tabla, Boton, Modal, FormComp, Alerta, LocalidadNombrePipe],
+  imports: [...COMPARTIR_IMPORTS, Tabla, Boton, Modal, FormComp, Alerta, LocalidadNombrePipe],
 })
 export class Usuario implements OnInit {
 

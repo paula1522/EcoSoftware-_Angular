@@ -10,6 +10,7 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'https://ecosoftware-spring-boot.azurewebsites.net',
+  apiBaseUrl: '/',
+  apiUrl: '/',
   osrmUrl: '/osrm'
 };
