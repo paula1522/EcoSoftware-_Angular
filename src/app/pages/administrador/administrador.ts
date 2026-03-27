@@ -864,7 +864,7 @@ export class Administrador {
         const mensaje =
           err?.error?.mensaje ||
           err?.error?.detalle ||
-          '❌ Error inesperado al cargar archivo';
+          'Error inesperado al cargar archivo';
 
         this.mostrarAlertaGlobal(mensaje, 'error');
 

@@ -13,7 +13,7 @@ import { environment } from '../../environments/environment';
 export class UsuarioService {
 
   // ============================================================
-  //  URL BASE DEL BACKEND SPRINGBOOT
+  //  URL BASE DEL BACKEND 
   // ============================================================
   private apiUrlSpringboot = 'https://ecosoftware-spring-boot.azurewebsites.net/api/personas';
   private adminDashboardUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/admin/dashboard';

@@ -120,4 +120,5 @@ export class PendientesAceptadasChartComponent implements OnInit {
     };
     return mapping[upper] ?? clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
   }
-}
+} 
+// correcciones para graficas 

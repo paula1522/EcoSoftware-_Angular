@@ -160,4 +160,4 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
 
     return [...colorPalette, ...additionalColors].slice(0, count);
   }
-}
+}// correcciones para graficas
