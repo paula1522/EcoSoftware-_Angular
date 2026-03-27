@@ -20,12 +20,14 @@ export class Usuario implements OnInit {
 
   usuarios: UsuarioModel[] = [];
   cargando = false;
+  usuariosOriginales: UsuarioModel[] = [];
+
 
   iconosAcciones = {
-  eliminar: 'bi-arrow-clockwise', // icono base (luego se controla en tabla)
-  editar: 'bi-pencil',
-  ver: 'bi-eye'
-};
+    eliminar: 'bi-arrow-clockwise', // icono base (luego se controla en tabla)
+    editar: 'bi-pencil',
+    ver: 'bi-eye'
+  };
 
 
 
@@ -183,7 +185,7 @@ export class Usuario implements OnInit {
     }
   ];
 
-accionesEliminar: any[] = [];
+  accionesEliminar: any[] = [];
 
 
   accionesEliminarFisico = [
@@ -220,10 +222,28 @@ accionesEliminar: any[] = [];
   }
 
   ngOnInit(): void {
-    this.cargarUsuarios();
+    this.cargarUsuariosAprobados();
     // Inicializa el formulario de edición vacío
     this.initFormEditarUsuario();
   }
+
+  cargarUsuariosAprobados() {
+    this.cargando = true;
+
+    this.usuarioService.obtenerUsuariosAprobados().subscribe({
+      next: (data) => {
+        console.log('APROBADOS:', data);
+        this.usuarios = data;
+        this.usuariosOriginales = data;
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error cargando usuarios aprobados', err);
+        this.cargando = false;
+      }
+    });
+  }
+
 
   // ===============================
   // MODALES
@@ -234,30 +254,30 @@ accionesEliminar: any[] = [];
 
   abrirModalEliminar(usuario: UsuarioModel): void {
     this.usuarioSeleccionado = usuario;
-    this.configurarAccionesEliminar(); 
+    this.configurarAccionesEliminar();
     this.modalEliminar.isOpen = true;
   }
 
   configurarAccionesEliminar(): void {
-  if (!this.usuarioSeleccionado) return;
+    if (!this.usuarioSeleccionado) return;
 
-  const esActivo = this.usuarioSeleccionado.estado;
+    const esActivo = this.usuarioSeleccionado.estado;
 
-  this.accionesEliminar = [
-    {
-      texto: esActivo ? 'Inactivar' : 'Activar',
-      icono: esActivo ? 'bi-pause-circle' : 'bi-play-circle',
-      color: esActivo ? 'warning' : 'success',
-      accion: () => this.toggleEstadoUsuario()
-    },
-    {
-      texto: 'Eliminar',
-      icono: 'bi-trash',
-      color: 'danger',
-      accion: () => this.confirmarEliminacionFisica()
-    }
-  ];
-}
+    this.accionesEliminar = [
+      {
+        texto: esActivo ? 'Inactivar' : 'Activar',
+        icono: esActivo ? 'bi-pause-circle' : 'bi-play-circle',
+        color: esActivo ? 'warning' : 'success',
+        accion: () => this.toggleEstadoUsuario()
+      },
+      {
+        texto: 'Eliminar',
+        icono: 'bi-trash',
+        color: 'danger',
+        accion: () => this.confirmarEliminacionFisica()
+      }
+    ];
+  }
 
 
   abrirModalVer(usuario: UsuarioModel): void {
@@ -309,20 +329,20 @@ accionesEliminar: any[] = [];
   }
 
   toggleEstadoUsuario(): void {
-  if (!this.usuarioSeleccionado?.idUsuario) return;
+    if (!this.usuarioSeleccionado?.idUsuario) return;
 
-  this.usuarioService.eliminarLogico(this.usuarioSeleccionado.idUsuario).subscribe({
-    next: () => {
-      const accion = this.usuarioSeleccionado?.estado ? 'inactivado' : 'activado';
-      this.mostrarAlertaGlobal(`Usuario ${accion} correctamente`, 'success');
-      this.cargarUsuarios();
-      this.cerrarModalEliminar();
-    },
-    error: () => {
-      this.mostrarAlertaGlobal('Error al cambiar el estado del usuario', 'error');
-    }
-  });
-}
+    this.usuarioService.eliminarLogico(this.usuarioSeleccionado.idUsuario).subscribe({
+      next: () => {
+        const accion = this.usuarioSeleccionado?.estado ? 'inactivado' : 'activado';
+        this.mostrarAlertaGlobal(`Usuario ${accion} correctamente`, 'success');
+        this.cargarUsuarios();
+        this.cerrarModalEliminar();
+      },
+      error: () => {
+        this.mostrarAlertaGlobal('Error al cambiar el estado del usuario', 'error');
+      }
+    });
+  }
 
 
   // ===============================
@@ -346,57 +366,54 @@ accionesEliminar: any[] = [];
   // FILTROS
   // ===============================
   aplicarFiltros(): void {
-    this.cargando = true;
-    this.usuarioService.listar().subscribe({
-      next: (lista: UsuarioModel[]) => {
-        let resultados = lista || [];
+  this.cargando = true;
 
-        const filtros = this.formFiltros.value;
+  let resultados = [...this.usuariosOriginales]; // 🔥 ya no llama backend
 
-        if (filtros.nombre) {
-          const val = filtros.nombre.trim().toLowerCase();
-          resultados = resultados.filter(u => u.nombre?.toLowerCase().includes(val));
-        }
+  const filtros = this.formFiltros.value;
 
-        if (filtros.correo) {
-          const val = filtros.correo.trim().toLowerCase();
-          resultados = resultados.filter(u => u.correo?.toLowerCase().includes(val));
-        }
-
-        if (filtros.documento) {
-          const val = filtros.documento.trim().toLowerCase();
-          resultados = resultados.filter(u => u.cedula?.toLowerCase().includes(val));
-        }
-
-        if (filtros.rol) {
-          resultados = resultados.filter(u => u.rolId === Number(filtros.rol));
-        }
-
-        if (filtros.estado) {
-          const estadoBool = filtros.estado === 'activo';
-          resultados = resultados.filter(u => u.estado === estadoBool);
-        }
-        this.usuarios = resultados;
-        this.cargando = false;
-      },
-      error: () => {
-        this.mostrarAlertaGlobal('Error al filtrar usuarios', 'error');
-        this.cargando = false;
-      }
-    });
+  if (filtros.nombre) {
+    const val = filtros.nombre.trim().toLowerCase();
+    resultados = resultados.filter(u => u.nombre?.toLowerCase().includes(val));
   }
+
+  if (filtros.correo) {
+    const val = filtros.correo.trim().toLowerCase();
+    resultados = resultados.filter(u => u.correo?.toLowerCase().includes(val));
+  }
+
+  if (filtros.documento) {
+    const val = filtros.documento.trim().toLowerCase();
+    resultados = resultados.filter(u => u.cedula?.toLowerCase().includes(val));
+  }
+
+  if (filtros.rol) {
+    resultados = resultados.filter(u => u.rolId === Number(filtros.rol));
+  }
+
+  if (filtros.estado) {
+    const estadoBool = filtros.estado === 'activo';
+    resultados = resultados.filter(u => u.estado === estadoBool);
+  }
+
+  this.usuarios = resultados;
+  this.cargando = false;
+}
+
 
   limpiarFiltro(): void {
-    this.formFiltros.reset({
-      criterio: 'nombre',
-      nombre: '',
-      correo: '',
-      documento: '',
-      rol: '',
-      estado: ''
-    });
-    this.cargarUsuarios();
-  }
+  this.formFiltros.reset({
+    criterio: 'nombre',
+    nombre: '',
+    correo: '',
+    documento: '',
+    rol: '',
+    estado: ''
+  });
+
+  this.usuarios = [...this.usuariosOriginales]; 
+}
+
 
   // ===============================
   // EXPORTAR REPORTES

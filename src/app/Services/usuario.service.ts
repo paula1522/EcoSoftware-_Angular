@@ -277,6 +277,13 @@ export class UsuarioService {
     return this.http.get<number>(`${this.apiUrlSpringboot}/pendientes/count`);
   }
 
+  obtenerUsuariosAprobados(): Observable<UsuarioModel[]> {
+  return this.http.get<UsuarioModel[]>(
+    `${this.apiUrlSpringboot}/aceptados`
+  );
+}
+
+
   /** Aprobar usuario */
   aprobarUsuario(id: number): Observable<string> {
     return this.http.patch(`${this.apiUrlSpringboot}/aprobar/${id}`, null, {
