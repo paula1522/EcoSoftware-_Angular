@@ -22,6 +22,7 @@ export class Tabla implements OnChanges {
   @Input() titulo: string = 'Listado';
   @Input() cellTemplates: { [campo: string]: (item: any) => string } = {};
   @Input() mostrarAcciones: boolean = true;
+  @Input() mostrarDescargar: boolean = true;
   @Input() accionesVisibles: string[] = ['ver', 'editar', 'eliminar'];
   @Input() accionVisiblePorFila?: (accion: string, item: any) => boolean;
   @Output() ver = new EventEmitter<any>();
@@ -105,15 +106,17 @@ export class Tabla implements OnChanges {
         });
       });
 
-    this.Header = [
-      {
-        icon: this.iconosAcciones.descargar || 'bi-download',
-        texto: '',
-        color: 'outline-custom-success',
-        hover: 'custom-success-filled',
-        evento: () => this.descargar.emit()
-      }
-    ];
+    this.Header = this.mostrarDescargar
+      ? [
+          {
+            icon: this.iconosAcciones.descargar || 'bi-download',
+            texto: '',
+            color: 'outline-custom-success',
+            hover: 'custom-success-filled',
+            evento: () => this.descargar.emit()
+          }
+        ]
+      : [];
   }
 
   cambiarPagina(p: number) {

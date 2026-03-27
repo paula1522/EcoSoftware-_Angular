@@ -69,13 +69,9 @@
 
       <!-- FILA DE BOTONES DE REPORTES -->
       <div class="reportes-buttons-row mb-4">
-        <button class="btn btn-success me-2" (click)="generarReporteUsuarios()" [disabled]="cargandoReporte">
+        <button class="btn btn-success" (click)="generarReporteGeneral()" [disabled]="cargandoReporte">
           <i class="bi bi-file-pdf me-2"></i>
-          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte de Usuarios' }}
-        </button>
-        <button class="btn btn-success" (click)="generarReporteSolicitudes()" [disabled]="cargandoReporte">
-          <i class="bi bi-file-pdf me-2"></i>
-          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte de Solicitudes' }}
+          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte General' }}
         </button>
       </div>
 
@@ -85,16 +81,28 @@
           <header class="analytics-card-header">
             <h6 class="card-title">Usuarios pendientes</h6>
           </header>
-          <div class="chart-container" #estadoGrafico>
+          <div class="chart-container chart-container-donut">
             <div class="alert alert-warning w-100 text-center" *ngIf="usuariosPendientesError">
               {{ usuariosPendientesError }}
             </div>
-            <div class="text-center w-100" *ngIf="!usuariosPendientesError">
-              <div style="font-size: 44px; font-weight: 800; line-height: 1; color: #0b3d1a;">
-                {{ formatMetric(totalUsuariosPendientes) }}
+            <div class="donut-card" *ngIf="!usuariosPendientesError">
+              <div
+                #pendientesGraficoContainer
+                class="donut-card-chart donut-card-chart-clickable"
+                role="button"
+                tabindex="0"
+                aria-label="Ir a usuarios pendientes"
+                (click)="irAUsuariosPendientes()"
+                (keydown.enter)="irAUsuariosPendientes()"
+                (keydown.space)="irAUsuariosPendientes()">
+                <canvas #usuariosPendientesChart></canvas>
+                <div class="donut-card-center">
+                  <strong>{{ formatMetric(totalUsuariosPendientes) }}</strong>
+                  <span>Pendientes</span>
+                </div>
               </div>
-              <div style="margin-top: 8px; color: #365241; font-weight: 600;">
-                Requieren validación administrativa
+              <div class="donut-card-copy">
+                <p>Requieren validación administrativa</p>
               </div>
             </div>
           </div>
@@ -112,7 +120,7 @@
 
       <!-- GRÁFICA: Solicitudes por Localidad (ancho completo) -->
       <div class="analytics-grid mt-4">
-        <div class="analytics-card analytics-card-emerald" style="grid-column: 1 / -1;">
+        <div class="analytics-card analytics-card-solicitudes" style="grid-column: 1 / -1;">
           <header class="analytics-card-header">
             <h6 class="card-title">Solicitudes por Localidad</h6>
           </header>
@@ -316,7 +324,7 @@
 
       <div class="puntos-admin-list mt-3">
         <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
-          [mostrarAcciones]="true" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
+          [mostrarAcciones]="true" (descargar)="generarReportePuntos()" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
           (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
         </app-tabla>
       </div>
