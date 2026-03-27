@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://ecosoftware-spring-boot.azurewebsites.net",
+    "target": "http://localhost:8082",
     "secure": false,
     "changeOrigin": true,
     "pathRewrite": { "^/api": "/api" }

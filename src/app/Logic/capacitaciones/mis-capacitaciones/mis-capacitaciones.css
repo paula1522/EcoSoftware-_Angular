@@ -1,0 +1,106 @@
+.mis-capacitaciones {
+  display: grid;
+  gap: 1rem;
+}
+
+.curso-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.curso-card {
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.curso-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.9rem;
+  cursor: pointer;
+}
+
+.curso-head h4 {
+  margin: 0;
+}
+
+.curso-head p {
+  margin: 0.3rem 0;
+}
+
+.progreso {
+  border-top: 1px solid #edf2f7;
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.progress-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.modulo-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modulo-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pdf-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.evaluaciones {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 0.6rem;
+}
+
+.eval-item {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.eval-main p {
+  margin: 0.2rem 0;
+}
+
+.eval-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.empty-state {
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 1rem;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .curso-head {
+    flex-direction: column;
+  }
+}

@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/auth';
+  private readonly apiUrl = `${(environment.apiBaseUrl || environment.apiUrl || '').replace(/\/$/, '')}/api/auth`;
   private TOKEN_KEY = 'jwt_token';
   private LEGACY_TOKEN_KEY = 'token';
   private USER_KEY = 'user_data';

@@ -37,6 +37,8 @@ export class CapacitacionesLista implements OnInit {
   formEditarCapacitacion: FormGroup = new FormGroup({});
   fieldsEditarCapacitacion: FieldConfig[] = [];
   capacitacionSeleccionada: Capacitacion | undefined;
+  imagenEditFile: File | null = null;
+  imagenPreviewEdit: string | null = null;
 
   nombreFilter = '';
 numeroClasesFilter: number | '' = '';
@@ -71,6 +73,8 @@ duracionFilter= '';
   editar(item: Capacitacion) {
     this.capacitacionSeleccionada = item;
     this.initFormEditarCapacitacion(item);
+    this.imagenEditFile = null;
+    this.imagenPreviewEdit = item.imagen ?? null;
     this.modalEditarCapacitacion.isOpen = true;
   }
 
@@ -78,6 +82,27 @@ duracionFilter= '';
     this.modalEditarCapacitacion.close();
     this.capacitacionSeleccionada = undefined;
     this.formEditarCapacitacion.reset();
+    this.imagenEditFile = null;
+    this.imagenPreviewEdit = null;
+  }
+
+  onImagenEditarSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Solo se permiten archivos de imagen.');
+      input.value = '';
+      this.imagenEditFile = null;
+      return;
+    }
+
+    this.imagenEditFile = file;
+    this.imagenPreviewEdit = URL.createObjectURL(file);
   }
 
   initFormEditarCapacitacion(capacitacion?: Capacitacion) {
@@ -103,6 +128,17 @@ duracionFilter= '';
     };
     this.capacitacionesService.actualizarCapacitacion(this.capacitacionSeleccionada.id, datosActualizados).subscribe({
       next: () => {
+        if (this.imagenEditFile) {
+          this.capacitacionesService.subirImagenCapacitacion(this.capacitacionSeleccionada!.id!, this.imagenEditFile).subscribe({
+            next: () => {
+              this.cerrarModalEditarCapacitacion();
+              this.cargarCapacitaciones();
+            },
+            error: () => alert('Se actualizó la capacitación, pero falló la actualización de imagen')
+          });
+          return;
+        }
+
         this.cerrarModalEditarCapacitacion();
         this.cargarCapacitaciones();
       },

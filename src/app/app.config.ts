@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors} from '@angular/common/http';
 import { routes } from './app.routes';
 import { AuthInterceptor } from './auth/interceptors/auth.interceptor';
+import { ErrorInterceptor } from './auth/interceptors/error.interceptor';
 import { LocalidadNombrePipe } from './core/pipes/LocalidadNombrePipe';
 
 export const appConfig: ApplicationConfig = {
@@ -10,7 +11,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([AuthInterceptor])),
+    provideHttpClient(withInterceptors([AuthInterceptor, ErrorInterceptor])),
     LocalidadNombrePipe
   ]
 };

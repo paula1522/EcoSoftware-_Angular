@@ -1,0 +1,169 @@
+.gestion-capacitaciones {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.card-block {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #fff;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.form-grid .span-2 {
+  grid-column: span 2;
+}
+
+.actions-row {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.align-end {
+  align-items: end;
+}
+
+.list-group {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.list-item {
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.list-item.active {
+  border-color: #2f855a;
+  background: #f0fff4;
+}
+
+.item-main {
+  display: grid;
+  cursor: pointer;
+}
+
+.item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modulo-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.modulo-item {
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.modulo-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pdf-row {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.evaluacion-box {
+  border-top: 1px dashed #cbd5e1;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.evaluacion-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.evaluacion-form {
+  margin: 0.75rem 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.check-inline {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.evaluacion-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.evaluacion-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.status-badge.ok {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status-badge.pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid .span-2 {
+    grid-column: span 1;
+  }
+
+  .modulo-head,
+  .evaluacion-item,
+  .list-item {
+    flex-direction: column;
+  }
+}

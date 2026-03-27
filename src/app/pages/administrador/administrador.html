@@ -388,21 +388,64 @@
 
       <div class="contenedor-toggle">
 
-        <!-- Lista de capacitaciones -->
         <ng-container *ngIf="capacitaciones">
           <div class="contenido-solicitud">
+
+            <div class="card shadow-sm mb-4">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Añadir Capacitación</h5>
+
+                <div *ngIf="mensajeCapacitacion" class="alert alert-success py-2">{{ mensajeCapacitacion }}</div>
+                <div *ngIf="errorCapacitacion" class="alert alert-danger py-2">{{ errorCapacitacion }}</div>
+
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCapacitacion.nombre">
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Número de clases</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCapacitacion.numeroDeClases">
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Duración</label>
+                    <input type="text" class="form-control" [(ngModel)]="nuevaCapacitacion.duracion">
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Imagen (opcional)</label>
+                    <input type="file" class="form-control" accept="image/*" (change)="onImagenCapacitacionSeleccionada($event)">
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">Descripción</label>
+                    <textarea rows="3" class="form-control" [(ngModel)]="nuevaCapacitacion.descripcion"></textarea>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                  <button class="btn btn-outline-secondary" type="button" [disabled]="creandoCapacitacion" (click)="cancelarCreacionCapacitacion()">
+                    Cancelar
+                  </button>
+                  <button class="btn btn-success" [disabled]="creandoCapacitacion" (click)="crearCapacitacionDesdeAdmin()">
+                    {{ creandoCapacitacion ? 'Creando...' : 'Crear capacitación' }}
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <app-carga-masiva-capacitacion></app-carga-masiva-capacitacion>
           </div>
         </ng-container>
 
-        <!-- Módulos -->
         <ng-container *ngIf="!capacitaciones">
           <div class="contenido-solicitud">
             <app-listar-capacitaciones></app-listar-capacitaciones>
+            <app-modulos-admin-page></app-modulos-admin-page>
           </div>
         </ng-container>
-
       </div>
     </ng-container>
 

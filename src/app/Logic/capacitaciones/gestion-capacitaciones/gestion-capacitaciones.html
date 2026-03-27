@@ -1,0 +1,170 @@
+<section class="gestion-capacitaciones">
+  <div class="alerts">
+    <div class="alert alert-success" *ngIf="success">{{ success }}</div>
+    <div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+  </div>
+
+  <div class="grid-layout">
+    <article class="card-block">
+      <h4>Crear o editar capacitacion</h4>
+      <div class="form-grid">
+        <label>
+          Nombre
+          <input class="form-control" [(ngModel)]="capacitacionForm.nombre" />
+        </label>
+
+        <label>
+          Numero de clases
+          <input class="form-control" [(ngModel)]="capacitacionForm.numeroDeClases" />
+        </label>
+
+        <label class="span-2">
+          Descripcion
+          <textarea class="form-control" rows="3" [(ngModel)]="capacitacionForm.descripcion"></textarea>
+        </label>
+
+        <label>
+          Duracion
+          <input class="form-control" [(ngModel)]="capacitacionForm.duracion" />
+        </label>
+
+        <label>
+          URL imagen (opcional)
+          <input class="form-control" [(ngModel)]="capacitacionForm.imagen" />
+        </label>
+
+        <label>
+          Subir imagen (opcional)
+          <input class="form-control" type="file" accept="image/*" (change)="onCapacitacionImageSelected($event)" />
+        </label>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-success" (click)="guardarCapacitacion()">
+          {{ editCapacitacionId ? 'Actualizar' : 'Crear' }} capacitacion
+        </button>
+      </div>
+    </article>
+
+    <article class="card-block">
+      <h4>Capacitaciones</h4>
+
+      <div *ngIf="loading" class="muted">Cargando capacitaciones...</div>
+      <div *ngIf="!loading && capacitaciones.length === 0" class="muted">No hay capacitaciones creadas.</div>
+
+      <div class="list-group" *ngIf="capacitaciones.length > 0">
+        <div class="list-item" *ngFor="let cap of capacitaciones; trackBy: trackByCapacitacion" [class.active]="cap.id === selectedCapacitacionId">
+          <div class="item-main" (click)="seleccionarCapacitacion(cap)">
+            <strong>{{ cap.nombre }}</strong>
+            <small>{{ cap.duracion }} - {{ cap.numeroDeClases }} clases</small>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn btn-sm btn-outline-primary" (click)="editarCapacitacion(cap)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="eliminarCapacitacion(cap)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <article class="card-block" *ngIf="selectedCapacitacionId">
+    <h4>Modulos de la capacitacion seleccionada</h4>
+
+    <div class="form-grid form-modulo">
+      <label class="span-2">
+        Descripcion del modulo
+        <textarea class="form-control" rows="2" [(ngModel)]="moduloForm.descripcion"></textarea>
+      </label>
+
+      <label>
+        Duracion
+        <input class="form-control" [(ngModel)]="moduloForm.duracion" />
+      </label>
+
+      <div class="actions-row align-end">
+        <button class="btn btn-success" (click)="guardarModulo()">
+          {{ editModuloId ? 'Actualizar' : 'Crear' }} modulo
+        </button>
+      </div>
+    </div>
+
+    <div class="modulo-list" *ngIf="modulos.length > 0; else emptyModulos">
+      <div class="modulo-item" *ngFor="let modulo of modulos; trackBy: trackByModulo">
+        <div class="modulo-head">
+          <div>
+            <h5>{{ modulo.descripcion }}</h5>
+            <small>{{ modulo.duracion }}</small>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn btn-sm btn-outline-primary" (click)="editarModulo(modulo)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="eliminarModulo(modulo)">Eliminar</button>
+          </div>
+        </div>
+
+        <div class="pdf-row">
+          <input type="file" accept="application/pdf" (change)="onPdfSelected(modulo.id!, $event)" />
+          <button class="btn btn-sm btn-outline-success" [disabled]="pdfUploadingByModulo[modulo.id!]" (click)="subirPdfModulo(modulo)">
+            {{ pdfUploadingByModulo[modulo.id!] ? 'Subiendo...' : 'Subir PDF' }}
+          </button>
+
+          <a *ngIf="modulo.archivoPdfUrl" [href]="modulo.archivoPdfUrl" target="_blank" rel="noopener noreferrer">
+            Ver PDF actual
+          </a>
+
+          <span class="status-badge ok" *ngIf="moduloTienePdf(modulo)">PDF listo</span>
+          <span class="status-badge pending" *ngIf="!moduloTienePdf(modulo)">PDF pendiente</span>
+        </div>
+
+        <div class="evaluacion-box">
+          <div class="evaluacion-head">
+            <h6>Evaluaciones del modulo</h6>
+            <button class="btn btn-sm btn-outline-secondary" (click)="prepararNuevaEvaluacion(modulo.id!)">Nueva evaluacion</button>
+          </div>
+
+          <div class="evaluacion-form" *ngIf="targetModuloIdForEval === modulo.id">
+            <input class="form-control" placeholder="Titulo" [(ngModel)]="evaluacionForm.titulo" />
+            <input class="form-control" placeholder="Descripcion" [(ngModel)]="evaluacionForm.descripcion" />
+            <input class="form-control" type="number" min="0" max="100" placeholder="Puntaje minimo" [(ngModel)]="evaluacionForm.puntajeMinimo" />
+
+            <label class="check-inline">
+              <input type="checkbox" [(ngModel)]="evaluacionForm.activa" /> Activa
+            </label>
+
+            <button class="btn btn-success btn-sm" (click)="guardarEvaluacion()">
+              {{ editEvaluacionId ? 'Actualizar' : 'Crear' }} evaluacion
+            </button>
+          </div>
+
+          <div class="evaluacion-list" *ngIf="(evaluacionesPorModulo[modulo.id!] || []).length > 0; else emptyEvaluaciones">
+            <div class="evaluacion-item" *ngFor="let ev of evaluacionesPorModulo[modulo.id!]; trackBy: trackByEvaluacion">
+              <div>
+                <strong>{{ ev.titulo }}</strong>
+                <p>{{ ev.descripcion }}</p>
+                <small>Minimo: {{ ev.puntajeMinimo }} | {{ ev.activa ? 'Activa' : 'Inactiva' }}</small>
+              </div>
+
+              <div class="item-actions">
+                <button class="btn btn-sm btn-outline-primary" (click)="editarEvaluacion(ev)">Editar</button>
+                <button class="btn btn-sm btn-outline-danger" (click)="eliminarEvaluacion(ev)">Eliminar</button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyEvaluaciones>
+            <small class="muted">No hay evaluaciones para este modulo.</small>
+          </ng-template>
+
+          <span class="status-badge pending" *ngIf="!moduloTieneEvaluaciones(modulo.id)">
+            Evaluaciones pendientes
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #emptyModulos>
+      <div class="muted">No hay modulos registrados para esta capacitacion.</div>
+    </ng-template>
+  </article>
+</section>
