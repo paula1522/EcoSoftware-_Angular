@@ -14,6 +14,13 @@ export class ReporteService {
   private margin: number = 15;
   private pageWidth: number = 210; // A4 width in mm
 
+  // Estilo tipo "Modern Report" (basado en tu imagen)
+  private readonly accentBlue: [number, number, number] = [0, 163, 230];
+  private readonly accentNavy: [number, number, number] = [26, 40, 93];
+  private readonly lineColor: [number, number, number] = [26, 40, 93];
+  private readonly textGray: [number, number, number] = [90, 90, 90];
+  private readonly lightBg: [number, number, number] = [248, 250, 252];
+
   constructor() {}
 
   /**
@@ -25,31 +32,45 @@ export class ReporteService {
   ): Promise<void> {
     try {
       this.pdfDoc = new jsPDF('p', 'mm', 'a4');
-      this.yPosition = 20;
+      this.yPosition = this.margin;
 
-      // Título
-      this.agregarTitulo('REPORTE DE USUARIOS');
-      this.yPosition += 10;
+      this.agregarPortadaModern('Modern Report', `Usuarios • ${new Date().toLocaleDateString('es-ES')}`);
 
-      // Fecha de generación
-      this.agregarTexto(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 10, true);
-      this.yPosition += 5;
-
-      // Capturar gráfico si existe
+      // Bloque superior: gráfico (izq) + resumen (der)
       if (graficoElement) {
-        await this.agregarGrafico(graficoElement, 'Usuarios por Localidad');
-        this.yPosition += 5;
+        await this.agregarGraficoEnCaja(
+          graficoElement,
+          this.margin,
+          this.yPosition,
+          110,
+          78
+        );
+      } else {
+        this.dibujarCajaVacia(this.margin, this.yPosition, 110, 78, 'Gráfico no disponible');
       }
 
-      // Estadísticas generales
-      this.agregarSeccionEstadisticas(usuarios);
-      this.yPosition += 10;
+      this.agregarResumenModernUsuarios(usuarios, this.margin + 118, this.yPosition + 6, 77);
 
-      // Tabla de usuarios
-      this.agregarSeccionTablaUsuarios(usuarios);
+      this.yPosition += 86;
+
+      // Línea divisoria horizontal (como la imagen)
+      this.dibujarLinea(this.margin, this.yPosition, this.pageWidth - this.margin, this.yPosition);
+      this.yPosition += 6;
+
+      // Bloque inferior: tabla (izq) + texto resumen (der)
+      this.agregarTablaMiniUsuarios(usuarios, this.margin, this.yPosition, 110);
+      this.agregarBloqueTextoModern(
+        'Usuarios por Localidad',
+        'Resumen de distribución por localidad según el gráfico. Útil para identificar concentración de usuarios por zona.',
+        this.margin + 118,
+        this.yPosition,
+        77
+      );
 
       // Guardar PDF
       this.pdfDoc.save('Reporte_Usuarios.pdf');
+      return;
+
     } catch (error) {
       console.error('Error al generar reporte de usuarios:', error);
       throw error;
@@ -65,41 +86,246 @@ export class ReporteService {
   ): Promise<void> {
     try {
       this.pdfDoc = new jsPDF('p', 'mm', 'a4');
-      this.yPosition = 20;
+      this.yPosition = this.margin;
 
-      // Título
-      this.agregarTitulo('REPORTE DE SOLICITUDES DE RECOLECCIÓN');
-      this.yPosition += 10;
+      this.agregarPortadaModern('Modern Report', `Solicitudes • ${new Date().toLocaleDateString('es-ES')}`);
 
-      // Fecha de generación
-      this.agregarTexto(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 10, true);
-      this.yPosition += 5;
-
-      // Capturar gráficos
-      const graficos = [
-        { elemento: graficoElements['localidad'], titulo: 'Solicitudes por Localidad' },
-        { elemento: graficoElements['estado'], titulo: 'Estado de Solicitudes' }
-      ];
-
-      for (const grafico of graficos) {
-        if (grafico.elemento) {
-          await this.agregarGrafico(grafico.elemento, grafico.titulo);
-          this.yPosition += 5;
-        }
+      const chartEl = graficoElements['localidad'] || graficoElements['estado'] || null;
+      if (chartEl) {
+        await this.agregarGraficoEnCaja(chartEl, this.margin, this.yPosition, 110, 78);
+      } else {
+        this.dibujarCajaVacia(this.margin, this.yPosition, 110, 78, 'Gráfico no disponible');
       }
 
-      // Estadísticas generales
-      this.agregarSeccionEstadisticasSolicitudes(solicitudes);
-      this.yPosition += 10;
+      this.agregarResumenModernSolicitudes(solicitudes, this.margin + 118, this.yPosition + 6, 77);
 
-      // Tabla de solicitudes
-      this.agregarSeccionTablaSolicitudes(solicitudes);
+      this.yPosition += 86;
+      this.dibujarLinea(this.margin, this.yPosition, this.pageWidth - this.margin, this.yPosition);
+      this.yPosition += 6;
 
-      // Guardar PDF
+      this.agregarTablaMiniSolicitudes(solicitudes, this.margin, this.yPosition, 110);
+      this.agregarBloqueTextoModern(
+        'Solicitudes',
+        'Este reporte resume el estado y la distribución de solicitudes. Recomendación: revisar pendientes para priorizar atención.',
+        this.margin + 118,
+        this.yPosition,
+        77
+      );
+
       this.pdfDoc.save('Reporte_Solicitudes.pdf');
+      return;
+
     } catch (error) {
       console.error('Error al generar reporte de solicitudes:', error);
       throw error;
+    }
+  }
+
+  private agregarPortadaModern(titulo: string, subtitulo: string): void {
+    if (!this.pdfDoc) return;
+
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setFontSize(36);
+    this.pdfDoc.setTextColor(this.accentBlue[0], this.accentBlue[1], this.accentBlue[2]);
+    this.pdfDoc.text(titulo, this.margin, this.yPosition + 10);
+
+    this.pdfDoc.setDrawColor(this.lineColor[0], this.lineColor[1], this.lineColor[2]);
+    this.pdfDoc.setLineWidth(1);
+    this.pdfDoc.line(this.margin, this.yPosition + 16, this.pageWidth - this.margin, this.yPosition + 16);
+
+    this.pdfDoc.setFontSize(10);
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    this.pdfDoc.text(subtitulo, this.pageWidth - this.margin, this.yPosition + 22, { align: 'right' });
+
+    this.yPosition += 30;
+  }
+
+  private dibujarLinea(x1: number, y1: number, x2: number, y2: number): void {
+    if (!this.pdfDoc) return;
+    this.pdfDoc.setDrawColor(this.lineColor[0], this.lineColor[1], this.lineColor[2]);
+    this.pdfDoc.setLineWidth(0.6);
+    this.pdfDoc.line(x1, y1, x2, y2);
+  }
+
+  private dibujarCajaVacia(x: number, y: number, w: number, h: number, texto: string): void {
+    if (!this.pdfDoc) return;
+    this.pdfDoc.setFillColor(this.lightBg[0], this.lightBg[1], this.lightBg[2]);
+    this.pdfDoc.setDrawColor(220, 220, 220);
+    this.pdfDoc.rect(x, y, w, h, 'FD');
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setFontSize(10);
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    this.pdfDoc.text(texto, x + w / 2, y + h / 2, { align: 'center' });
+  }
+
+  private async agregarGraficoEnCaja(elemento: HTMLElement, x: number, y: number, w: number, h: number): Promise<void> {
+    if (!this.pdfDoc) return;
+    try {
+      const canvas = await html2canvas(elemento, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      this.pdfDoc.setFillColor(255, 255, 255);
+      this.pdfDoc.setDrawColor(220, 220, 220);
+      this.pdfDoc.rect(x, y, w, h, 'FD');
+
+      // Ajustar imagen dentro del contenedor preservando ratio
+      const padding = 4;
+      const maxW = w - padding * 2;
+      const maxH = h - padding * 2;
+      const imgW = maxW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const finalH = Math.min(imgH, maxH);
+      const finalW = (canvas.width * finalH) / canvas.height;
+
+      const imgX = x + (w - finalW) / 2;
+      const imgY = y + (h - finalH) / 2;
+
+      this.pdfDoc.addImage(imgData, 'PNG', imgX, imgY, finalW, finalH);
+    } catch {
+      this.dibujarCajaVacia(x, y, w, h, 'No se pudo capturar el gráfico');
+    }
+  }
+
+  private agregarEncabezadoSeccionModern(titulo: string, x: number, y: number): number {
+    if (!this.pdfDoc) return y;
+    this.pdfDoc.setFont('Helvetica', 'bold');
+    this.pdfDoc.setFontSize(13);
+    this.pdfDoc.setTextColor(this.accentNavy[0], this.accentNavy[1], this.accentNavy[2]);
+    this.pdfDoc.text(titulo, x, y);
+    return y + 6;
+  }
+
+  private agregarBloqueTextoModern(titulo: string, texto: string, x: number, y: number, w: number): void {
+    if (!this.pdfDoc) return;
+    let yy = this.agregarEncabezadoSeccionModern(titulo, x, y + 6);
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setFontSize(9.5);
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    const lines = this.pdfDoc.splitTextToSize(texto, w);
+    this.pdfDoc.text(lines, x, yy);
+  }
+
+  private agregarResumenModernUsuarios(usuarios: UsuarioModel[], x: number, y: number, w: number): void {
+    if (!this.pdfDoc) return;
+
+    const total = usuarios.length;
+    const admins = usuarios.filter(u => u.rol === 'administrador' || u.rol === 'Administrador' || u.rolId === 1).length;
+    const ciudadanos = usuarios.filter(u => u.rol === 'ciudadano' || u.rol === 'Ciudadano' || u.rolId === 2).length;
+
+    let yy = this.agregarEncabezadoSeccionModern('Usuarios', x, y);
+
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setFontSize(10);
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    const lines = [
+      `Total: ${total}`,
+      `Administradores: ${admins}`,
+      `Ciudadanos: ${ciudadanos}`
+    ];
+    this.pdfDoc.text(lines, x, yy);
+  }
+
+  private agregarResumenModernSolicitudes(solicitudes: ServiceModel[], x: number, y: number, w: number): void {
+    if (!this.pdfDoc) return;
+
+    const total = solicitudes.length;
+    const pendientes = solicitudes.filter(s => String(s.estadoPeticion || '').toLowerCase() === 'pendiente').length;
+    const aceptadas = solicitudes.filter(s => String(s.estadoPeticion || '').toLowerCase() === 'aceptada' || String(s.estadoPeticion || '').toLowerCase() === 'aceptado').length;
+
+    let yy = this.agregarEncabezadoSeccionModern('Solicitudes', x, y);
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setFontSize(10);
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    const lines = [
+      `Total: ${total}`,
+      `Pendientes: ${pendientes}`,
+      `Aceptadas: ${aceptadas}`
+    ];
+    this.pdfDoc.text(lines, x, yy);
+  }
+
+  private agregarTablaMiniUsuarios(usuarios: UsuarioModel[], x: number, y: number, w: number): void {
+    if (!this.pdfDoc) return;
+    const rows = usuarios.slice(0, 7);
+    let yy = this.agregarEncabezadoSeccionModern('Listado (muestra)', x, y + 6);
+
+    const colW = [38, 52, 20];
+    const headers = ['Nombre', 'Correo', 'Rol'];
+    const rowH = 6;
+
+    this.pdfDoc.setFillColor(this.accentBlue[0], this.accentBlue[1], this.accentBlue[2]);
+    this.pdfDoc.setTextColor(255, 255, 255);
+    this.pdfDoc.setFont('Helvetica', 'bold');
+    this.pdfDoc.setFontSize(9);
+    this.pdfDoc.rect(x, yy, w, rowH, 'F');
+    let xx = x;
+    for (let i = 0; i < headers.length; i++) {
+      this.pdfDoc.text(headers[i], xx + 2, yy + 4);
+      xx += colW[i];
+    }
+    yy += rowH;
+
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    for (let r = 0; r < rows.length; r++) {
+      if (r % 2 === 1) {
+        this.pdfDoc.setFillColor(this.lightBg[0], this.lightBg[1], this.lightBg[2]);
+        this.pdfDoc.rect(x, yy, w, rowH, 'F');
+      }
+      const row = rows[r];
+      const c1 = (row.nombre || '-').toString().slice(0, 18);
+      const c2 = (row.correo || '-').toString().slice(0, 26);
+      const c3 = (row.rol || row.rolId || '-').toString().slice(0, 10);
+      this.pdfDoc.text(c1, x + 2, yy + 4);
+      this.pdfDoc.text(c2, x + 2 + colW[0], yy + 4);
+      this.pdfDoc.text(c3, x + 2 + colW[0] + colW[1], yy + 4);
+      yy += rowH;
+    }
+  }
+
+  private agregarTablaMiniSolicitudes(solicitudes: ServiceModel[], x: number, y: number, w: number): void {
+    if (!this.pdfDoc) return;
+    const rows = solicitudes.slice(0, 7);
+    let yy = this.agregarEncabezadoSeccionModern('Listado (muestra)', x, y + 6);
+
+    const colW = [18, 40, 30, 22];
+    const headers = ['ID', 'Residuo', 'Estado', 'Fecha'];
+    const rowH = 6;
+
+    this.pdfDoc.setFillColor(this.accentBlue[0], this.accentBlue[1], this.accentBlue[2]);
+    this.pdfDoc.setTextColor(255, 255, 255);
+    this.pdfDoc.setFont('Helvetica', 'bold');
+    this.pdfDoc.setFontSize(9);
+    this.pdfDoc.rect(x, yy, w, rowH, 'F');
+    let xx = x;
+    for (let i = 0; i < headers.length; i++) {
+      this.pdfDoc.text(headers[i], xx + 2, yy + 4);
+      xx += colW[i];
+    }
+    yy += rowH;
+
+    this.pdfDoc.setFont('Helvetica', 'normal');
+    this.pdfDoc.setTextColor(this.textGray[0], this.textGray[1], this.textGray[2]);
+    for (let r = 0; r < rows.length; r++) {
+      if (r % 2 === 1) {
+        this.pdfDoc.setFillColor(this.lightBg[0], this.lightBg[1], this.lightBg[2]);
+        this.pdfDoc.rect(x, yy, w, rowH, 'F');
+      }
+      const row = rows[r];
+      const id = (row.idSolicitud || '-').toString().slice(0, 6);
+      const residuo = (row.tipoResiduo || '-').toString().slice(0, 16);
+      const estado = (row.estadoPeticion || '-').toString().slice(0, 12);
+      const fecha = String(row.fechaCreacionSolicitud || row.fechaProgramada || '-').slice(0, 10);
+      this.pdfDoc.text(id, x + 2, yy + 4);
+      this.pdfDoc.text(residuo, x + 2 + colW[0], yy + 4);
+      this.pdfDoc.text(estado, x + 2 + colW[0] + colW[1], yy + 4);
+      this.pdfDoc.text(fecha, x + 2 + colW[0] + colW[1] + colW[2], yy + 4);
+      yy += rowH;
     }
   }
 

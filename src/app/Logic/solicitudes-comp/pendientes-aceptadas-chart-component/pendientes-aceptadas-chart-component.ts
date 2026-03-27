@@ -12,108 +12,83 @@ import { Service, PendientesAceptadas } from '../../../Services/solicitud.servic
 })
 export class PendientesAceptadasChartComponent implements OnInit {
   public chartOptions: any = {};
+  public errorMessage: string | null = null;
 
   constructor(private service: Service) {}
 
-  ngOnInit() {
-    // Inicializar con opciones básicas
+  ngOnInit(): void {
     this.initializeEmptyChart();
-    
-    // Obtener TODAS las solicitudes y contar por estado
-    this.service.listar().subscribe({
-      next: (todasLasSolicitudes: any[]) => {
-        console.log('[PendientesAceptadas] Todas las solicitudes:', todasLasSolicitudes);
-        
-        // Mostrar estados únicos para debugging (usar la propiedad real `estadoPeticion`)
-        const estadosUnicos = new Set(todasLasSolicitudes.map(sol => sol.estadoPeticion));
-        console.log('[PendientesAceptadas] Estados únicos en BD (estadoPeticion):', Array.from(estadosUnicos));
-        
-        // Contar por estado - permitir variaciones
-        let pendientes = 0;
-        let aceptadas = 0;
 
-        todasLasSolicitudes.forEach((sol: any) => {
-          const estadoRaw = sol.estadoPeticion ?? sol.estado ?? '';
-          const estado = (String(estadoRaw) || '').toLowerCase().trim();
-          console.log('[PendientesAceptadas] Procesando solicitud ID:', sol.idSolicitud ?? sol.id, 'Estado raw:', estadoRaw, 'Estado procesado:', estado);
-          
-          if (estado === 'pendiente' || estado === 'pendient') {
-            pendientes++;
-          } else if (estado === 'aceptada' || estado === 'aceptado') {
-            aceptadas++;
-          }
-        });
-
-        console.log('[PendientesAceptadas] Resultado final - Pendientes:', pendientes, 'Aceptadas:', aceptadas);
-        
+    this.service.getPendientesYAceptadas().subscribe({
+      next: (data: PendientesAceptadas) => {
         this.errorMessage = null;
-        const data = { pendientes, aceptadas };
         this.updateChart(data);
       },
-      error: (err) => {
-        console.error('Error cargando solicitudes:', err);
-        // Usar datos de prueba si el endpoint falla
-        console.warn('[PendientesAceptadas] API no disponible, usando datos de prueba');
-        const mockData = {
-          pendientes: 15,
-          aceptadas: 28
-        };
-        this.errorMessage = '⚠️ Usando datos de prueba (API no disponible)';
-        this.updateChart(mockData);
+      error: () => {
+        this.errorMessage = 'No se pudo cargar el estado de solicitudes.';
       }
     });
   }
 
-  public errorMessage: string | null = null;
-
   private initializeEmptyChart(): void {
     this.chartOptions = {
-      series: [{
-        name: 'Solicitudes',
-        data: [0, 0]
-      }],
+      series: [0, 0],
+      labels: ['Pendientes', 'Aceptadas'],
       chart: {
-        type: 'bar',
-        height: 300,
-        toolbar: {
-          show: false
-        }
+        type: 'donut',
+        height: '100%',
+        toolbar: { show: false },
+        animations: { enabled: false }
+      },
+      colors: ['#1e88e5', '#2e7d32'],
+      dataLabels: {
+        enabled: true,
+        dropShadow: { enabled: false }
+      },
+      legend: {
+        show: true,
+        position: 'bottom',
+        fontSize: '12px',
+        markers: { width: 10, height: 10 }
       },
       plotOptions: {
-        bar: {
-          borderRadius: 4,
-          horizontal: false,
-          columnWidth: '70%',
-          distributed: true
+        pie: {
+          donut: {
+            size: '65%',
+            labels: {
+              show: true,
+              name: { show: true, fontSize: '12px' },
+              value: { show: true, fontSize: '18px', fontWeight: 700 },
+              total: {
+                show: true,
+                label: 'Total',
+                fontSize: '12px',
+                formatter: (w: any) => {
+                  const totals = w?.globals?.seriesTotals || [];
+                  return totals.reduce((a: number, b: number) => a + b, 0).toString();
+                }
+              }
+            }
+          }
         }
       },
-      dataLabels: {
-        enabled: true
-      },
-      xaxis: {
-        categories: ['Pendientes', 'Aceptadas']
-      },
-      yaxis: {
-        title: {
-          text: 'Cantidad'
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            legend: { fontSize: '11px' }
+          }
         }
-      },
-      title: {
-        text: '',
-        align: 'center'
-      },
-      // Usar solo tonos de verde y azul
-      colors: ['#1e88e5', '#2e7d32'],
-      fill: {
-        opacity: 1
+      ],
+      tooltip: {
+        y: {
+          formatter: (val: number) => `${val}`
+        }
       }
     };
   }
 
   private updateChart(data: PendientesAceptadas): void {
-    this.chartOptions.series = [{
-      name: 'Solicitudes',
-      data: [data.pendientes, data.aceptadas]
-    }];
+    this.chartOptions.series = [data.pendientes, data.aceptadas];
   }
 }
