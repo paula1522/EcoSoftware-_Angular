@@ -150,10 +150,27 @@ export class UsuarioService {
   }).pipe(catchError(err => throwError(() => err)));
 }
 
-  // METODO ANTIGUO Y FUNCIONAL
-// cambiarEstado(id: number, estado: boolean) {
- // return this.http.put(`${this.apiUrlSpringboot}/estado/${id}?estado=${estado}`, {});
-//} 
+
+  cambiarPassword(id: number, actual: string, nueva: string) {
+  return this.http.put(`${this.apiUrlSpringboot}/cambiar-password/${id}`, {
+    actual,
+    nueva
+  });
+}
+
+   recuperarPassword(correo: string): Observable<any> {
+    return this.http.post(`${this.apiUrlSpringboot}/recuperar`, {
+      correo
+    });
+  }
+
+  resetPassword(token: string, nueva: string): Observable<any> {
+    return this.http.post(`${this.apiUrlSpringboot}/reset-password`, {
+      token,
+      nueva
+    });
+  }
+
 
   cambiarEstado(id: number) {
   return this.http.put(`${this.apiUrlSpringboot}/estado/${id}`, {});
@@ -199,7 +216,7 @@ export class UsuarioService {
   obtenerBarriosPorLocalidades(): Observable<any> {
     return this.http.get<any>(`${this.apiUrlSpringboot}/estadisticas/barrios-localidades`);
   }
-
+  
   // ============================================================
   // 7. AUTOGESTIÓN DE SESIÓN
   // ============================================================
