@@ -78,7 +78,6 @@ export class ReporteService {
       // Capturar gráficos
       const graficos = [
         { elemento: graficoElements['localidad'], titulo: 'Solicitudes por Localidad' },
-        { elemento: graficoElements['rechazadas'], titulo: 'Solicitudes Rechazadas' },
         { elemento: graficoElements['estado'], titulo: 'Estado de Solicitudes' }
       ];
 

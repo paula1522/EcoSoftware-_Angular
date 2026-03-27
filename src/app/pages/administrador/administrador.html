@@ -82,19 +82,7 @@
       <!-- FILA 1: Gráficos principales -->
       <div class="analytics-grid">
 
-        <!-- Gráfico 1: Usuarios por Localidad (Línea/Barras) -->
-        <div class="analytics-card analytics-card-olive">
-          <header class="analytics-card-header">
-            <h6 class="card-title">Usuarios por Localidad</h6>
-          </header>
-          <div class="chart-container" #usuariosGrafico>
-            <app-grafico-usuarios-localidad></app-grafico-usuarios-localidad>
-          </div>
-        </div>
-
-        <!-- (Removed) Distribución por Barrio - usuario solicitó eliminar -->
-
-        <!-- Gráfico 3: Solicitudes por Localidad -->
+        <!-- Gráfico 1: Solicitudes por Localidad -->
         <div class="analytics-card analytics-card-blue-tone">
           <header class="analytics-card-header">
             <h6 class="card-title">Solicitudes por Localidad</h6>
@@ -104,28 +92,28 @@
           </div>
         </div>
 
-      </div>
-
-      <!-- FILA 2: Indicadores complementarios -->
-      <div class="analytics-grid mt-4">
-
-        <!-- Rechazadas por Motivo -->
-        <div class="analytics-card analytics-card-forest-tone">
-          <header class="analytics-card-header">
-            <h6 class="card-title">Solicitudes Rechazadas</h6>
-          </header>
-          <div class="chart-container" #rechazadasGrafico>
-            <app-rechazadas-motivo-chart></app-rechazadas-motivo-chart>
-          </div>
-        </div>
-
-        <!-- Pendientes vs Aceptadas -->
+        <!-- Gráfico 2: Estado de Solicitudes -->
         <div class="analytics-card analytics-card-teal-tone">
           <header class="analytics-card-header">
             <h6 class="card-title">Estado de Solicitudes</h6>
           </header>
           <div class="chart-container" #estadoGrafico>
             <app-pendientes-aceptadas-chart></app-pendientes-aceptadas-chart>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FILA 2: Indicadores complementarios -->
+      <div class="analytics-grid mt-4">
+
+        <!-- Gráfico 3: Usuarios por Localidad (debajo de las dos de solicitudes) -->
+        <div class="analytics-card analytics-card-olive">
+          <header class="analytics-card-header">
+            <h6 class="card-title">Usuarios por Localidad</h6>
+          </header>
+          <div class="chart-container" #usuariosGrafico>
+            <app-grafico-usuarios-localidad></app-grafico-usuarios-localidad>
           </div>
         </div>
 
