@@ -1,12 +1,12 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Service } from '../../../Services/solicitud.service';
-import { ServiceModel } from '../../../Models/solicitudes.model';
+import { SolicitudRecoleccionService } from '../../../Services/solicitud.service';
+import { SolicitudRecoleccion, EstadoPeticion } from '../../../Models/solicitudes.model'; // ✅ Importamos EstadoPeticion
 import { Boton } from "../../../shared/botones/boton/boton";
 import { Modal } from "../../../shared/modal/modal";
 import { Alerta } from '../../../shared/alerta/alerta';
-import { LocalidadNombrePipe } from "../../../core/pipes/LocalidadNombrePipe"; // Importa tu componente alerta
+import { LocalidadNombrePipe } from "../../../core/pipes/LocalidadNombrePipe";
 
 @Component({
   selector: 'app-card-a-r-solicitud',
@@ -17,10 +17,10 @@ import { LocalidadNombrePipe } from "../../../core/pipes/LocalidadNombrePipe"; /
 })
 export class CardARSolicitud implements OnInit {
 
-  @Input() solicitudes: ServiceModel[] = [];
+  @Input() solicitudes: SolicitudRecoleccion[] = [];
   @ViewChild('modalRechazo') modalRechazo!: Modal;
 
-  selectedSolicitud: ServiceModel | null = null;
+  selectedSolicitud: SolicitudRecoleccion | null = null;
   motivosDisponibles: string[] = [
     'Datos incorrectos',
     'Solicitud duplicada',
@@ -35,7 +35,7 @@ export class CardARSolicitud implements OnInit {
   mensajeAlerta: string = '';
   tipoAlerta: 'success' | 'error' | 'warning' | 'info' = 'info';
 
-  constructor(private service: Service) {}
+  constructor(private solicitudService: SolicitudRecoleccionService) {}
 
   ngOnInit(): void {
     if (!this.solicitudes || this.solicitudes.length === 0) {
@@ -50,7 +50,8 @@ export class CardARSolicitud implements OnInit {
   }
 
   cargarSolicitudesPendientes(): void {
-    this.service.listarPorEstado('Pendiente').subscribe({
+    // ✅ Cambiar 'Pendiente' por EstadoPeticion.Pendiente
+    this.solicitudService.listarPorEstado(EstadoPeticion.Pendiente).subscribe({
       next: (data) => { this.solicitudes = data; },
       error: (err) => this.mostrarAlertaMensaje(`Error al cargar solicitudes: ${err.message || err.statusText}`, 'error')
     });
@@ -66,10 +67,10 @@ export class CardARSolicitud implements OnInit {
     this.selectedMotivos[id] = value;
   }
 
-  ver(s: ServiceModel) { console.log('VER', s); }
+  ver(s: SolicitudRecoleccion) { console.log('VER', s); }
 
-  aceptarSolicitud(solicitud: ServiceModel): void {
-    this.service.aceptarSolicitud(solicitud.idSolicitud!).subscribe({
+  aceptarSolicitud(solicitud: SolicitudRecoleccion): void {
+    this.solicitudService.aceptarSolicitud(solicitud.idSolicitud!).subscribe({
       next: () => {
         this.mostrarAlertaMensaje(`Solicitud #${solicitud.idSolicitud} aceptada correctamente`, 'success');
         this.cargarSolicitudesPendientes();
@@ -78,7 +79,7 @@ export class CardARSolicitud implements OnInit {
     });
   }
 
-  abrirModalRechazo(solicitud: ServiceModel) {
+  abrirModalRechazo(solicitud: SolicitudRecoleccion) {
     this.selectedSolicitud = solicitud;
     if (this.modalRechazo) this.modalRechazo.isOpen = true;
   }
@@ -98,7 +99,7 @@ export class CardARSolicitud implements OnInit {
       return;
     }
 
-    this.service.rechazarSolicitud(id, motivo).subscribe({
+    this.solicitudService.rechazarSolicitud(id, motivo).subscribe({
       next: () => {
         delete this.selectedMotivos[id];
         this.cerrarModalRechazo();

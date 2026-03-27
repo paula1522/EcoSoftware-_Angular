@@ -1,0 +1,38 @@
+<div class="recolector-container">
+  <h2>Mis Rutas</h2>
+  <div class="cards-container">
+    <div *ngFor="let ruta of rutas" class="card">
+      <h3>{{ ruta.nombre }}</h3>
+      <p>Estado: {{ ruta.estado }}</p>
+      <p>Paradas: {{ ruta.paradas.length }}</p>
+      <p>Distancia: {{ ruta.distanciaTotal | number:'1.2-2' }} km</p>
+      <p>Tiempo estimado: {{ ruta.tiempoEstimado | number:'1.0-0' }} min</p>
+      <div class="actions">
+        <button *ngIf="ruta.estado === 'PLANIFICADA'" (click)="iniciarRuta(ruta.idRuta)">Iniciar</button>
+        <button (click)="verInfo(ruta.idRuta)">Ver Info</button>
+        <button (click)="actualizarRuta(ruta)">Actualizar</button>
+        <button (click)="eliminarRuta(ruta.idRuta)">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar nombre -->
+  <div class="modal" *ngIf="mostrarModalEdicion">
+    <div class="modal-content">
+      <span class="close" (click)="mostrarModalEdicion = false">&times;</span>
+      <h3>Editar Ruta</h3>
+      <input [(ngModel)]="rutaEditando!.nombre" placeholder="Nombre" />
+      <button (click)="guardarEdicion()">Guardar</button>
+    </div>
+  </div>
+
+  <!-- Mapa de gestión -->
+  <div *ngIf="rutaEnGestion" class="mapa-gestion-container">
+    <button class="close-map" (click)="cerrarMapa()">Cerrar Mapa</button>
+    <app-mapa-ruta-gestion 
+      [rutaId]="rutaEnGestion" 
+      [modoGestion]="true" 
+      (rutaFinalizada)="onRutaFinalizada()">
+    </app-mapa-ruta-gestion>
+  </div>
+</div>

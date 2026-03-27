@@ -55,7 +55,7 @@ export class ListarPorRecolector implements OnInit, OnDestroy {
     }
 
     // Llamar al servicio para obtener las recolecciones
-    this.subscription = this.recoleccionService.listarTodasMisRecolecciones(this.idRecolector)
+    this.subscription = this.recoleccionService.listarPorRecolector(this.idRecolector)
       .subscribe({
         next: (res: ModeloRecoleccion[]) => {
           this.data = this.formatearDatos(res);

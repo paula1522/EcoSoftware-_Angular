@@ -15,7 +15,11 @@ export class AuthService {
 
   /** 🔐 Iniciar sesión */
 login(credentials: { correo: string; contrasena: string }): Observable<any> {
-  return this.http.post(`${this.apiUrl}/login`, credentials);
+  return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
+    tap(response => {
+      this.setSession(response);
+    })
+  );
 }
 
   /** 🚪 Cerrar sesión */

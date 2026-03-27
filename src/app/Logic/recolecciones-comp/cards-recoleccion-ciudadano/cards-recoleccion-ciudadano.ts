@@ -87,38 +87,38 @@ export class CardsRecoleccionCiudadano implements OnInit {
   }
 
   guardarEdicion() {
-    if (!this.recoleccionSeleccionada) return;
+  if (!this.recoleccionSeleccionada) return;
 
-    const datosActualizar: Partial<ModeloRecoleccion> = {
-      observaciones: this.observacionesEditable,
-      evidencia: this.evidenciaEditable,
-      fechaRecoleccion: this.fechaProgramadaEditable
-        ? `${this.fechaProgramadaEditable}:00`
-        : null
-    };
+  const datosActualizar: Partial<ModeloRecoleccion> = {
+    observaciones: this.observacionesEditable,
+    evidencia: this.evidenciaEditable,
+    fechaRecoleccion: this.fechaProgramadaEditable
+      ? `${this.fechaProgramadaEditable}:00`
+      : undefined,
+    estado: this.recoleccionSeleccionada.estado 
+  };
 
-    this.recoleccionService.actualizarRecoleccion(
-      this.recoleccionSeleccionada.idRecoleccion,
-      datosActualizar
-    ).subscribe({
-      next: actualizado => {
-        console.log('Recolección actualizada', actualizado);
-        this.recoleccionSeleccionada = actualizado;
+  this.recoleccionService.actualizarRecoleccion(
+    this.recoleccionSeleccionada.idRecoleccion!,
+    datosActualizar 
+  ).subscribe({
+    next: actualizado => {
+      console.log('Recolección actualizada', actualizado);
+      this.recoleccionSeleccionada = actualizado;
 
-        // Actualizar lista local
-        this.recolecciones = this.recolecciones.map(r =>
-          r.idRecoleccion === actualizado.idRecoleccion ? actualizado : r
-        );
+      this.recolecciones = this.recolecciones.map(r =>
+        r.idRecoleccion === actualizado.idRecoleccion ? actualizado : r
+      );
 
-        alert('Actualización exitosa');
-        this.cerrarModalEdicion();
-      },
-      error: err => {
-        console.error('Error al actualizar', err);
-        alert('No se pudo actualizar. Revisa la consola.');
-      }
-    });
-  }
+      alert('Actualización exitosa');
+      this.cerrarModalEdicion();
+    },
+    error: err => {
+      console.error('Error al actualizar', err);
+      alert('No se pudo actualizar. Revisa la consola.');
+    }
+  });
+}
 
   cerrarModalEdicion() {
     if (this.modalEdicion) this.modalEdicion.isOpen = false;

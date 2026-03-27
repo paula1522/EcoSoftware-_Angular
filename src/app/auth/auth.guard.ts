@@ -6,7 +6,6 @@ export const AuthGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // 1️⃣ Verificar autenticación
   if (!authService.isAuthenticated()) {
     return router.createUrlTree(['/login']);
   }
@@ -17,7 +16,7 @@ export const AuthGuard: CanActivateFn = (route, state) => {
     return router.createUrlTree(['/login']);
   }
 
-  // 2️⃣ 🔥 VALIDAR ESTADO DE REGISTRO
+  // Validar estado de registro
   if (user.estadoRegistro === 'PENDIENTE_DOCUMENTACION') {
     return router.createUrlTree(['/subir-documentos']);
   }
@@ -26,7 +25,6 @@ export const AuthGuard: CanActivateFn = (route, state) => {
     return router.createUrlTree(['/login']);
   }
 
-  // 3️⃣ Verificar roles
   const rolesPermitidos = route.data?.['roles'] as string[] | undefined;
   const rolUsuario = user.rol;
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { Service, RechazadasPorMotivo } from '../../../Services/solicitud.service';
+import {  RechazadasPorMotivo, SolicitudRecoleccionService } from '../../../Services/solicitud.service';
 
 @Component({
   selector: 'app-rechazadas-motivo-chart',
@@ -13,13 +13,13 @@ import { Service, RechazadasPorMotivo } from '../../../Services/solicitud.servic
 export class RechazadasMotivoChartComponent implements OnInit {
   public chartOptions: any = {};
 
-  constructor(private service: Service) {}
+  constructor(private solicitudService: SolicitudRecoleccionService) {}
 
   ngOnInit() {
     this.initializeEmptyChart();
     
     // Obtener TODAS las solicitudes y filtrar rechazadas
-    this.service.listar().subscribe({
+    this.solicitudService.listar().subscribe({
       next: (todasLasSolicitudes: any[]) => {
         console.log('[RechazadasMotivo] Todas las solicitudes:', todasLasSolicitudes);
         

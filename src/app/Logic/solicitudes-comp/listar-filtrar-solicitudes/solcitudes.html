@@ -1,230 +1,262 @@
 <div class="solicitudes-container">
-
-  <!-- FILTROS Y EXPORTACIONES -->
-  <div class="filtros-container p-3 ">
+  <!-- FILTROS -->
+  <div class="filtros-container p-3">
     <div class="d-flex flex-wrap align-items-end gap-3">
-      <!-- Campos de filtro -->
-      <div class="flex-grow-1" style="min-width: 150px;">
+      <!-- Estado -->
+      <div class="flex-grow-1">
         <label class="form-label">Estado:</label>
-        <select class="form-select" [(ngModel)]="estadoFilter">
+        <select class="form-select" [(ngModel)]="estadoFilter" (change)="aplicarFiltrosLocal()">
           <option value="">Todos</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Aceptada">Aceptada</option>
-          <option value="Rechazada">Rechazada</option>
-          <option value="Cancelada">Cancelada</option>
+          <option *ngFor="let estado of estadoEnumList" [value]="estado">{{ estado }}</option>
         </select>
       </div>
 
-      <div class="flex-grow-1" style="min-width: 150px;">
+      <!-- Localidad -->
+      <div class="flex-grow-1">
         <label class="form-label">Localidad:</label>
-        <input type="text" class="form-control" [(ngModel)]="localidadFilter" placeholder="Filtrar por localidad">
+        <select class="form-select" [(ngModel)]="localidadFilter" (change)="aplicarFiltrosLocal()">
+          <option value="">Todas</option>
+          <option *ngFor="let loc of localidadEnumList" [value]="loc">{{ loc }}</option>
+        </select>
       </div>
 
-      <div class="flex-grow-1" style="min-width: 150px;">
+      <!-- Tipo de Residuo -->
+      <div class="flex-grow-1">
+        <label class="form-label">Tipo Residuo:</label>
+        <select class="form-select" [(ngModel)]="tipoResiduoFilter" (change)="aplicarFiltrosLocal()">
+          <option value="">Todos</option>
+          <option *ngFor="let tipo of tipoResiduoEnumList" [value]="tipo">{{ tipo }}</option>
+        </select>
+      </div>
+
+      <!-- Fecha Desde -->
+      <div class="flex-grow-1">
         <label class="form-label">Fecha Desde:</label>
-        <input type="date" class="form-control" [(ngModel)]="fechaDesde">
+        <input type="date" class="form-control" [(ngModel)]="fechaDesde" (change)="aplicarFiltrosLocal()" />
       </div>
 
-      <div class="flex-grow-1" style="min-width: 150px;">
+      <!-- Fecha Hasta -->
+      <div class="flex-grow-1">
         <label class="form-label">Fecha Hasta:</label>
-        <input type="date" class="form-control" [(ngModel)]="fechaHasta">
+        <input type="date" class="form-control" [(ngModel)]="fechaHasta" (change)="aplicarFiltrosLocal()" />
       </div>
 
-      <!-- Botones de acción alineados a la derecha -->
+      <!-- Botones de acción -->
       <div class="botones-wrapper d-flex gap-2 ms-auto">
-        <app-boton icono="bi bi-funnel" color="custom-success-filled" (click)="aplicarFiltros()"></app-boton>
+        <app-boton icono="bi bi-funnel" color="custom-success-filled" (click)="aplicarFiltrosLocal()"></app-boton>
         <app-boton icono="bi bi-x-circle" color="custom-gray-filled" (click)="limpiarFiltros()"></app-boton>
       </div>
-
     </div>
-
   </div>
 
-  <!-- TABLA REUTILIZABLE -->
-<app-tabla 
-  [columnas]="columnasSolicitudes" 
-  [data]="solicitudes" 
-  [cellTemplates]="cellTemplates" 
-  titulo="Solicitudes"
-  [accionesVisibles]="['ver','editar','rechazar']"
-  (ver)="onVerSolicitud($event)" 
-  (editar)="onEditarSolicitud($event)"
-  (rechazar)="onRechazarSolicitud($event)"
-  (descargar)="abrirModalReportes()"
+  <!-- SPINNER DE CARGA -->
+  <div *ngIf="isLoading" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- MENSAJE DE ERROR -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger m-3">
+    {{ errorMessage }}
+  </div>
+
+  <!-- TABLA (solo si no está cargando) -->
+  <app-tabla
+    *ngIf="!isLoading && solicitudes.length > 0"
+    [columnas]="columnasSolicitudes"
+    [data]="solicitudes"
+    [cellTemplates]="cellTemplates"
+    titulo="Solicitudes"
+    [accionesVisibles]="['ver','editar','rechazar']"
+    [accionVisiblePorFila]="accionVisiblePorFila"
+    (ver)="onVerSolicitud($event)"
+    (editar)="onEditarSolicitud($event)"
+    (rechazar)="onRechazarSolicitud($event)"
+    (descargar)="abrirModalReportes()"
   >
-</app-tabla>
+  </app-tabla>
 
-  
-
-    <!-- =============================== -->
-    <!-- MODAL DE REPORTES -->
-    <!-- =============================== -->
-    <!-- Modal Reportes -->
-<app-modal #modalReportes [title]="'Reportes de usuarios'" [headerColor]="'#6c757d'" [isOpen]="false">
-
-  <div class="mb-3">
-    Seleccione el formato de reporte a descargar:
+  <!-- Mensaje cuando no hay datos -->
+  <div *ngIf="!isLoading && solicitudes.length === 0 && !errorMessage" class="text-center p-5">
+    <p>No hay solicitudes que coincidan con los filtros.</p>
   </div>
 
-  <div class="d-flex gap-2 justify-content-center flex-wrap">
-    <app-boton 
-      *ngFor="let btn of botonesReporte" 
-      [texto]="btn.texto" 
-      [icono]="btn.icono" 
-      [color]="btn.color"
-      (click)="btn.accion()">
-    </app-boton>
-  </div>
-
-</app-modal>
-
-    <app-modal #modalVerSolicitud [title]="'Detalles de la Solicitud'" [headerColor]="'#4f69d9'" [isOpen]="false">
-
-      <div class="p-3 modal-perfil-container">
-
-        <!-- ENCABEZADO VISUAL -->
-        <div class="text-center mb-4">
-          <h3 class="mt-2 mb-0">Solicitud #{{ selectedSolicitud?.idSolicitud || '---' }}</h3>
-          <small class="text-muted">Usuario ID: {{ selectedSolicitud?.usuarioId }}</small>
-        </div>
-
-        <!-- SECCIÓN 1: Información general -->
-        <h5 class="section-title">Información general</h5>
-
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="fw-bold">Tipo de Residuo:</label>
-            <div>{{ selectedSolicitud?.tipoResiduo || 'Sin especificar' }}</div>
-          </div>
-
-          <div class="col-6">
-            <label class="fw-bold">Cantidad:</label>
-            <div>{{ selectedSolicitud?.cantidad || 'Sin especificar' }}</div>
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="fw-bold">Estado de la petición:</label>
-            <div>{{ selectedSolicitud?.estadoPeticion || 'Pendiente' }}</div>
-          </div>
-
-          <div class="col-6">
-            <label class="fw-bold">Descripción:</label>
-            <div>{{ selectedSolicitud?.descripcion || 'Sin descripción' }}</div>
-          </div>
-        </div>
-
-        <!-- SECCIÓN 2: Ubicación -->
-        <h5 class="section-title">Ubicación</h5>
-
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="fw-bold">Localidad:</label>
-            <div>{{ selectedSolicitud?.localidad || 'Sin especificar' }}</div>
-          </div>
-
-          <div class="col-6">
-            <label class="fw-bold">Ubicación exacta:</label>
-            <div>{{ selectedSolicitud?.ubicacion || 'Sin especificar' }}</div>
-          </div>
-        </div>
-
-        <!-- SECCIÓN 3: Evidencia -->
-        <h5 class="section-title">Evidencia</h5>
-
-        <div class="mb-3">
-          <label class="fw-bold">Archivo o Imagen:</label>
-          <div>
-            <ng-container *ngIf="selectedSolicitud?.evidencia; else noEvidencia">
-              <a [href]="selectedSolicitud?.evidencia" target="_blank" class="text-primary">
-                Ver evidencia
-              </a>
-            </ng-container>
-            <ng-template #noEvidencia>
-              Sin evidencia adjunta
-            </ng-template>
-          </div>
-        </div>
-
-        <!-- SECCIÓN 4: Fechas -->
-        <h5 class="section-title">Fechas</h5>
-
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="fw-bold">Fecha de creación:</label>
-            <div>{{ selectedSolicitud?.fechaCreacionSolicitud || 'No registrada' }}</div>
-          </div>
-
-          <div class="col-6">
-            <label class="fw-bold">Fecha programada:</label>
-            <div>{{ selectedSolicitud?.fechaProgramada || 'No definida' }}</div>
-          </div>
-        </div>
-
-        <!-- SECCIÓN 5: Recolección -->
-        <h5 class="section-title">Información de recolección</h5>
-
-        <div class="row mb-3">
-          <div class="col-6">
-            <label class="fw-bold">Aceptada por (Recolector ID):</label>
-            <div>{{ selectedSolicitud?.aceptadaPorId || 'Sin asignar' }}</div>
-          </div>
-
-          <div class="col-6">
-            <label class="fw-bold">Recolección ID:</label>
-            <div>{{ selectedSolicitud?.recoleccionId || 'Sin asignar' }}</div>
-          </div>
-        </div>
-
+  <!-- MODAL VER SOLICITUD -->
+  <app-modal #modalVerSolicitud [title]="'Detalles de la Solicitud'" [headerColor]="'#4f69d9'">
+    <div class="p-3 modal-perfil-container">
+      <div class="text-center mb-4">
+        <h3>Solicitud #{{ selectedSolicitud?.idSolicitud || '---' }}</h3>
+        <small class="text-muted">Usuario ID: {{ selectedSolicitud?.usuarioId }}</small>
       </div>
-    </app-modal>
 
-    <app-modal #modalEditarSolicitud
-           [title]="'Editar Solicitud'"
-           [headerColor]="'#ffc107'"
-           [isOpen]="mostrarModalEditar">
-  <div class="p-3">
-    <app-form-comp [formGroup]="formEditarSolicitud"
-                   [fields]="fieldsEditarSolicitud"
-                   [submitButtonText]="'Actualizar'"
-                   [submitButtonIcon]="'bi bi-save'"
-                   [submitButtonColor]="'custom-success-filled'"
-                   (submitForm)="actualizarSolicitud()"
-                   [showSubmitButton]="true">
-    </app-form-comp>
-  </div>
-  <ng-container modal-footer>
-    
-  </ng-container>
-</app-modal>
+      <!-- Información general -->
+      <h5 class="section-title">Información general</h5>
+      <div class="row mb-3">
+        <div class="col-6"><label class="fw-bold">Tipo de Residuo:</label> {{ selectedSolicitud?.tipoResiduo || 'Sin especificar' }}</div>
+        <div class="col-6"><label class="fw-bold">Cantidad:</label> {{ selectedSolicitud?.cantidad || 'Sin especificar' }}</div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-6"><label class="fw-bold">Estado:</label> {{ selectedSolicitud?.estadoPeticion || 'Pendiente' }}</div>
+        <div class="col-6"><label class="fw-bold">Descripción:</label> {{ selectedSolicitud?.descripcion || 'Sin descripción' }}</div>
+      </div>
 
-<!-- MODAL RECHAZO -->
-<app-modal 
-  #modalRechazo 
-  [title]="'Rechazar Solicitud'" 
-  [headerColor]="'#dc3545'"  
-  [isOpen]="mostrarModalRechazo">
+      <!-- Ubicación -->
+      <h5 class="section-title">Ubicación</h5>
+      <div class="row mb-3">
+        <div class="col-6"><label class="fw-bold">Localidad:</label> {{ selectedSolicitud?.localidad || 'Sin especificar' }}</div>
+        <div class="col-6"><label class="fw-bold">Ubicación exacta:</label> {{ selectedSolicitud?.ubicacion || 'Sin especificar' }}</div>
+      </div>
 
-  <div class="p-3">
-    <label class="form-label">Motivo:</label>
-    <select class="form-select" [(ngModel)]="selectedMotivo">
-      <option value="">Seleccione</option>
-      <option *ngFor="let m of motivosDisponibles" [value]="m">{{ m }}</option>
-    </select>
-  </div>
+      <!-- Evidencia (imagen) -->
+      <h5 class="section-title">Evidencia</h5>
+      <div class="mb-3">
+        <ng-container *ngIf="selectedSolicitud?.evidencia; else noEvidencia">
+          <div class="text-center">
+            <img [src]="selectedSolicitud?.evidencia" alt="Evidencia" class="img-fluid rounded" style="max-height: 300px; object-fit: contain;">
+            <div class="mt-2">
+              <a [href]="selectedSolicitud?.evidencia" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-box-arrow-up-right"></i> Ver en tamaño completo
+              </a>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #noEvidencia>
+          <p class="text-muted">Sin evidencia adjunta</p>
+        </ng-template>
+      </div>
 
-  <ng-container modal-footer>
-    <div class="d-flex justify-content-end gap-2">
-      <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled"
-        (click)="cerrarModalRechazo()">
-      </app-boton>
+      <!-- Fechas -->
+      <h5 class="section-title">Fechas</h5>
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="fw-bold">Fecha de creación:</label>
+          {{ (selectedSolicitud?.fechaCreacionSolicitud | date:'dd/MM/yyyy HH:mm') ?? 'No registrada' }}
+        </div>
+        <div class="col-6">
+          <label class="fw-bold">Fecha programada:</label>
+          {{ (selectedSolicitud?.fechaProgramada | date:'dd/MM/yyyy HH:mm') ?? 'No definida' }}
+        </div>
+      </div>
 
-      <app-boton texto="Confirmar" icono="bi bi-check-circle" color="custom-danger-filled"
-        (click)="confirmarRechazo()">
-      </app-boton>
+      <!-- Recolección -->
+      <h5 class="section-title">Información de recolección</h5>
+      <div class="row mb-3">
+        <div class="col-6"><label class="fw-bold">Aceptada por (Recolector ID):</label> {{ selectedSolicitud?.aceptadaPorId || 'Sin asignar' }}</div>
+        <div class="col-6"><label class="fw-bold">Recolección ID:</label> {{ selectedSolicitud?.recoleccionId || 'Sin asignar' }}</div>
+      </div>
     </div>
-  </ng-container>
+  </app-modal>
 
-</app-modal>
+  <!-- MODAL EDITAR SOLICITUD (con fecha/hora y previsualización) -->
+  <app-modal
+    #modalEditarSolicitud
+    [title]="'Editar Solicitud'"
+    [headerColor]="'#ffc107'"
+    [isOpen]="mostrarModalEditar"
+  >
+    <div class="p-3">
+      <!-- Formulario sin el campo fechaProgramada y sin botón -->
+      <app-form-comp
+        [formGroup]="formEditarSolicitud"
+        [fields]="fieldsEditarSolicitud"
+        [showSubmitButton]="false"
+      ></app-form-comp>
 
+      <!-- Campo fecha con hora manual -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">Fecha programada (con hora)</label>
+        <input
+          type="datetime-local"
+          class="form-control"
+          [(ngModel)]="fechaProgramadaValue"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+
+      <!-- Evidencia con previsualización -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">Evidencia</label>
+        <input
+          type="file"
+          class="form-control"
+          (change)="onEvidenciaSeleccionada($event)"
+          accept="image/*"
+        />
+
+        <!-- Imagen actual (si no hay nueva seleccionada) -->
+        <div *ngIf="evidenciaActualUrl && !nuevaEvidenciaFile" class="mt-2">
+          <p class="small text-muted">Imagen actual:</p>
+          <img
+            [src]="evidenciaActualUrl"
+            class="img-fluid rounded border"
+            style="max-height: 150px"
+            alt="Evidencia actual"
+          />
+        </div>
+
+        <!-- Previsualización de nueva imagen -->
+        <div *ngIf="nuevaEvidenciaFile && previewEvidenciaUrl" class="mt-2">
+          <p class="small text-success">Nueva imagen seleccionada:</p>
+          <img
+            [src]="previewEvidenciaUrl"
+            class="img-fluid rounded border"
+            style="max-height: 150px"
+            alt="Nueva evidencia"
+          />
+        </div>
+
+        <!-- Solo texto si no hay evidencia actual ni nueva -->
+        <div *ngIf="!evidenciaActualUrl && !nuevaEvidenciaFile" class="mt-2">
+          <p class="small text-muted">No hay evidencia adjunta.</p>
+        </div>
+      </div>
+
+      <!-- Botón de actualizar al final -->
+      <div class="d-flex justify-content-end mt-3">
+        <app-boton
+          texto="Actualizar"
+          icono="bi bi-save"
+          color="custom-success-filled"
+          (click)="actualizarSolicitud()"
+        ></app-boton>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- MODAL RECHAZO -->
+  <app-modal
+    #modalRechazo
+    [title]="'Rechazar Solicitud'"
+    [headerColor]="'#dc3545'"
+    [isOpen]="mostrarModalRechazo"
+  >
+    <div class="p-3">
+      <label class="form-label">Motivo:</label>
+      <select class="form-select" [(ngModel)]="selectedMotivo">
+        <option value="">Seleccione</option>
+        <option *ngFor="let m of motivosDisponibles" [value]="m">{{ m }}</option>
+      </select>
+    </div>
+    <ng-container modal-footer>
+      <div class="d-flex justify-content-end gap-2">
+        <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled" (click)="cerrarModalRechazo()"></app-boton>
+        <app-boton texto="Confirmar" icono="bi bi-check-circle" color="custom-danger-filled" (click)="confirmarRechazo()"></app-boton>
+      </div>
+    </ng-container>
+  </app-modal>
+
+  <!-- MODAL REPORTES -->
+  <app-modal #modalReportes [title]="'Reportes de usuarios'" [headerColor]="'#6c757d'">
+    <div class="mb-3">Seleccione el formato de reporte a descargar:</div>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <app-boton
+        *ngFor="let btn of botonesReporte"
+        [texto]="btn.texto"
+        [icono]="btn.icono"
+        [color]="btn.color"
+        (click)="btn.accion()"
+      ></app-boton>
+    </div>
+  </app-modal>
+</div>

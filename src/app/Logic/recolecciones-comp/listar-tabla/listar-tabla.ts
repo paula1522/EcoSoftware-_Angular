@@ -222,8 +222,9 @@ export class ListarTabla implements OnInit {
 
     const formValue = this.formEditarRecoleccion.value;
     const dto: Partial<ModeloRecoleccion> = {
-      fechaRecoleccion: formValue.fechaRecoleccion ? `${formValue.fechaRecoleccion}T00:00:00` : null,
-      observaciones: formValue.observaciones
+fechaRecoleccion: formValue.fechaRecoleccion
+  ? `${formValue.fechaRecoleccion}:00`
+  : undefined,      observaciones: formValue.observaciones
     };
 
     console.log('📤 ENVIANDO DTO:', dto);

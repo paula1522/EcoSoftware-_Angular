@@ -1,0 +1,27 @@
+<div *ngFor="let ruta of rutas" class="card-ruta">
+  <h3>{{ ruta.nombre }}</h3>
+  <p><b>Estado:</b> {{ ruta.estado }}</p>
+  <p><b>Distancia:</b> {{ ruta.distanciaTotal | number:'1.2-2' }} km</p>
+  <p><b>Tiempo:</b> {{ ruta.tiempoEstimado | number:'1.0-0' }} min</p>
+
+  <!-- SIGUIENTE PARADA -->
+  <div *ngIf="obtenerSiguienteParada(ruta) as siguiente">
+    <p style="color: green;">
+      Próxima parada: {{ siguiente.ordenParada }}
+    </p>
+    <button (click)="completarParada(siguiente, ruta)">
+      Completar parada
+    </button>
+  </div>
+
+  <!-- BOTONES RUTA -->
+  <button *ngIf="ruta.estado === 'PLANIFICADA'" (click)="iniciarRuta(ruta.idRuta)">
+    Iniciar
+  </button>
+  <button *ngIf="ruta.estado === 'EN_PROGRESO'" (click)="finalizarRuta(ruta.idRuta)">
+    Finalizar
+  </button>
+</div>
+
+<!-- MAPA -->
+<app-mapa-rutas [rutas]="rutas"></app-mapa-rutas>

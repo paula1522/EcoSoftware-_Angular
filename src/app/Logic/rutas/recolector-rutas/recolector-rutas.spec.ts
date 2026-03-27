@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Rutas } from './rutas';
+import { RecolectorRutas } from './recolector-rutas';
 
-describe('Rutas', () => {
-  let component: Rutas;
-  let fixture: ComponentFixture<Rutas>;
+describe('RecolectorRutas', () => {
+  let component: RecolectorRutas;
+  let fixture: ComponentFixture<RecolectorRutas>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Rutas]
+      imports: [RecolectorRutas]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Rutas);
+    fixture = TestBed.createComponent(RecolectorRutas);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

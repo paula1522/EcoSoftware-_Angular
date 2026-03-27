@@ -1,0 +1,17 @@
+<div class="mapa-container">
+  <div id="map-gestion" class="mapa"></div>
+
+  <div class="panel-lateral" *ngIf="ruta && modoGestion">
+    <h3>Gestión de paradas</h3>
+    <div class="paradas-lista">
+      <div *ngFor="let parada of ruta.paradas" class="parada-item" [class.completada]="parada.estado === EstadoRecoleccion.Completada">
+        <span class="orden">{{ parada.ordenParada }}</span>
+        <span class="estado">{{ parada.estado }}</span>
+        <div class="acciones" *ngIf="parada.estado !== EstadoRecoleccion.Completada">
+          <button (click)="completarParada(parada.recoleccionId)" class="btn-completar">✓ Completar</button>
+          <button (click)="marcarFallida(parada.recoleccionId)" class="btn-fallida">✗ Fallida</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

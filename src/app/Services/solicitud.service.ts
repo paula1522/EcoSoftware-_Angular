@@ -1,11 +1,16 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { ServiceModel } from '../Models/solicitudes.model';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import {
+  SolicitudRecoleccion,
+  EstadoPeticion,
+  Localidad,
+  TipoResiduo
+} from '../Models/solicitudes.model';
 
-// Interfaces para los datos de gráficos
+// Interfaces para gráficos (opcionales)
 export interface PendientesAceptadas {
   pendientes: number;
   aceptadas: number;
@@ -24,115 +29,163 @@ export interface SolicitudesPorLocalidad {
 @Injectable({
   providedIn: 'root'
 })
-export class Service {
-  
-  private api = 'http://localhost:8082/api/solicitudes';
-  solicitud: ServiceModel[] = [];
+export class SolicitudRecoleccionService {
+  private apiUrl = `https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes`;
 
   constructor(private http: HttpClient) {}
 
-   // CRUD
-   listar(): Observable<ServiceModel[]> {
-    return this.http.get<ServiceModel[]>(this.api);
+  // ================================
+  // CRUD
+  // ================================
+
+  /** Obtener todas las solicitudes */
+  listar(): Observable<SolicitudRecoleccion[]> {
+    return this.http.get<SolicitudRecoleccion[]>(this.apiUrl).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  crearSolicitud(solicitud: ServiceModel): Observable<ServiceModel> {
-  const token = localStorage.getItem('token') || '';
-  return this.http.post<ServiceModel>(this.api, solicitud, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-}
-
-  obtenerPorId(id: number): Observable<ServiceModel> {
-    return this.http.get<ServiceModel>(`${this.api}/${id}`);
+  /** Crear una nueva solicitud */
+  crearSolicitud(solicitud: SolicitudRecoleccion): Observable<SolicitudRecoleccion> {
+    return this.http.post<SolicitudRecoleccion>(this.apiUrl, solicitud).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  
-
-  actualizarSolicitud(id: number, solicitud: ServiceModel): Observable<ServiceModel> {
-    return this.http.put<ServiceModel>(`${this.api}/${id}`, solicitud);
+  /** Obtener solicitud por ID */
+  obtenerPorId(id: number): Observable<SolicitudRecoleccion> {
+    return this.http.get<SolicitudRecoleccion>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  eliminarSolicitud(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/${id}`);
+  /** Actualizar solicitud existente */
+  actualizarSolicitud(id: number, solicitud: SolicitudRecoleccion): Observable<SolicitudRecoleccion> {
+    return this.http.put<SolicitudRecoleccion>(`${this.apiUrl}/${id}`, solicitud).pipe(
+      catchError(this.handleError)
+    );
   }
 
+  /** Subir evidencia (imagen) */
   subirEvidencia(id: number, file: File): Observable<string> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.api}/${id}/evidencia`, formData, { responseType: 'text' });
+    return this.http.post(`${this.apiUrl}/${id}/evidencia`, formData, { responseType: 'text' }).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  cancelarSolicitud(id: number): Observable<ServiceModel> {
-    return this.http.post<ServiceModel>(`${this.api}/${id}/cancelar`, {});
+  /** Cancelar solicitud (solo si está pendiente) */
+  cancelarSolicitud(id: number): Observable<SolicitudRecoleccion> {
+    return this.http.post<SolicitudRecoleccion>(`${this.apiUrl}/${id}/cancelar`, {}).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  // Filtros y estados
-  listarPorEstado(estado: string): Observable<ServiceModel[]> {
-    return this.http.get<ServiceModel[]>(`${this.api}/estado/${estado}`);
+  // ================================
+  // Filtros
+  // ================================
+
+  /** Listar por estado */
+  listarPorEstado(estado: EstadoPeticion): Observable<SolicitudRecoleccion[]> {
+    return this.http.get<SolicitudRecoleccion[]>(`${this.apiUrl}/estado/${estado}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  listarPorUsuario(id: number): Observable<ServiceModel[]> {
-    return this.http.get<ServiceModel[]>(`${this.api}/usuario/${id}`);
+  /** Listar por usuario (ciudadano) */
+  listarPorUsuario(id: number): Observable<SolicitudRecoleccion[]> {
+    return this.http.get<SolicitudRecoleccion[]>(`${this.apiUrl}/usuario/${id}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  listarPorUsuarioYEstado(id: number, estado: string): Observable<ServiceModel[]> {
-    return this.http.get<ServiceModel[]>(`${this.api}/usuario/${id}/estado/${estado}`);
+  /** Listar por usuario y estado */
+  listarPorUsuarioYEstado(id: number, estado: EstadoPeticion): Observable<SolicitudRecoleccion[]> {
+    return this.http.get<SolicitudRecoleccion[]>(`${this.apiUrl}/usuario/${id}/estado/${estado}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  // Acciones
-  aceptarSolicitud(id: number): Observable<ServiceModel> {
-    return this.http.post<ServiceModel>(`${this.api}/${id}/aceptar`, {});
+  // ================================
+  // Acciones especiales
+  // ================================
+
+  /** Aceptar solicitud (rol recolector/admin) */
+  aceptarSolicitud(id: number): Observable<SolicitudRecoleccion> {
+    return this.http.post<SolicitudRecoleccion>(`${this.apiUrl}/${id}/aceptar`, {}).pipe(
+      catchError(this.handleError)
+    );
   }
 
-  rechazarSolicitud(id: number, motivo: string): Observable<ServiceModel> {
-    return this.http.post<ServiceModel>(
-      `${this.api}/${id}/rechazar`,
+  /** Rechazar solicitud con motivo */
+  rechazarSolicitud(id: number, motivo: string): Observable<SolicitudRecoleccion> {
+    return this.http.post<SolicitudRecoleccion>(
+      `${this.apiUrl}/${id}/rechazar`,
       null,
       { params: { motivo } }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  // ================================
+  // Exportaciones (Excel, PDF)
+  // ================================
+
+  exportarExcel(
+    estado?: EstadoPeticion,
+    localidad?: Localidad,
+    fechaDesde?: string,
+    fechaHasta?: string
+  ): Observable<Blob> {
+    let params = new HttpParams();
+    if (estado) params = params.set('estado', estado);
+    if (localidad) params = params.set('localidad', localidad);
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+
+    return this.http.get(`${this.apiUrl}/export/excel`, { params, responseType: 'blob' }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  exportarPDF(
+    estado?: EstadoPeticion,
+    localidad?: Localidad,
+    fechaDesde?: string,
+    fechaHasta?: string
+  ): Observable<Blob> {
+    let params = new HttpParams();
+    if (estado) params = params.set('estado', estado);
+    if (localidad) params = params.set('localidad', localidad);
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+
+    return this.http.get(`${this.apiUrl}/export/pdf`, { params, responseType: 'blob' }).pipe(
+      catchError(this.handleError)
     );
   }
 
   
 
-  // Exportaciones
-  exportarExcel(estado?: string, localidad?: string, fechaDesde?: string, fechaHasta?: string): Observable<Blob> {
-    let params = new HttpParams();
-    if (estado) params = params.set('estado', estado);
-    if (localidad) params = params.set('localidad', localidad);
-    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
-    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
-
-    return this.http.get(`${this.api}/export/excel`, { params, responseType: 'blob' });
-  }
-
-  exportarPDF(estado?: string, localidad?: string, fechaDesde?: string, fechaHasta?: string): Observable<Blob> {
-    let params = new HttpParams();
-    if (estado) params = params.set('estado', estado);
-    if (localidad) params = params.set('localidad', localidad);
-    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
-    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
-
-    return this.http.get(`${this.api}/export/pdf`, { params, responseType: 'blob' });
-  }
+ 
 
   // ================================
   // DEBUGGING: Obtener todas las solicitudes para análisis
   // ================================
 
-  obtenerTodasLasSolicitudes(): Observable<ServiceModel[]> {
+  obtenerTodasLasSolicitudes(): Observable<SolicitudRecoleccion[]> {
     return this.listar();
   }
 
 
   getPendientesYAceptadas(): Observable<PendientesAceptadas> {
-    return this.http.get<PendientesAceptadas>(`${this.api}/graficos/pendientes-aceptadas`);
+    return this.http.get<PendientesAceptadas>(`${this.apiUrl}/graficos/pendientes-aceptadas`);
   }
 
   getRechazadasPorMotivo(): Observable<RechazadasPorMotivo[]> {
-    return this.http.get<any[]>(`${this.api}/graficos/rechazadas-por-motivo`).pipe(
+    return this.http.get<any[]>(`${this.apiUrl}/graficos/rechazadas-por-motivo`).pipe(
       map(data => data.map(item => ({
         motivo: item[0],
         cantidad: item[1]
@@ -141,7 +194,7 @@ export class Service {
   }
 
   getSolicitudesPorLocalidad(): Observable<SolicitudesPorLocalidad[]> {
-    return this.http.get<any[]>(`${this.api}/graficos/solicitudes-por-localidad`).pipe(
+    return this.http.get<any[]>(`${this.apiUrl}/graficos/solicitudes-por-localidad`).pipe(
       map(data => data.map(item => ({
         localidad: item[0],
         cantidad: item[1]
@@ -151,7 +204,7 @@ export class Service {
 
  getSolicitudesPorLocalidadFactory(): Observable<SolicitudesPorLocalidad[]> {
   // Intenta primero el endpoint original, luego devuelve datos de prueba como fallback
-  return this.http.get<{ [key: string]: number }>(`${this.api}/graficas/localidades`).pipe(
+  return this.http.get<{ [key: string]: number }>(`${this.apiUrl}/graficas/localidades`).pipe(
     map(res => {
       // res "respuesta"= { "Suba": 2, "Kennedy": 2, ... } Convertir a array de objetos
       return Object.keys(res).map(localidad => ({
@@ -174,4 +227,19 @@ private getMockSolicitudesPorLocalidad(): SolicitudesPorLocalidad[] {
 }
 
 
+ // ================================
+  // Manejo de errores
+  // ================================
+  private handleError(error: any) {
+    console.error('Error en solicitud HTTP:', error);
+    let errorMsg = 'Ocurrió un error. Intenta nuevamente.';
+    if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente
+      errorMsg = error.error.message;
+    } else {
+      // Error del backend
+      errorMsg = error.error?.message || `Error ${error.status}: ${error.statusText}`;
+    }
+    return throwError(() => new Error(errorMsg));
+  }
 }
