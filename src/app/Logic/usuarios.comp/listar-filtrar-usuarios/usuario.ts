@@ -179,12 +179,17 @@ export class Usuario implements OnInit {
     }
   ];
 
-  accionesEliminar = [
+  get accionesEliminar() {
+  if (!this.usuarioSeleccionado) return [];
+
+  const esActivo = this.usuarioSeleccionado.estado;
+
+  return [
     {
-      texto: 'Inactivar',
-      icono: 'bi-pause-circle',
-      color: 'warning',
-      accion: () => this.inactivarUsuario()
+      texto: esActivo ? 'Inactivar' : 'Activar',
+      icono: esActivo ? 'bi-pause-circle' : 'bi-play-circle',
+      color: esActivo ? 'warning' : 'success',
+      accion: () => this.toggleEstadoUsuario()
     },
     {
       texto: 'Eliminar',
@@ -193,6 +198,8 @@ export class Usuario implements OnInit {
       accion: () => this.confirmarEliminacionFisica()
     }
   ];
+}
+
 
   accionesEliminarFisico = [
     {
@@ -295,20 +302,22 @@ export class Usuario implements OnInit {
     });
   }
 
-  inactivarUsuario(): void {
-    if (!this.usuarioSeleccionado?.idUsuario) return;
+  toggleEstadoUsuario(): void {
+  if (!this.usuarioSeleccionado?.idUsuario) return;
 
-    this.usuarioService.eliminarLogico(this.usuarioSeleccionado.idUsuario).subscribe({
-      next: () => {
-        this.mostrarAlertaGlobal('Usuario inactivado correctamente', 'success');
-        this.cargarUsuarios();
-        this.cerrarModalEliminar();
-      },
-      error: () => {
-        this.mostrarAlertaGlobal('Error al inactivar el usuario', 'error');
-      }
-    });
-  }
+  this.usuarioService.eliminarLogico(this.usuarioSeleccionado.idUsuario).subscribe({
+    next: () => {
+      const accion = this.usuarioSeleccionado?.estado ? 'inactivado' : 'activado';
+      this.mostrarAlertaGlobal(`Usuario ${accion} correctamente`, 'success');
+      this.cargarUsuarios();
+      this.cerrarModalEliminar();
+    },
+    error: () => {
+      this.mostrarAlertaGlobal('Error al cambiar el estado del usuario', 'error');
+    }
+  });
+}
+
 
   // ===============================
   // USUARIOS

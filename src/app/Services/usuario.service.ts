@@ -144,10 +144,10 @@ export class UsuarioService {
 
   /** Eliminación lógica */
   eliminarLogico(id: number): Observable<string> {
-    return this.http.patch<string>(`${this.apiUrlSpringboot}/eliminar/${id}`, null, {
-      responseType: 'text' as 'json'
-    }).pipe(catchError(err => throwError(() => err)));
-  }
+  return this.http.patch<string>(`${this.apiUrlSpringboot}/eliminar/${id}`, null, {
+    responseType: 'text' as 'json'
+  }).pipe(catchError(err => throwError(() => err)));
+}
 
   // METODO ANTIGUO Y FUNCIONAL
 // cambiarEstado(id: number, estado: boolean) {

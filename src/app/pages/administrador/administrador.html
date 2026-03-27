@@ -24,7 +24,7 @@
 
       <app-titulo titulo="Panel de Control" subtitulo="Resumen de análisis y métricas de la plataforma"
         iconoBoton="bi bi-bell" textoBoton="Pendientes" colorBoton="outline-custom-success"
-        hoverColorBoton="custom-success-filled">
+        hoverColorBoton="custom-success-filled" [mostrarBoton]="false">
       </app-titulo>
 
       <!-- Auth status removed -->
@@ -134,7 +134,7 @@
     </ng-container>
     <ng-container *ngIf="vistaActual === 'editar-perfil'">
       <app-titulo titulo="Editar Perfil" subtitulo="Actualiza tu información personal" iconoBoton="bi bi-plus"
-        colorBoton="outline-custom-success">
+        colorBoton="outline-custom-success" [mostrarBoton]="false">
 
       </app-titulo>
       <app-editar-usuario></app-editar-usuario>

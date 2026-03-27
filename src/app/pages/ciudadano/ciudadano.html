@@ -20,7 +20,8 @@
         subtitulo="Toda la información relevante de un vistazo"
         iconoBoton="bi bi-bell"
         colorBoton="outline-custom-success"
-        hoverColorBoton="custom-success-filled">
+        hoverColorBoton="custom-success-filled"
+        [mostrarBoton]="false">
       </app-titulo>
 
       <app-dashboard-ciudadano></app-dashboard-ciudadano>
@@ -79,7 +80,8 @@
     <ng-container *ngIf="vistaActual === 'capacitaciones'">
       <app-titulo
         titulo="Capacitaciones"
-        subtitulo="Consulta tus capacitaciones">
+        subtitulo="Consulta tus capacitaciones"
+        [mostrarBoton]="false">
       </app-titulo>
 
       <app-card-inscripcion></app-card-inscripcion>
@@ -89,7 +91,8 @@
     <ng-container *ngIf="vistaActual === 'noticias'">
       <app-titulo
         titulo="Noticias"
-        subtitulo="Entérate de las últimas novedades">
+        subtitulo="Entérate de las últimas novedades"
+        [mostrarBoton]="false">
       </app-titulo>
 
       <cards-noticias></cards-noticias>
