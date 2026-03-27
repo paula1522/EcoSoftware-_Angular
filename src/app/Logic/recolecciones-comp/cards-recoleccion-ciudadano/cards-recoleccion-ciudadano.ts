@@ -141,10 +141,6 @@ export class CardsRecoleccionCiudadano implements OnInit {
         return estado === EstadoRecoleccion.Pendiente;
       case 'cancelar':
         return estado === EstadoRecoleccion.Pendiente;
-      case 'completar':
-        return estado === EstadoRecoleccion.En_Progreso;
-      case 'fallida':
-        return estado === EstadoRecoleccion.En_Progreso;
       case 'ver':
         return true;
       default:

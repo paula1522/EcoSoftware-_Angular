@@ -7,6 +7,9 @@ import { EstadoRuta, RutaRecoleccion, CrearRutaDTO } from '../Models/ruta-recole
   providedIn: 'root'
 })
 export class RutaRecoleccionService {
+  cancelarRuta(idRuta: number): any {
+    throw new Error('Method not implemented.');
+  }
 
   private readonly URL = 'http://localhost:8082/api/rutas';
 
