@@ -1,109 +1,163 @@
 <div class="container-cards">
 
-  <div class="row" *ngIf="recolecciones.length > 0; else sinRecolecciones">
-    <div class="col-12 mb-4" *ngFor="let reco of recolecciones">
-      <div class="solicitud-card">
-        <div class="card-accent"></div>
-        <div class="card-content">
+  <!-- FILTROS -->
+  <div class="filtros-container p-3">
+    <div class="d-flex flex-wrap align-items-end gap-3">
 
-          <!-- Header -->
-          <div class="card-header-row">
-            <div class="solicitud-id">
-              <div class="icon-wrapper">
-                <i class="bi bi-truck"></i>
-              </div>
-              <div>
-                <p class="id-text">#REC-{{ reco.idRecoleccion }}</p>
-                <p class="id-subtext">{{ reco.fechaCreacionRecoleccion | date:'dd MMM, yyyy' }}</p>
-              </div>
-            </div>
-            <span class="status-badge" 
-                  [ngClass]="{
-                    'status-pendiente': reco.estado === 'Pendiente',
-                    'status-progreso': reco.estado === 'En_Progreso',
-                    'status-fallida': reco.estado === 'Fallida',
-                    'status-cancelada': reco.estado === 'Cancelada',
-                    'status-aceptada': reco.estado === 'Completada'
-                  }">
-              <i class="bi" [ngClass]="{
-                'bi-clock': reco.estado === 'Pendiente',
-                'bi-truck': reco.estado === 'En_Progreso',
-                'bi-x-circle': reco.estado === 'Fallida',
-                'bi-x-square': reco.estado === 'Cancelada',
-                'bi-check-circle': reco.estado === 'Completada'
-              }"></i>
-              {{ reco.estado }}
-            </span>
-          </div>
+      <!-- Estado -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Estado:</label>
+        <select class="form-select" [(ngModel)]="estadoSeleccionado" (change)="paginaActual=1">
+          <option value="">Todos</option>
+          <option *ngFor="let e of EstadoRecoleccion | keyvalue" [value]="e.value">{{ e.value }}</option>
+        </select>
+      </div>
 
-          <!-- Info Grid -->
-          <div class="card-info-grid mt-2">
+      <!-- Fecha Desde -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Fecha Programada Desde:</label>
+        <input type="date" class="form-control" [(ngModel)]="fechaDesde" (change)="paginaActual=1" />
+      </div>
 
-            <div class="info-box">
-              <div class="info-icon-circle">
-                <i class="bi bi-calendar-week"></i>
-              </div>
-              <div class="info-text">
-                <div class="info-label">Fecha de Recolección</div>
-                <div class="info-value">{{ reco.fechaRecoleccion | date:'dd MMM - HH:mm' }}</div>
-              </div>
-            </div>
+      <!-- Fecha Hasta -->
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Fecha Programada Hasta:</label>
+        <input type="date" class="form-control" [(ngModel)]="fechaHasta" (change)="paginaActual=1" />
+      </div>
 
-            <div class="info-box" *ngIf="reco.observaciones">
-              <div class="info-icon-circle">
-                <i class="bi bi-chat-dots"></i>
-              </div>
-              <div class="info-text">
-                <div class="info-label">Observaciones</div>
-                <div class="info-value">{{ reco.observaciones }}</div>
-              </div>
-            </div>
+      <!-- Orden -->
+      <div class="flex-grow-1" style="min-width: 120px;">
+        <label class="form-label">Ordenar por fecha:</label>
+        <select class="form-select" [(ngModel)]="ordenFecha" (change)="paginaActual=1">
+          <option value="desc">Más recientes</option>
+          <option value="asc">Más antiguos</option>
+        </select>
+      </div>
 
-            <div class="info-box" *ngIf="reco.evidencia">
-              <div class="info-icon-circle">
-                <i class="bi bi-image"></i>
-              </div>
-              <div class="info-text">
-                <div class="info-label">Evidencia</div>
-                <div class="info-value">{{ reco.evidencia }}</div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Footer con botones -->
-          <div class="card-footer-row text-right ">
-    <div class="action-btns" *ngIf="mostrarBotones(reco.estado)">
-      <app-boton
-        icono="bi-pencil"
-        color="pastel-success"
-        [tipo]="'button'"
-        (click)="abrirModalEdicion(reco)"
-        title="Editar">
-      </app-boton>
-      <app-boton
-        icono="bi-eye"
-        color="pastel-info"
-        [tipo]="'button'"
-        (click)="abrirModalVerRecoleccion(reco)"
-        title="Ver detalles">
-      </app-boton>
-      <app-boton
-        icono="bi-check-circle"
-        color="pastel-success"
-        [tipo]="'button'"
-        (click)="aceptarRecoleccion(reco.idRecoleccion)"
-        title="Completar">
-      </app-boton>
-      <app-boton
-        icono="bi-x-circle"
-        color="pastel-danger"
-        [tipo]="'button'"
-        (click)="cancelarRecoleccion(reco.idRecoleccion)"
-        title="Cancelar">
-      </app-boton>
+      <!-- Botones de filtro -->
+      <div class="botones-wrapper d-flex gap-2 ms-auto">
+        <app-boton icono="bi bi-funnel" color="custom-success-filled" (click)="paginaActual=1"></app-boton>
+        <app-boton icono="bi bi-x-circle" color="custom-gray-filled" (click)="limpiarFiltros()"></app-boton>
+      </div>
     </div>
   </div>
+
+  <!-- SPINNER DE CARGA -->
+  <div *ngIf="cargando" class="text-center p-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- MENSAJE DE ERROR -->
+  <div *ngIf="error && !cargando" class="alert alert-danger m-3">
+    {{ error }}
+  </div>
+
+  <!-- GRID DE TARJETAS -->
+  <div *ngIf="!cargando && recoleccionesPaginadas.length > 0; else sinRecolecciones" class="cards-grid">
+    <div class="solicitud-card" *ngFor="let reco of recoleccionesPaginadas">
+      <div class="card-accent"></div>
+      <div class="card-content">
+
+        <!-- CABECERA -->
+        <div class="card-header-row">
+          <div class="solicitud-id">
+            <div class="icon-wrapper"><i class="bi bi-truck"></i></div>
+            <div>
+              <p class="id-text">#REC-{{ reco.idRecoleccion }}</p>
+              <p class="id-subtext">{{ reco.fechaCreacionRecoleccion | date:'dd MMM, yyyy' }}</p>
+            </div>
+          </div>
+          <span class="status-badge" [ngClass]="{
+            'status-pendiente': reco.estado === 'Pendiente',
+            'status-progreso': reco.estado === 'En_Progreso',
+            'status-aceptada': reco.estado === 'Completada',
+            'status-fallida': reco.estado === 'Fallida',
+            'status-cancelada': reco.estado === 'Cancelada'
+          }">
+            <i class="bi" [ngClass]="{
+              'bi-clock': reco.estado === 'Pendiente',
+              'bi-truck': reco.estado === 'En_Progreso',
+              'bi-check-circle': reco.estado === 'Completada',
+              'bi-x-circle': reco.estado === 'Fallida',
+              'bi-slash-circle': reco.estado === 'Cancelada'
+            }"></i>
+            {{ reco.estado }}
+          </span>
+        </div>
+
+        <!-- INFO -->
+        <div class="card-info-grid">
+          <div class="info-box">
+            <div class="info-icon-circle"><i class="bi bi-calendar-week"></i></div>
+            <div class="info-text">
+              <div class="info-label">Fecha Programada</div>
+              <div class="info-value">{{ reco.fechaRecoleccion | date:'dd MMM - HH:mm' }}</div>
+            </div>
+          </div>
+          <div class="info-box">
+            <div class="info-icon-circle"><i class="bi bi-chat-dots"></i></div>
+            <div class="info-text">
+              <div class="info-label">Observaciones</div>
+              <div class="info-value">{{ reco.observaciones || 'Sin observaciones' }}</div>
+            </div>
+          </div>
+          <div class="info-box" *ngIf="reco.evidencia">
+            <div class="info-icon-circle"><i class="bi bi-image"></i></div>
+            <div class="info-text">
+              <div class="info-label">Evidencia</div>
+              <div class="info-value">{{ reco.evidencia }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER CON ACCIONES -->
+        <div class="card-footer-row">
+          <div class="material-tag">{{ reco.solicitudId ? 'Solicitud #'+reco.solicitudId : 'Sin solicitud' }}</div>
+          <div class="action-btns">
+            <!-- Iniciar (Pendiente) -->
+            <app-boton *ngIf="accionVisible('iniciar', reco.estado)"
+                       icono="bi bi-play-fill"
+                       color="pastel-success"
+                       (click)="abrirModalConfirmacion('iniciar', reco)"
+                       title="Iniciar recolección">
+            </app-boton>
+            <!-- Completar (En_Progreso) -->
+            <app-boton *ngIf="accionVisible('completar', reco.estado)"
+                       icono="bi bi-check-circle"
+                       color="pastel-success"
+                       (click)="abrirModalConfirmacion('completar', reco)"
+                       title="Completar recolección">
+            </app-boton>
+            <!-- Fallida (En_Progreso) -->
+            <app-boton *ngIf="accionVisible('fallida', reco.estado)"
+                       icono="bi bi-exclamation-triangle"
+                       color="pastel-warning"
+                       (click)="abrirModalConfirmacion('fallida', reco)"
+                       title="Marcar como fallida">
+            </app-boton>
+            <!-- Cancelar (Pendiente) -->
+            <app-boton *ngIf="accionVisible('cancelar', reco.estado)"
+                       icono="bi bi-x-circle"
+                       color="pastel-danger"
+                       (click)="abrirModalConfirmacion('cancelar', reco)"
+                       title="Cancelar recolección">
+            </app-boton>
+            <!-- Editar (Pendiente o En_Progreso) -->
+            <app-boton *ngIf="accionVisible('editar', reco.estado)"
+                       icono="bi bi-pencil"
+                       color="pastel-info"
+                       (click)="abrirModalEditar(reco)"
+                       title="Editar">
+            </app-boton>
+            <!-- Ver (siempre) -->
+            <app-boton icono="bi bi-eye"
+                       color="pastel-info"
+                       (click)="abrirModalVer(reco)"
+                       title="Ver detalles">
+            </app-boton>
+          </div>
         </div>
       </div>
     </div>
@@ -117,82 +171,133 @@
     </div>
   </ng-template>
 
-  <!-- MODAL VER DETALLES -->
-<app-modal #modalVerRecoleccion
+  <!-- PAGINACIÓN -->
+  <div class="pag" *ngIf="totalPaginas > 1">
+    <button class="pg" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">‹</button>
+    <ng-container *ngFor="let p of [].constructor(totalPaginas); let i = index">
+      <button class="pg" [class.on]="paginaActual === i + 1" (click)="cambiarPagina(i + 1)">{{ i + 1 }}</button>
+    </ng-container>
+    <button class="pg" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">›</button>
+  </div>
+</div>
+
+<!-- ======================= MODAL VER ======================= -->
+<app-modal #modalVer
            [title]="'Detalles de la Recolección'"
            [headerColor]="'#4f69d9'"
            [isOpen]="false">
-  <div class="p-3 modal-perfil-container">
+  <div *ngIf="recoleccionVer" class="p-3 modal-perfil-container">
     <div class="text-center mb-4">
-      <h3>Recolección #{{ recoleccionSeleccionada?.idRecoleccion || '---' }}</h3>
-      <small class="text-muted">Solicitud ID: {{ recoleccionSeleccionada?.solicitudId || '---' }}</small>
+      <h3>Recolección #{{ recoleccionVer.idRecoleccion }}</h3>
+      <small class="text-muted">Solicitud ID: {{ recoleccionVer.solicitudId || 'Sin solicitud' }}</small>
     </div>
+
     <h5 class="section-title">Información general</h5>
     <div class="row mb-3">
       <div class="col-6">
         <label class="fw-bold">Estado:</label>
-        <div>{{ recoleccionSeleccionada?.estado || 'Pendiente' }}</div>
+        <div>{{ recoleccionVer.estado }}</div>
       </div>
       <div class="col-6">
-        <label class="fw-bold">Observaciones:</label>
-        <div>{{ recoleccionSeleccionada?.observaciones || 'Sin observaciones' }}</div>
+        <label class="fw-bold">Recolector ID:</label>
+        <div>{{ recoleccionVer.recolectorId }}</div>
       </div>
     </div>
+    <div class="row mb-3">
+      <div class="col-6">
+        <label class="fw-bold">Ruta ID:</label>
+        <div>{{ recoleccionVer.rutaId || 'Sin asignar' }}</div>
+      </div>
+      <div class="col-6">
+        <label class="fw-bold">Orden de parada:</label>
+        <div>{{ recoleccionVer.ordenParada || 'Sin definir' }}</div>
+      </div>
+    </div>
+
     <h5 class="section-title">Fechas</h5>
     <div class="row mb-3">
       <div class="col-6">
         <label class="fw-bold">Fecha de creación:</label>
-        <div>{{ recoleccionSeleccionada?.fechaCreacionRecoleccion || 'No registrada' }}</div>
+        <div>{{ recoleccionVer.fechaCreacionRecoleccion | date:'dd/MM/yyyy HH:mm' }}</div>
       </div>
       <div class="col-6">
         <label class="fw-bold">Fecha programada:</label>
-        <div>{{ recoleccionSeleccionada?.fechaRecoleccion || 'No definida' }}</div>
+        <div>{{ recoleccionVer.fechaRecoleccion | date:'dd/MM/yyyy HH:mm' }}</div>
       </div>
     </div>
+
+    <h5 class="section-title">Observaciones</h5>
+    <div class="mb-3">{{ recoleccionVer.observaciones || 'Sin observaciones' }}</div>
+
     <h5 class="section-title">Evidencia</h5>
     <div class="mb-3">
-      <ng-container *ngIf="recoleccionSeleccionada?.evidencia; else noEvidencia">
-        <a [href]="recoleccionSeleccionada?.evidencia" target="_blank" class="text-primary">Ver evidencia</a>
+      <ng-container *ngIf="recoleccionVer.evidencia; else noEvidencia">
+        <a [href]="recoleccionVer.evidencia" target="_blank" class="text-primary">Ver evidencia</a>
       </ng-container>
       <ng-template #noEvidencia>Sin evidencia adjunta</ng-template>
-    </div>
-    <h5 class="section-title">Recolección</h5>
-    <div class="row mb-3">
-      <div class="col-6">
-        <label class="fw-bold">Recolector ID:</label>
-        <div>{{ recoleccionSeleccionada?.recolectorId || 'Sin asignar' }}</div>
-      </div>
-      <div class="col-6">
-        <label class="fw-bold">Ruta ID:</label>
-        <div>{{ recoleccionSeleccionada?.rutaId || 'Sin asignar' }}</div>
-      </div>
-    </div>
-    <div class="d-flex justify-content-end">
-      <app-boton texto="Cerrar" color="secondary" (click)="cerrarModalVerRecoleccion()"></app-boton>
     </div>
   </div>
 </app-modal>
 
-<!-- MODAL EDICIÓN -->
-<app-modal #modalEdicion
+<!-- ======================= MODAL EDITAR ======================= -->
+<app-modal #modalEditar
            [title]="'Editar Recolección'"
-           [headerColor]="'#4f69d9'"
+           [headerColor]="'#ffc107'"
            [isOpen]="false">
   <div class="p-3">
+    <app-form-comp
+      *ngIf="recoleccionSeleccionada"
+      [formGroup]="formEditarRecoleccion"
+      [fields]="fieldsEditarRecoleccion"
+      [showSubmitButton]="false"
+    ></app-form-comp>
+
+    <!-- Campo fecha con hora -->
     <div class="mb-3">
-      <label class="form-label fw-bold">Estado</label>
-      <select class="form-select" [(ngModel)]="estadoEditable">
-        <option *ngFor="let estado of (EstadoRecoleccion | keyvalue)" [value]="estado.value">{{ estado.value }}</option>
-      </select>
+      <label class="form-label fw-bold">Fecha programada (con hora)</label>
+      <input type="datetime-local" class="form-control" [(ngModel)]="fechaProgramadaValue" [ngModelOptions]="{ standalone: true }" />
     </div>
+
+    <!-- Evidencia con previsualización -->
     <div class="mb-3">
-      <label class="form-label fw-bold">Fecha Programada</label>
-      <input type="datetime-local" class="form-control" [(ngModel)]="fechaProgramadaEditable">
+      <label class="form-label fw-bold">Evidencia</label>
+      <input type="file" class="form-control" (change)="onEvidenciaSeleccionada($event)" accept="image/*" />
+
+      <div *ngIf="evidenciaActualUrl && !nuevaEvidenciaFile" class="mt-2">
+        <p class="small text-muted">Imagen actual:</p>
+        <img [src]="evidenciaActualUrl" class="img-fluid rounded border" style="max-height: 150px" alt="Evidencia actual" />
+      </div>
+
+      <div *ngIf="nuevaEvidenciaFile && previewEvidenciaUrl" class="mt-2">
+        <p class="small text-success">Nueva imagen seleccionada:</p>
+        <img [src]="previewEvidenciaUrl" class="img-fluid rounded border" style="max-height: 150px" alt="Nueva evidencia" />
+      </div>
+
+      <div *ngIf="!evidenciaActualUrl && !nuevaEvidenciaFile" class="mt-2">
+        <p class="small text-muted">No hay evidencia adjunta.</p>
+      </div>
     </div>
-    <div class="d-flex justify-content-end gap-2">
-      <app-boton texto="Cancelar" color="secondary" (click)="cerrarModalEdicion()"></app-boton>
-      <app-boton texto="Guardar" color="success" (click)="guardarEdicion()"></app-boton>
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <app-boton texto="Cancelar" icono="bi bi-x-circle" color="custom-gray-filled" (click)="cerrarModalEditar()"></app-boton>
+      <app-boton texto="Guardar cambios" icono="bi bi-save" color="custom-success-filled" (click)="guardarEdicion()"></app-boton>
     </div>
   </div>
 </app-modal>
-</div>
+
+<!-- ======================= MODAL CONFIRMACIÓN ======================= -->
+<app-modal [isOpen]="modalConfirmacionAbierto"
+           (closed)="cerrarModalConfirmacion()"
+           [title]="'Confirmar acción'"
+           [headerColor]="'#dc3545'">
+  <div class="p-3">
+    <p *ngIf="accionConfirmacion === 'iniciar'">¿Iniciar la recolección <strong>#REC-{{ recoleccionAccion?.idRecoleccion }}</strong>? Se marcará como "En Progreso".</p>
+    <p *ngIf="accionConfirmacion === 'completar'">¿Completar la recolección <strong>#REC-{{ recoleccionAccion?.idRecoleccion }}</strong>? Se marcará como "Completada".</p>
+    <p *ngIf="accionConfirmacion === 'fallida'">¿Marcar como fallida la recolección <strong>#REC-{{ recoleccionAccion?.idRecoleccion }}</strong>?</p>
+    <p *ngIf="accionConfirmacion === 'cancelar'">¿Cancelar la recolección <strong>#REC-{{ recoleccionAccion?.idRecoleccion }}</strong>?</p>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <app-boton texto="No" color="secondary" (click)="cerrarModalConfirmacion()"></app-boton>
+      <app-boton texto="Sí" color="danger" (click)="ejecutarAccion()"></app-boton>
+    </div>
+  </div>
+</app-modal>

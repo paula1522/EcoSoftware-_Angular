@@ -34,9 +34,29 @@ export interface Modulo{
   descripcion: string;
   archivoPdfUrl?: string | null;
   capacitacionId: number;        // Relación con Capacitacion
+  evaluacion?: ModuloEvaluacion | null;
 }
 
 export interface ModuloDTO extends Modulo {}
+
+export interface ModuloEvaluacion {
+  titulo: string;
+  preguntas: ModuloPregunta[];
+  progresoUsuarios?: Record<string, ProgresoUsuarioEvaluacion>;
+}
+
+export interface ModuloPregunta {
+  texto: string;
+  tipo: 'opcion_multiple';
+  opciones: string[];
+  respuestaCorrecta: string;
+}
+
+export interface ProgresoUsuarioEvaluacion {
+  puntaje: number;
+  completado100: boolean;
+  ultimaActualizacion: string;
+}
 
 export interface Evaluacion {
   id?: number;
@@ -45,9 +65,23 @@ export interface Evaluacion {
   puntajeMinimo: number;
   activa: boolean;
   moduloId: number;
+  tipo?: 'manual' | 'multiple';
+  preguntas?: EvaluacionPregunta[];
 }
 
 export interface EvaluacionDTO extends Evaluacion {}
+
+export interface EvaluacionPregunta {
+  id?: string;
+  enunciado: string;
+  opciones: EvaluacionOpcion[];
+}
+
+export interface EvaluacionOpcion {
+  id?: string;
+  texto: string;
+  esCorrecta?: boolean;
+}
 
 export interface IntentoEvaluacion {
   id?: number;

@@ -69,13 +69,9 @@
 
       <!-- FILA DE BOTONES DE REPORTES -->
       <div class="reportes-buttons-row mb-4">
-        <button class="btn btn-success me-2" (click)="generarReporteUsuarios()" [disabled]="cargandoReporte">
+        <button class="btn btn-success" (click)="generarReporteGeneral()" [disabled]="cargandoReporte">
           <i class="bi bi-file-pdf me-2"></i>
-          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte de Usuarios' }}
-        </button>
-        <button class="btn btn-success" (click)="generarReporteSolicitudes()" [disabled]="cargandoReporte">
-          <i class="bi bi-file-pdf me-2"></i>
-          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte de Solicitudes' }}
+          {{ cargandoReporte ? 'Generando reporte...' : 'Descargar Reporte General' }}
         </button>
       </div>
 
@@ -85,16 +81,28 @@
           <header class="analytics-card-header">
             <h6 class="card-title">Usuarios pendientes</h6>
           </header>
-          <div class="chart-container" #estadoGrafico>
+          <div class="chart-container chart-container-donut">
             <div class="alert alert-warning w-100 text-center" *ngIf="usuariosPendientesError">
               {{ usuariosPendientesError }}
             </div>
-            <div class="text-center w-100" *ngIf="!usuariosPendientesError">
-              <div style="font-size: 44px; font-weight: 800; line-height: 1; color: #0b3d1a;">
-                {{ formatMetric(totalUsuariosPendientes) }}
+            <div class="donut-card" *ngIf="!usuariosPendientesError">
+              <div
+                #pendientesGraficoContainer
+                class="donut-card-chart donut-card-chart-clickable"
+                role="button"
+                tabindex="0"
+                aria-label="Ir a usuarios pendientes"
+                (click)="irAUsuariosPendientes()"
+                (keydown.enter)="irAUsuariosPendientes()"
+                (keydown.space)="irAUsuariosPendientes()">
+                <canvas #usuariosPendientesChart></canvas>
+                <div class="donut-card-center">
+                  <strong>{{ formatMetric(totalUsuariosPendientes) }}</strong>
+                  <span>Pendientes</span>
+                </div>
               </div>
-              <div style="margin-top: 8px; color: #365241; font-weight: 600;">
-                Requieren validación administrativa
+              <div class="donut-card-copy">
+                <p>Requieren validación administrativa</p>
               </div>
             </div>
           </div>
@@ -112,7 +120,7 @@
 
       <!-- GRÁFICA: Solicitudes por Localidad (ancho completo) -->
       <div class="analytics-grid mt-4">
-        <div class="analytics-card analytics-card-emerald" style="grid-column: 1 / -1;">
+        <div class="analytics-card analytics-card-solicitudes" style="grid-column: 1 / -1;">
           <header class="analytics-card-header">
             <h6 class="card-title">Solicitudes por Localidad</h6>
           </header>
@@ -316,7 +324,7 @@
 
       <div class="puntos-admin-list mt-3">
         <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
-          [mostrarAcciones]="true" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
+          [mostrarAcciones]="true" (descargar)="generarReportePuntos()" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
           (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
         </app-tabla>
       </div>
@@ -389,11 +397,18 @@
       <div class="contenedor-toggle">
 
         <ng-container *ngIf="capacitaciones">
-          <div class="contenido-solicitud">
+          <div class="contenido-solicitud cap-admin-layout">
 
-            <div class="card shadow-sm mb-4">
+            <div class="card shadow-sm mb-4 cap-admin-form-card">
               <div class="card-body">
-                <h5 class="card-title mb-3">Añadir Capacitación</h5>
+                <div class="cap-admin-header mb-3">
+                  <div>
+                    <p class="cap-admin-eyebrow mb-1">Gestión académica</p>
+                    <h5 class="card-title mb-1">Añadir Capacitación</h5>
+                    <small class="text-muted">Completa la información general y publica el curso para inscripciones.</small>
+                  </div>
+                  <span class="badge text-bg-success">Administrador</span>
+                </div>
 
                 <div *ngIf="mensajeCapacitacion" class="alert alert-success py-2">{{ mensajeCapacitacion }}</div>
                 <div *ngIf="errorCapacitacion" class="alert alert-danger py-2">{{ errorCapacitacion }}</div>
@@ -433,17 +448,42 @@
                     {{ creandoCapacitacion ? 'Creando...' : 'Crear capacitación' }}
                   </button>
                 </div>
+
+                <small class="text-muted d-block mt-2" *ngIf="imagenCapacitacionFile">
+                  Imagen seleccionada: {{ imagenCapacitacionFile.name }}
+                </small>
               </div>
             </div>
 
-            <app-carga-masiva-capacitacion></app-carga-masiva-capacitacion>
+            <div class="card shadow-sm cap-admin-mass-card">
+              <div class="card-body">
+                <h6 class="mb-3">Carga masiva de capacitaciones</h6>
+                <app-carga-masiva-capacitacion></app-carga-masiva-capacitacion>
+              </div>
+            </div>
           </div>
         </ng-container>
 
         <ng-container *ngIf="!capacitaciones">
           <div class="contenido-solicitud">
-            <app-listar-capacitaciones></app-listar-capacitaciones>
-            <app-modulos-admin-page></app-modulos-admin-page>
+            <ng-container *ngIf="!mostrarGestionModulosCapacitaciones">
+              <app-listar-capacitaciones></app-listar-capacitaciones>
+            </ng-container>
+
+            <ng-container *ngIf="mostrarGestionModulosCapacitaciones">
+              <div class="modulos-inline-header mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                  <p class="mb-1">Administración de módulos</p>
+                  <h5 class="mb-0">Gestiona módulos y evaluaciones de esta capacitación</h5>
+                </div>
+
+                <button class="btn btn-outline-success" (click)="volverAListaCapacitaciones()">
+                  Volver a la lista
+                </button>
+              </div>
+
+              <app-modulos-admin-page></app-modulos-admin-page>
+            </ng-container>
           </div>
         </ng-container>
       </div>

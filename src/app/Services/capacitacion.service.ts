@@ -18,6 +18,7 @@ import {
   UploadResultDto,
   CloudinaryUploadResponse,
 } from '../Models/capacitacion.model';
+import { hydrateEvaluacionFromDescription, prepareEvaluacionForApi } from '../features/capacitaciones/utils/evaluacion-quiz.util';
 
 
 @Injectable({
@@ -120,7 +121,13 @@ obtenerCapacitacionPorNombre(nombre: string): Observable<any> {
   }
 
   listarModulosPorCapacitacion(capacitacionId: number): Observable<ModuloDTO[]> {
-    return this.http.get<ModuloDTO[]>(`${this.apiUrl}/${capacitacionId}/modulos`);
+    return new Observable<ModuloDTO[]>((subscriber) => {
+      this.http.get<any[]>(`${this.apiUrl}/${capacitacionId}/modulos`).subscribe({
+        next: (rows) => subscriber.next((rows || []).map((row) => this.mapModulo(row))),
+        error: (err) => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+    });
   }
 
   subirPdfModulo(moduloId: number, file: File): Observable<CloudinaryUploadResponse> {
@@ -133,15 +140,35 @@ obtenerCapacitacionPorNombre(nombre: string): Observable<any> {
   // EVALUACIONES
   // ===========================
   crearEvaluacion(moduloId: number, dto: EvaluacionDTO): Observable<EvaluacionDTO> {
-    return this.http.post<EvaluacionDTO>(`${this.apiUrl}/modulos/${moduloId}/evaluaciones`, dto);
+    const payload = prepareEvaluacionForApi(dto as any);
+    return new Observable<EvaluacionDTO>((subscriber) => {
+      this.http.post<EvaluacionDTO>(`${this.apiUrl}/modulos/${moduloId}/evaluaciones`, payload).subscribe({
+        next: (ev) => subscriber.next(hydrateEvaluacionFromDescription(ev as any) as any),
+        error: (err) => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+    });
   }
 
   listarEvaluacionesPorModulo(moduloId: number): Observable<EvaluacionDTO[]> {
-    return this.http.get<EvaluacionDTO[]>(`${this.apiUrl}/modulos/${moduloId}/evaluaciones`);
+    return new Observable<EvaluacionDTO[]>((subscriber) => {
+      this.http.get<EvaluacionDTO[]>(`${this.apiUrl}/modulos/${moduloId}/evaluaciones`).subscribe({
+        next: (rows) => subscriber.next((rows || []).map((ev) => hydrateEvaluacionFromDescription(ev as any) as any)),
+        error: (err) => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+    });
   }
 
   actualizarEvaluacion(evaluacionId: number, dto: EvaluacionDTO): Observable<EvaluacionDTO> {
-    return this.http.put<EvaluacionDTO>(`${this.apiUrl}/evaluaciones/${evaluacionId}`, dto);
+    const payload = prepareEvaluacionForApi(dto as any);
+    return new Observable<EvaluacionDTO>((subscriber) => {
+      this.http.put<EvaluacionDTO>(`${this.apiUrl}/evaluaciones/${evaluacionId}`, payload).subscribe({
+        next: (ev) => subscriber.next(hydrateEvaluacionFromDescription(ev as any) as any),
+        error: (err) => subscriber.error(err),
+        complete: () => subscriber.complete(),
+      });
+    });
   }
 
   eliminarEvaluacion(evaluacionId: number): Observable<void> {
@@ -253,6 +280,74 @@ obtenerCapacitacionPorNombre(nombre: string): Observable<any> {
     }
 
     return token;
+  }
+
+  private mapModulo(raw: any): ModuloDTO {
+    const candidate =
+      raw?.archivoPdfUrl ??
+      raw?.archivo_pdf_url ??
+      raw?.pdfUrl ??
+      raw?.pdf_url ??
+      raw?.url ??
+      null;
+
+    return {
+      id: raw?.id,
+      duracion: String(raw?.duracion ?? ''),
+      descripcion: String(raw?.descripcion ?? ''),
+      capacitacionId: raw?.capacitacionId ?? raw?.capacitacion_id,
+      archivoPdfUrl: String(candidate ?? '').trim() || null,
+      evaluacion: this.extractEvaluacion(raw?.evaluacion),
+    };
+  }
+
+  private extractEvaluacion(rawEvaluacion: unknown): any | null {
+    if (!rawEvaluacion) {
+      return null;
+    }
+
+    const parsed = typeof rawEvaluacion === 'string' ? this.safeParse(rawEvaluacion) : rawEvaluacion;
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+
+    const titulo = String((parsed as any).titulo ?? '').trim();
+    const preguntasRaw = Array.isArray((parsed as any).preguntas) ? (parsed as any).preguntas : [];
+
+    const preguntas = preguntasRaw
+      .map((p: any) => {
+        const texto = String(p?.texto ?? '').trim();
+        const opciones = (Array.isArray(p?.opciones) ? p.opciones : [])
+          .map((o: unknown) => String(o ?? '').trim())
+          .filter((o: string) => !!o);
+        const respuestaCorrecta = String(p?.respuestaCorrecta ?? '').trim();
+
+        if (!texto || opciones.length < 2 || !respuestaCorrecta || !opciones.includes(respuestaCorrecta)) {
+          return null;
+        }
+
+        return {
+          texto,
+          tipo: 'opcion_multiple' as const,
+          opciones,
+          respuestaCorrecta,
+        };
+      })
+      .filter((p: any) => !!p);
+
+    if (!titulo || preguntas.length === 0) {
+      return null;
+    }
+
+    return { titulo, preguntas };
+  }
+
+  private safeParse(value: string): unknown {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
   }
 
 }

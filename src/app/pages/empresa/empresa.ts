@@ -17,7 +17,7 @@ import { Modal } from '../../shared/modal/modal';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { AuthService } from '../../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
-import { ModulosUsuarioPageComponent } from '../../features/capacitaciones/pages/modulos-usuario-page.component';
+import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
 /**
  * Interfaz para los elementos del menú lateral.
  */
@@ -35,7 +35,7 @@ interface MenuItem {
   selector: 'app-empresa',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, CardARSolicitud, CardsRecoleccion, DashboardEmpresaComponent,
-    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, ModulosUsuarioPageComponent],
+    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent],
   templateUrl: './empresa.html',
   styleUrls: ['./empresa.css']
 })

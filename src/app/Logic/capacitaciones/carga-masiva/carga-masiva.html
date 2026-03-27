@@ -1,20 +1,17 @@
-<!-- ================= CARD QUE ABRE EL MODAL ================= -->
-<div class="row g-4">
-  <div class="col-12 col-md-6">
-    <div class="card text-center shadow-sm h-100">
-      <div class="card-body d-flex flex-column align-items-center justify-content-between">
-        <i class="bi bi-file-earmark-plus fs-1 text-success mb-3"></i>
-        <h5 class="mb-3">Carga Masiva</h5>
-        <app-boton 
-          texto="Subir archivo" 
-          [icono]="'bi bi-upload'" 
-          color="outline-custom-success"
-          (click)="abrirModalCargaMasiva()" 
-          title="Carga Masiva">
-        </app-boton>
-      </div>
-    </div>
+<div class="masiva-launcher">
+  <div>
+    <p class="masiva-eyebrow mb-1">Automatización</p>
+    <h6 class="mb-1">Carga masiva de capacitaciones</h6>
+    <small class="text-muted">Valida y publica lotes de capacitaciones desde Excel en pocos pasos.</small>
   </div>
+
+  <app-boton 
+    texto="Subir archivo" 
+    [icono]="'bi bi-upload'" 
+    color="outline-custom-success"
+    (click)="abrirModalCargaMasiva()" 
+    title="Carga Masiva">
+  </app-boton>
 </div>
 
 <!-- ================= MODAL DE CARGA MASIVA ================= -->
@@ -27,7 +24,7 @@
   <div class="p-4"> <!-- Padding general -->
 
     <!-- ================== INSTRUCCIONES ================== -->
-    <div class="mb-4">
+    <div class="mb-4 mass-guide">
       <h6 class="text-primary">Instrucciones:</h6>
       <p class="text-muted mb-1">
         1️⃣ Descarga la plantilla según el tipo de capacitaciones.
@@ -41,7 +38,7 @@
     </div>
 
     <!-- ================== ACCIONES PRINCIPALES ================== -->
-    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4 mass-actions">
 
       <!-- DESCARGAR PLANTILLA -->
       <app-boton 

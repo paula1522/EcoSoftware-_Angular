@@ -1,8 +1,9 @@
-import { RegistroAdmin } from './../../auth/registro-admin/registro-admin';
+﻿import { RegistroAdmin } from './../../auth/registro-admin/registro-admin';
 // src/app/usuario/administrador/administrador.ts
-import { Component, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, ViewChild, ElementRef, inject, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { UsuarioService } from '../../Services/usuario.service';
 import { UsuarioModel } from '../../Models/usuario';
 import { COMPARTIR_IMPORTS } from '../../shared/imports';
@@ -26,6 +27,8 @@ import { AceptarRechazarUsuarios } from '../../Logic/usuarios.comp/aceptar-recha
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
 import { MapaComponent } from '../mapa/mapa.component';
 import { firstValueFrom } from 'rxjs';
+import Chart from 'chart.js/auto';
+import type { TooltipItem } from 'chart.js';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { Boton } from '../../shared/botones/boton/boton';
 import { SolicitudRecoleccionService } from '../../Services/solicitud.service';
@@ -41,11 +44,12 @@ import { ModulosAdminPageComponent } from '../../features/capacitaciones/pages/m
   imports: [...COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
     EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes,
-    ModulosAdminPageComponent],
+    ModulosAdminPageComponent,
+  ],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
-export class Administrador {
+export class Administrador implements OnDestroy {
   usuarios: UsuarioModel[] = [];
   usuarioActual: UsuarioModel | null = null;
   nombreUsuario: string = '';
@@ -132,6 +136,9 @@ export class Administrador {
   // botones de alternar vistas
   mostrarNuevoUsuario = false;
   capacitaciones = false;
+  mostrarGestionModulosCapacitaciones = false;
+  capacitacionModuloSeleccionadaId: number | null = null;
+  private forzarVistaCapacitaciones = false;
   creandoCapacitacion = false;
   errorCapacitacion = '';
   mensajeCapacitacion = '';
@@ -146,24 +153,40 @@ export class Administrador {
   registro: any;
   private readonly habilitarDebugSolicitudes = false;
 
-  // Referencias a gráficos para captura
+  // Referencias a grÃ¡ficos para captura
+  private usuariosPendientesChartRef?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('usuariosPendientesChart')
+  set usuariosPendientesChartCanvas(ref: ElementRef<HTMLCanvasElement> | undefined) {
+    this.usuariosPendientesChartRef = ref;
+    if (ref) {
+      setTimeout(() => this.actualizarGraficaUsuariosPendientes());
+    }
+  }
   @ViewChild('usuariosGrafico') usuariosGrafico!: ElementRef;
+  @ViewChild('pendientesGraficoContainer') pendientesGraficoContainer?: ElementRef;
+  @ViewChild('solicitudesLocalidadGrafico') solicitudesLocalidadGrafico?: ElementRef;
 
   @ViewChild(MapaComponent) mapaComponent?: MapaComponent;
 
   // Lista de solicitudes para reportes
   solicitudes: SolicitudRecoleccion[] = [];
   private readonly solicitudService = inject(SolicitudRecoleccionService);
+  private usuariosPendientesChart?: Chart;
 
   constructor(
     private usuarioService: UsuarioService,
     private router: Router,
+    private readonly route: ActivatedRoute,
     private authService: AuthService,
     private puntosService: PuntosReciclajeService,
     private reporteService: ReporteService,
     private capacitacionesService: CapacitacionesService,
     private readonly http: HttpClient
   ) { }
+
+  ngOnDestroy(): void {
+    this.usuariosPendientesChart?.destroy();
+  }
 
   cargarPuntos(): void {
     this.puntosService.getPuntos().subscribe({
@@ -203,8 +226,11 @@ export class Administrador {
     // Filtrar por tipo de residuo si está seleccionado
     if (this.filtroTipoResiduo.trim()) {
       resultado = resultado.filter((punto: any) => {
-        const tipoActual = (punto?.tipoResiduo || punto?.tipo_residuo || '').toString().toLowerCase();
-        return tipoActual.includes(this.filtroTipoResiduo.toLowerCase());
+        const tipoActual = this.normalizarTextoComparacion(
+          (punto?.tipoResiduo || punto?.tipo_residuo || '').toString()
+        );
+        const filtro = this.normalizarTextoComparacion(this.filtroTipoResiduo);
+        return tipoActual.includes(filtro);
       });
     }
 
@@ -231,7 +257,7 @@ export class Administrador {
   }
 
   /**
-   * Calcula la distancia en km entre dos puntos usando la fórmula de Haversine
+   * Calcula la distancia en km entre dos puntos usando la fÃ³rmula de Haversine
    */
   private calcularDistancia(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const R = 6371; // Radio de la Tierra en km
@@ -275,7 +301,7 @@ export class Administrador {
 
     this.guardandoPunto = true;
     this.errorRegistroPunto = '';
-    this.estadoRegistroPunto = 'Convirtiendo dirección...';
+    this.estadoRegistroPunto = 'Convirtiendo direcciÃ³n...';
 
     try {
       const coords = await this.geocodificarDireccion(this.nuevoPunto.direccion.trim());
@@ -304,7 +330,7 @@ export class Administrador {
           this.guardandoPunto = false;
           this.estadoRegistroPunto = '';
 
-          // Si es creación de nuevo punto, agregarlo inmediatamente a la tabla
+          // Si es creaciÃ³n de nuevo punto, agregarlo inmediatamente a la tabla
           if (!this.editandoPunto) {
             const datosPunto = response?.data || response;
             if (datosPunto) {
@@ -317,7 +343,7 @@ export class Administrador {
               this.actualizarPuntosFiltrados();
             }
           } else {
-            // Si es actualización, recargar desde servidor
+            // Si es actualizaciÃ³n, recargar desde servidor
             this.cargarPuntos();
           }
 
@@ -340,11 +366,11 @@ export class Administrador {
         }
       });
     } catch (error: any) {
-      console.error('Error en conversión de dirección', error);
+      console.error('Error en conversiÃ³n de direcciÃ³n', error);
       this.guardandoPunto = false;
       this.estadoRegistroPunto = '';
       const detalle = typeof error?.message === 'string' ? error.message : '';
-      this.errorRegistroPunto = detalle || 'No se pudo convertir la dirección. Intenta con una dirección más específica.';
+      this.errorRegistroPunto = detalle || 'No se pudo convertir la direcciÃ³n. Intenta con una direcciÃ³n mÃ¡s especÃ­fica.';
     }
   }
 
@@ -376,7 +402,7 @@ export class Administrador {
     }
 
     const nombre = punto?.nombre || 'este punto';
-    const confirmado = window.confirm(`¿Deseas eliminar ${nombre}? Esta acción no se puede deshacer.`);
+    const confirmado = window.confirm(`Â¿Deseas eliminar ${nombre}? Esta acciÃ³n no se puede deshacer.`);
     if (!confirmado) {
       return;
     }
@@ -419,14 +445,21 @@ export class Administrador {
   private normalizeAddress(termino: string): string {
     const lower = termino.toLowerCase();
     const hasComma = termino.includes(',');
-    const hasBogota = lower.includes('bogotá') || lower.includes('bogota');
+    const hasBogota = lower.includes('bogotÃ¡') || lower.includes('bogota');
     const hasColombia = lower.includes('colombia');
 
     if (!hasComma && !hasBogota && !hasColombia) {
-      return `${termino}, Bogotá, Colombia`;
+      return `${termino}, BogotÃ¡, Colombia`;
     }
 
     return termino;
+  }
+
+  private normalizarTextoComparacion(texto: string): string {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
   }
 
   private async geocodificarDireccion(termino: string): Promise<{ lat: number; lng: number }> {
@@ -454,13 +487,13 @@ export class Administrador {
 
     const coincidencia = respuesta?.[0];
     if (!coincidencia) {
-      throw new Error('No se encontró la dirección.');
+      throw new Error('No se encontrÃ³ la direcciÃ³n.');
     }
 
     const lat = Number(coincidencia.lat);
     const lng = Number(coincidencia.lon);
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
-      throw new Error('Dirección inválida para coordenadas.');
+      throw new Error('DirecciÃ³n invÃ¡lida para coordenadas.');
     }
 
     return { lat, lng };
@@ -501,7 +534,7 @@ export class Administrador {
     try {
       this.cargandoReporte = true;
 
-      // Obtener el elemento del gráfico
+      // Obtener el elemento del grÃ¡fico
       const graficoElement = this.usuariosGrafico?.nativeElement || null;
 
       // Generar el reporte
@@ -538,7 +571,7 @@ export class Administrador {
         });
       }
 
-      // Obtener referencias a los elementos de los gráficos
+      // Obtener referencias a los elementos de los grÃ¡ficos
       const graficoElements = {
         localidad: null,
         estado: null
@@ -552,6 +585,96 @@ export class Administrador {
     } catch (error) {
       console.error('Error al generar reporte de solicitudes:', error);
       this.error = 'Error al generar el reporte de solicitudes';
+      setTimeout(() => this.error = '', 3000);
+    } finally {
+      this.cargandoReporte = false;
+    }
+  }
+
+  /**
+   * Genera un único reporte general (usuarios + solicitudes)
+   */
+  async generarReporteGeneral(): Promise<void> {
+    try {
+      this.cargandoReporte = true;
+
+      if (this.usuarios.length === 0) {
+        await new Promise((resolve, reject) => {
+          this.usuarioService.listar().subscribe({
+            next: (lista) => {
+              this.usuarios = lista.map(usuario => ({
+                ...usuario,
+                rol: this.obtenerNombreRol(usuario.rolId!)
+              }));
+              this.totalUsuarios = lista.length;
+              resolve(lista);
+            },
+            error: reject
+          });
+        });
+      }
+
+      if (this.solicitudes.length === 0) {
+        await new Promise((resolve, reject) => {
+          this.solicitudService.listar().subscribe({
+            next: (data) => {
+              this.solicitudes = data;
+              this.totalSolicitudes = data.length;
+              resolve(data);
+            },
+            error: reject
+          });
+        });
+      }
+
+      const graficoUsuarios = this.usuariosGrafico?.nativeElement || null;
+      const graficoPendientes = this.pendientesGraficoContainer?.nativeElement || null;
+      const graficoSolicitudes = this.solicitudesLocalidadGrafico?.nativeElement || null;
+
+      await this.reporteService.generarReporteGeneral(
+        this.usuarios,
+        this.solicitudes,
+        graficoUsuarios,
+        graficoSolicitudes,
+        graficoPendientes,
+        {
+          totalUsuarios: this.totalUsuarios,
+          totalSolicitudes: this.totalSolicitudes,
+          totalPendientes: this.totalUsuariosPendientes,
+          totalPuntos: this.totalPuntos
+        }
+      );
+
+      this.mensaje = 'Reporte general generado exitosamente';
+      setTimeout(() => this.mensaje = '', 3000);
+    } catch (error) {
+      console.error('Error al generar reporte general:', error);
+      this.error = 'Error al generar el reporte general';
+      setTimeout(() => this.error = '', 3000);
+    } finally {
+      this.cargandoReporte = false;
+    }
+  }
+
+  async generarReportePuntos(): Promise<void> {
+    try {
+      this.cargandoReporte = true;
+
+      let puntosReporte = this.puntosFiltrados;
+
+      if (!puntosReporte || puntosReporte.length === 0) {
+        const response = await firstValueFrom(this.puntosService.getPuntos());
+        const data = Array.isArray(response) ? response : response?.data ?? [];
+        puntosReporte = data as PuntoReciclaje[];
+      }
+
+      await this.reporteService.generarReportePuntos(puntosReporte, null);
+
+      this.mensaje = 'Reporte de puntos generado exitosamente';
+      setTimeout(() => this.mensaje = '', 3000);
+    } catch (error) {
+      console.error('Error al generar reporte de puntos:', error);
+      this.error = 'Error al generar el reporte de puntos';
       setTimeout(() => this.error = '', 3000);
     } finally {
       this.cargandoReporte = false;
@@ -579,7 +702,7 @@ export class Administrador {
       texto: '',
       color: 'outline-custom-success',
       hoverColor: 'custom-success-filled',
-      onClick: () => this.RegistroAdmin()   // Llama al método correctamente
+      onClick: () => this.RegistroAdmin()   // Llama al mÃ©todo correctamente
     }
   ];
 
@@ -708,14 +831,37 @@ export class Administrador {
 
   ngOnInit(): void {
 
+    this.route.queryParamMap.subscribe((params) => {
+      const vista = (params.get('vista') || '').toLowerCase();
+      const seccion = (params.get('seccion') || '').toLowerCase();
+      const capIdParam = Number(params.get('capacitacionId'));
+
+      if (vista === 'capacitaciones' && seccion === 'modulos') {
+        this.forzarVistaCapacitaciones = true;
+        this.vistaActual = 'capacitaciones';
+        this.capacitaciones = false;
+        this.mostrarGestionModulosCapacitaciones = true;
+        this.capacitacionModuloSeleccionadaId = Number.isNaN(capIdParam) || capIdParam <= 0 ? null : capIdParam;
+      } else {
+        this.forzarVistaCapacitaciones = false;
+        this.mostrarGestionModulosCapacitaciones = false;
+        this.capacitacionModuloSeleccionadaId = null;
+      }
+    });
+
 
 
     this.usuarioService.contarPendientesAdminDashboard().subscribe({
       next: (pendientes: number) => {
         this.usuariosPendientesError = '';
         this.totalUsuariosPendientes = Number(pendientes ?? 0);
+        this.actualizarGraficaUsuariosPendientes();
 
-        // Mantener la navegación existente: si hay pendientes → vista Aceptar/Rechazar
+        // Mantener la navegaciÃ³n existente: si hay pendientes â†’ vista Aceptar/Rechazar
+        if (this.forzarVistaCapacitaciones) {
+          return;
+        }
+
         if (this.totalUsuariosPendientes > 0) {
           this.vistaActual = 'Aceptar-Rechazar-Usuarios';
         } else {
@@ -725,7 +871,10 @@ export class Administrador {
       error: (err) => {
         console.error('Error contando usuarios pendientes (admin dashboard):', err);
         this.usuariosPendientesError = 'No se pudo cargar usuarios pendientes.';
-        this.vistaActual = 'panel';
+        this.actualizarGraficaUsuariosPendientes();
+        if (!this.forzarVistaCapacitaciones) {
+          this.vistaActual = 'panel';
+        }
       }
     });
     this.consultarUsuarios();
@@ -741,7 +890,7 @@ export class Administrador {
       }
     });
 
-    // Cargar puntos para el mapa cuando el admin abra la sección
+    // Cargar puntos para el mapa cuando el admin abra la secciÃ³n
     this.cargarPuntos();
 
     // Recuperar usuario logueado
@@ -750,7 +899,7 @@ export class Administrador {
       this.nombreUsuario = this.usuarioActual.nombre;
       this.nombreRol = this.obtenerNombreRol(this.usuarioActual.rolId!);
     } else {
-      // Si no hay sesión, redirige al login
+      // Si no hay sesiÃ³n, redirige al login
 
     }
 
@@ -761,7 +910,7 @@ export class Administrador {
   }
 
   private cargarDatosRealesParaDebug(): void {
-    console.group('ANÁLISIS DE SOLICITUDES - DEBUG');
+    console.group('ANÃLISIS DE SOLICITUDES - DEBUG');
 
     // Obtener TODAS las solicitudes
     this.solicitudService.obtenerTodasLasSolicitudes().subscribe({
@@ -809,18 +958,18 @@ export class Administrador {
       }
     });
 
-    // También intentar los endpoints específicos de gráficos
-    console.group('ENDPOINTS ESPECÍFICOS DE GRÁFICOS');
+    // TambiÃ©n intentar los endpoints especÃ­ficos de grÃ¡ficos
+    console.group('ENDPOINTS ESPECÃFICOS DE GRÃFICOS');
 
     this.solicitudService.getSolicitudesPorLocalidad().subscribe({
       next: (data) => {
         console.log('getSolicitudesPorLocalidad:', data);
       },
       error: (err) => {
-        console.warn('getSolicitudesPorLocalidad falló:', err.message);
+        console.warn('getSolicitudesPorLocalidad fallÃ³:', err.message);
         this.solicitudService.getSolicitudesPorLocalidadFactory().subscribe({
           next: (data) => console.log('getSolicitudesPorLocalidadFactory (fallback):', data),
-          error: (e) => console.warn('Fallback también falló:', e.message)
+          error: (e) => console.warn('Fallback tambiÃ©n fallÃ³:', e.message)
         });
       }
     });
@@ -830,7 +979,7 @@ export class Administrador {
         console.log('getPendientesYAceptadas:', data);
       },
       error: (err) => {
-        console.warn('getPendientesYAceptadas falló:', err.message);
+        console.warn('getPendientesYAceptadas fallÃ³:', err.message);
       }
     });
 
@@ -839,7 +988,7 @@ export class Administrador {
         console.log('getRechazadasPorMotivo:', data);
       },
       error: (err) => {
-        console.warn('getRechazadasPorMotivo falló:', err.message);
+        console.warn('getRechazadasPorMotivo fallÃ³:', err.message);
       }
     });
 
@@ -847,7 +996,7 @@ export class Administrador {
     console.groupEnd();
   }
 
-  // Estado de autenticación para mostrar en UI
+  // Estado de autenticaciÃ³n para mostrar en UI
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
   }
@@ -863,10 +1012,35 @@ export class Administrador {
   // ========================
   cambiarVista(vista: 'panel' | 'editar-perfil' | 'Aceptar-Rechazar-Usuarios' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias') {
     this.vistaActual = vista;
+
+    if (vista === 'panel') {
+      setTimeout(() => this.actualizarGraficaUsuariosPendientes());
+    }
+
+    if (vista !== 'capacitaciones') {
+      this.mostrarGestionModulosCapacitaciones = false;
+      this.capacitacionModuloSeleccionadaId = null;
+      this.forzarVistaCapacitaciones = false;
+    }
+
     // Cargar puntos cuando se abre la vista de puntos
     if (vista === 'puntos') {
       this.cargarPuntos();
     }
+  }
+
+  volverAListaCapacitaciones(): void {
+    this.mostrarGestionModulosCapacitaciones = false;
+    this.capacitacionModuloSeleccionadaId = null;
+    this.forzarVistaCapacitaciones = false;
+    this.vistaActual = 'capacitaciones';
+
+    this.router.navigate(['/administrador'], {
+      queryParams: {
+        vista: 'capacitaciones',
+      },
+      replaceUrl: true,
+    });
   }
 
   // ========================
@@ -884,6 +1058,7 @@ export class Administrador {
           rol: this.obtenerNombreRol(usuario.rolId!)
         }));
         this.totalUsuarios = lista.length;
+        this.actualizarGraficaUsuariosPendientes();
 
         this.cargando = false;
         this.mensaje = `Se cargaron ${lista.length} usuario(s)`;
@@ -896,6 +1071,82 @@ export class Administrador {
         setTimeout(() => this.error = '', 2500);
       }
     });
+  }
+
+  private actualizarGraficaUsuariosPendientes(): void {
+    if (!this.usuariosPendientesChartRef?.nativeElement) {
+      return;
+    }
+
+    const canvas = this.usuariosPendientesChartRef.nativeElement;
+
+    if (this.usuariosPendientesChart) {
+      this.usuariosPendientesChart.destroy();
+    }
+
+    const pendientes = Math.max(this.totalUsuariosPendientes, 0);
+    const hayPendientes = pendientes > 0;
+
+    this.usuariosPendientesChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: hayPendientes
+        ? {
+            labels: ['Pendientes'],
+            datasets: [{
+              data: [pendientes],
+              backgroundColor: ['#8b1e2d'],
+              borderColor: ['#ffffff'],
+              borderWidth: 4,
+              hoverOffset: 6
+            }]
+          }
+        : {
+            labels: ['Sin pendientes'],
+            datasets: [{
+              data: [1],
+              backgroundColor: ['#e6efe7'],
+              borderColor: ['#ffffff'],
+              borderWidth: 4
+            }]
+          },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: {
+            display: false,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 18,
+              color: '#365241',
+              font: {
+                family: 'inherit',
+                size: 12,
+                weight: 600
+              }
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context: TooltipItem<'doughnut'>) => {
+                const valor = Number(context.raw ?? 0);
+                return `${context.label}: ${this.formatMetric(valor)}`;
+              }
+            }
+          }
+        },
+        animation: {
+          duration: 650
+        }
+      }
+    });
+  }
+
+  irAUsuariosPendientes(): void {
+    this.cambiarVista('Aceptar-Rechazar-Usuarios');
   }
 
   // ========================
@@ -912,7 +1163,7 @@ export class Administrador {
   }
 
   // ========================
-  // CERRAR SESIÓN
+  // CERRAR SESIÃ“N
   // ========================
   logout(): void {
     this.authService.logout();
@@ -931,7 +1182,7 @@ export class Administrador {
   openCreateFromTitulo(): void {
     const mapId = this.mapaComponent?.mapContainerId;
     if (!mapId) {
-      console.warn('No se encontró el componente de mapa para enfocar.');
+      console.warn('No se encontrÃ³ el componente de mapa para enfocar.');
       return;
     }
     document.getElementById(mapId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -995,12 +1246,12 @@ export class Administrador {
 
         if (res?.errores && res.errores.length > 0) {
           this.mostrarAlertaGlobal(
-            `⚠️ Carga completada con errores: ${res.errores.join(' | ')}`,
+            `âš ï¸ Carga completada con errores: ${res.errores.join(' | ')}`,
             'warning'
           );
         } else {
           this.mostrarAlertaGlobal(
-            '✅ Carga masiva de usuarios exitosa',
+            'âœ… Carga masiva de usuarios exitosa',
             'success'
           );
         }
@@ -1026,3 +1277,4 @@ export class Administrador {
     });
 }
 }
+

@@ -173,3 +173,129 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+.pag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 30px;
+}
+
+.pg {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #e2e8e4;
+  background: #fff;
+  color: #7a8a80;
+  transition: all 0.2s ease;
+}
+
+/* Hover */
+.pg:hover:not(:disabled) {
+  border-color: #22c55e;
+  color: #22c55e;
+  transform: translateY(-1px);
+}
+
+/* Activo */
+.pg.on {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.25);
+}
+
+/* Deshabilitado */
+.pg:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Opcional (dots si luego quieres) */
+.pg-dots {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+}
+/* =============================== */
+/* CONTENEDOR DE FILTROS PRINCIPAL */
+/* =============================== */
+.filtros-container {
+  flex-wrap: wrap;          /* Permite que baje a otra fila si no cabe */
+  align-items: flex-end;    /* Alinea los inputs y botones al fondo */
+  gap: 10px;                /* Espacio entre filtros */
+  padding: 15px 10px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Cada filtro ocupa espacio proporcional */
+.filtros-container .flex-grow-1 {
+  flex: 1 1 150px;          /* Crece según el espacio disponible, mínimo 150px */
+  min-width: 150px;
+}
+
+/* Botones */
+.filtros-container .d-flex.ms-auto {
+  flex: 0 0 auto;           /* No crecen, se quedan al tamaño del contenido */
+}
+
+/* Botones personalizados */
+.botones-wrapper app-boton,
+.filtros-container app-boton {
+  min-width: 80px;
+  height: 40px !important;
+}
+
+/* Inputs y selects dentro de filtros */
+.filtros-container input.form-control,
+.filtros-container select.form-select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* =============================== */
+/* RESPONSIVE PARA PANTALLAS PEQUEÑAS */
+/* =============================== */
+@media (max-width: 600px) {
+  .filtros-container {
+    flex-direction: column;   /* Pasa todo a columnas */
+    align-items: stretch;
+    padding: 20px 10px;
+  }
+
+  .filtros-container .d-flex.ms-auto {
+    justify-content: flex-start;  /* Botones abajo alineados a la izquierda */
+    margin-top: 10px;
+  }
+
+  /* Opcional: iconos sin texto en móviles */
+  .botones-wrapper app-boton span {
+    display: none !important;
+  }
+
+  .botones-wrapper app-boton i {
+    font-size: 1.3rem;
+  }
+
+  .botones-wrapper app-boton {
+    gap: 0 !important;
+    padding: 8px;
+  }
+}

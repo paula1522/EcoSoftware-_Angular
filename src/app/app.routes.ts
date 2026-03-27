@@ -37,6 +37,8 @@ import { RecolectorRutas } from './Logic/rutas/recolector-rutas/recolector-rutas
 import { AdminRutas } from './Logic/rutas/admin-rutas/admin-rutas';
 import { MapaRutaGestion } from './Logic/rutas/mapa-ruta-gestion/mapa-ruta-gestion';
 import { Solicitudes } from './Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes';
+import { ModulosAdminPageComponent } from './features/capacitaciones/pages/modulos-admin-page.component';
+import { ModulosUsuarioPageComponent } from './features/capacitaciones/pages/modulos-usuario-page.component';
 
 
 
@@ -80,6 +82,20 @@ export const routes: Routes = [
     component: Solicitudes,
     canActivate: [AuthGuard],
     data: { roles: ['Administrador'] }
+  },
+
+  {
+    path: 'capacitaciones/modulos-admin',
+    component: ModulosAdminPageComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['Administrador'] }
+  },
+
+  {
+    path: 'capacitaciones/mis-modulos',
+    component: ModulosUsuarioPageComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['Ciudadano', 'Empresa', 'Reciclador'] }
   },
 
   { path: 'usuarios', component: Usuario },

@@ -117,13 +117,17 @@ export class Solicitudes implements OnInit, OnDestroy {
   localidadEnumList = Object.values(Localidad);
   tipoResiduoEnumList = Object.values(TipoResiduo);
 
-  // Función para controlar qué acciones son visibles por fila
-  accionVisiblePorFila = (accion: string, item: SolicitudRecoleccion): boolean => {
-    if (accion === 'editar') {
-      return item.estadoPeticion === EstadoPeticion.Pendiente;
-    }
-    return true;
-  };
+ accionVisiblePorFila = (accion: string, item: SolicitudRecoleccion): boolean => {
+  // El botón 'ver' siempre visible
+  if (accion === 'ver') return true;
+
+  // Para editar y rechazar, solo se muestran si la solicitud está Pendiente
+  if (accion === 'editar' || accion === 'rechazar') {
+    return item.estadoPeticion === EstadoPeticion.Pendiente;
+  }
+
+  return true;
+};
 
   constructor(
     private solicitudService: SolicitudRecoleccionService,

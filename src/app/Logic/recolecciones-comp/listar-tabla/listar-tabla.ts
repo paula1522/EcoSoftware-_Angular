@@ -1,6 +1,6 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { RecoleccionService } from '../../../Services/recoleccion.service';
-import { ModeloRecoleccion } from '../../../Models/modelo-recoleccion';
+import { ModeloRecoleccion, EstadoRecoleccion } from '../../../Models/modelo-recoleccion';
 import { COMPARTIR_IMPORTS } from '../../../shared/imports';
 import { ColumnaTabla, Tabla } from '../../../shared/tabla/tabla';
 import { Modal } from '../../../shared/modal/modal';
@@ -8,6 +8,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { FieldConfig } from '../../../shared/form/form.comp/form.comp';
 import { Boton } from '../../../shared/botones/boton/boton';
 import { FormComp } from '../../../shared/form/form.comp/form.comp';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-listar-tabla',
@@ -16,12 +17,13 @@ import { FormComp } from '../../../shared/form/form.comp/form.comp';
   templateUrl: './listar-tabla.html',
   styleUrls: ['./listar-tabla.css']
 })
-export class ListarTabla implements OnInit {
+export class ListarTabla implements OnInit, OnDestroy {
 
   columnas: ColumnaTabla[] = [
     { campo: 'idRecoleccion', titulo: 'ID' },
     { campo: 'solicitudId', titulo: 'Solicitud' },
     { campo: 'recolectorId', titulo: 'Recolector' },
+    { campo: 'rutaId', titulo: 'Ruta' },
     { campo: 'fechaRecoleccion', titulo: 'Fecha' },
     { campo: 'observaciones', titulo: 'Observaciones' },
     { campo: 'estado', titulo: 'Estado' }
@@ -35,7 +37,6 @@ export class ListarTabla implements OnInit {
 
   // FILTROS
   estadoFilter = '';
-  recolectorFilter = '';
   fechaDesde = '';
   fechaHasta = '';
 
@@ -48,17 +49,43 @@ export class ListarTabla implements OnInit {
   formEditarRecoleccion: FormGroup = new FormGroup({});
   fieldsEditarRecoleccion: FieldConfig[] = [];
 
+  // Acciones de la tabla con condiciones de visibilidad
+  acciones = [
+    {
+      icono: 'bi bi-eye',
+      titulo: 'Ver',
+      metodo: (item: ModeloRecoleccion) => this.ver(item),
+      visible: () => true // Siempre visible
+    },
+    {
+      icono: 'bi bi-pencil',
+      titulo: 'Editar',
+      metodo: (item: ModeloRecoleccion) => this.editar(item),
+      visible: (item: ModeloRecoleccion) => item.estado === EstadoRecoleccion.Pendiente
+    },
+    {
+      icono: 'bi bi-trash',
+      titulo: 'Eliminar',
+      metodo: (item: ModeloRecoleccion) => this.eliminar(item),
+      visible: (item: ModeloRecoleccion) => item.estado === EstadoRecoleccion.Pendiente
+    }
+  ];
+
+  private subscriptions: Subscription[] = [];
+
   constructor(private service: RecoleccionService) {}
 
-  // =========================
-  // INIT
-  // =========================
   ngOnInit(): void {
     this.cargarDatos();
   }
 
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
   cargarDatos() {
-    this.service.listarTodas().subscribe({
+    this.cargando = true;
+    const sub = this.service.listarTodas().subscribe({
       next: (res) => {
         this.todasLasRecolecciones = res.map(r => ({
           ...r,
@@ -68,15 +95,17 @@ export class ListarTabla implements OnInit {
         this.data = [...this.todasLasRecolecciones];
         this.cargando = false;
       },
-      error: () => {
+      error: (err) => {
         this.error = 'Error al cargar las recolecciones';
+        console.error(err);
         this.cargando = false;
       }
     });
+    this.subscriptions.push(sub);
   }
 
   // =========================
-  // TEMPLATES
+  // TEMPLATES PARA CELDAS PERSONALIZADAS
   // =========================
   cellTemplates = {
     estado: (item: ModeloRecoleccion): string => {
@@ -84,23 +113,23 @@ export class ListarTabla implements OnInit {
       let icono = '';
 
       switch (item.estado) {
-        case 'Pendiente':
+        case EstadoRecoleccion.Pendiente:
           clase = 'status-pendiente';
           icono = 'bi bi-clock';
           break;
-        case 'En_Progreso':
+        case EstadoRecoleccion.En_Progreso:
           clase = 'status-proceso';
           icono = 'bi bi-truck';
           break;
-        case 'Completada':
+        case EstadoRecoleccion.Completada:
           clase = 'status-aceptada';
           icono = 'bi bi-check-circle-fill';
           break;
-        case 'Fallida':
+        case EstadoRecoleccion.Fallida:
           clase = 'status-fallida';
           icono = 'bi bi-x-circle-fill';
           break;
-        case 'Cancelada':
+        case EstadoRecoleccion.Cancelada:
           clase = 'status-cancelada';
           icono = 'bi bi-slash-circle-fill';
           break;
@@ -128,6 +157,17 @@ export class ListarTabla implements OnInit {
     }
   };
 
+  // Función para controlar visibilidad de acciones por fila
+accionVisiblePorFila = (accion: string, item: ModeloRecoleccion): boolean => {
+  // Siempre mostrar ver
+  if (accion === 'ver') return true;
+  // Para editar y eliminar, solo si está Pendiente
+  if (accion === 'editar' || accion === 'eliminar') {
+    return item.estado === EstadoRecoleccion.Pendiente;
+  }
+  return true;
+};
+
   // =========================
   // FILTROS
   // =========================
@@ -135,11 +175,10 @@ export class ListarTabla implements OnInit {
     let r = [...this.todasLasRecolecciones];
 
     if (this.estadoFilter) r = r.filter(x => x.estado === this.estadoFilter);
-    if (this.recolectorFilter) r = r.filter(x =>
-      x.recolectorId && String(x.recolectorId).includes(this.recolectorFilter)
-    );
+    
     if (this.fechaDesde) {
       const desde = new Date(this.fechaDesde);
+      desde.setHours(0,0,0,0);
       r = r.filter(x => x.fechaRecoleccion && new Date(x.fechaRecoleccion) >= desde);
     }
     if (this.fechaHasta) {
@@ -153,14 +192,13 @@ export class ListarTabla implements OnInit {
 
   limpiarFiltros() {
     this.estadoFilter = '';
-    this.recolectorFilter = '';
     this.fechaDesde = '';
     this.fechaHasta = '';
     this.data = [...this.todasLasRecolecciones];
   }
 
   // =========================
-  // MODALES
+  // ACCIONES
   // =========================
   ver(item: ModeloRecoleccion) {
     this.selectedRecoleccion = item;
@@ -168,12 +206,20 @@ export class ListarTabla implements OnInit {
   }
 
   editar(item: ModeloRecoleccion) {
+    if (item.estado !== EstadoRecoleccion.Pendiente) {
+      alert('Solo se pueden editar recolecciones en estado Pendiente.');
+      return;
+    }
     this.selectedRecoleccion = item;
     this.initForm(item);
     this.modalEditarRecoleccion.isOpen = true;
   }
 
   eliminar(item: ModeloRecoleccion) {
+    if (item.estado !== EstadoRecoleccion.Pendiente) {
+      alert('Solo se pueden eliminar recolecciones en estado Pendiente.');
+      return;
+    }
     this.selectedRecoleccion = item;
     this.modalEliminarRecoleccion.isOpen = true;
   }
@@ -186,14 +232,18 @@ export class ListarTabla implements OnInit {
   confirmarEliminarRecoleccion() {
     if (!this.selectedRecoleccion?.idRecoleccion) return;
 
-    this.service.eliminarLogicamente(this.selectedRecoleccion.idRecoleccion)
+    const sub = this.service.eliminarLogicamente(this.selectedRecoleccion.idRecoleccion)
       .subscribe({
         next: () => {
           this.modalEliminarRecoleccion.close();
           this.cargarDatos();
         },
-        error: (err) => alert(err.error?.message || 'No se pudo eliminar')
+        error: (err) => {
+          const mensaje = err.error?.message || 'No se pudo eliminar la recolección. Verifique que no esté asignada a una ruta.';
+          alert(mensaje);
+        }
       });
+    this.subscriptions.push(sub);
   }
 
   // =========================
@@ -201,17 +251,21 @@ export class ListarTabla implements OnInit {
   // =========================
   initForm(r?: ModeloRecoleccion) {
     this.fieldsEditarRecoleccion = [
-      { type: 'date', name: 'fechaRecoleccion', label: 'Fecha', cols: 6 },
+      { type: 'date', name: 'fechaRecoleccion', label: 'Fecha de Recolección', cols: 6 },
       { type: 'text', name: 'observaciones', label: 'Observaciones', cols: 12 }
     ];
 
     const group: any = {};
     this.fieldsEditarRecoleccion.forEach(f => {
-      group[f.name!] = new FormControl(
-        r && f.name === 'fechaRecoleccion'
-          ? r.fechaRecoleccion?.split('T')[0]
-          : r ? (r as any)[f.name!] : ''
-      );
+      let initialValue = '';
+      if (r) {
+        if (f.name === 'fechaRecoleccion') {
+          initialValue = r.fechaRecoleccion ? r.fechaRecoleccion.split('T')[0] : '';
+        } else {
+          initialValue = (r as any)[f.name!] ?? '';
+        }
+      }
+      group[f.name!] = new FormControl(initialValue);
     });
 
     this.formEditarRecoleccion = new FormGroup(group);
@@ -221,32 +275,33 @@ export class ListarTabla implements OnInit {
     if (!this.selectedRecoleccion?.idRecoleccion) return;
 
     const formValue = this.formEditarRecoleccion.value;
-    const dto: Partial<ModeloRecoleccion> = {
-fechaRecoleccion: formValue.fechaRecoleccion
-  ? `${formValue.fechaRecoleccion}:00`
-  : undefined,      observaciones: formValue.observaciones
-    };
+    const dto: Partial<ModeloRecoleccion> = {};
 
-    console.log('📤 ENVIANDO DTO:', dto);
+    if (formValue.fechaRecoleccion) {
+      dto.fechaRecoleccion = `${formValue.fechaRecoleccion}T00:00:00`;
+    }
+    if (formValue.observaciones !== undefined && formValue.observaciones !== null) {
+      dto.observaciones = formValue.observaciones;
+    }
 
-    this.service.actualizarRecoleccion(this.selectedRecoleccion.idRecoleccion, dto)
+    const sub = this.service.actualizarRecoleccion(this.selectedRecoleccion.idRecoleccion, dto)
       .subscribe({
         next: () => {
           this.modalEditarRecoleccion.close();
           this.cargarDatos();
         },
         error: (err) => {
-          console.error('❌ ERROR REAL:', err);
-          alert(err.error?.message || 'Error al actualizar');
+          const mensaje = err.error?.message || 'Error al actualizar la recolección.';
+          alert(mensaje);
         }
       });
+    this.subscriptions.push(sub);
   }
 
   // =========================
-  // EVENTOS TABLA
+  // EVENTOS DE LA TABLA (por si se usan directamente)
   // =========================
   onVer = (item: ModeloRecoleccion) => this.ver(item);
   onEditar = (item: ModeloRecoleccion) => this.editar(item);
   onEliminar = (item: ModeloRecoleccion) => this.eliminar(item);
-
 }

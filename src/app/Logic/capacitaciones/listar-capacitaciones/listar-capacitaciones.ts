@@ -7,6 +7,8 @@ import { Modal } from '../../../shared/modal/modal';
 import { FormGroup, FormControl } from '@angular/forms';
 import { FieldConfig, FormComp } from '../../../shared/form/form.comp/form.comp';
 import { Boton } from '../../../shared/botones/boton/boton';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-listar-capacitaciones',
@@ -16,6 +18,15 @@ import { Boton } from '../../../shared/botones/boton/boton';
   styleUrl: './listar-capacitaciones.css'
 })
 export class CapacitacionesLista implements OnInit {
+
+  iconosAcciones: any = {
+    modulos: {
+      icon: 'bi-collection',
+      texto: 'Módulos',
+      color: 'outline-custom-success',
+      hover: 'custom-success-filled'
+    }
+  };
 
   columnas: ColumnaTabla[] = [
     { campo: 'id', titulo: 'ID' },
@@ -44,7 +55,10 @@ export class CapacitacionesLista implements OnInit {
 numeroClasesFilter: number | '' = '';
 duracionFilter= '';
 
-  constructor(private capacitacionesService: CapacitacionesService) {}
+  constructor(
+    private capacitacionesService: CapacitacionesService,
+    private readonly router: Router
+  ) {}
 
   ngOnInit(): void {
     this.cargarCapacitaciones();
@@ -159,8 +173,33 @@ duracionFilter= '';
         this.capacitacionSeleccionada = undefined;
         this.cargarCapacitaciones();
       },
-      error: () => alert('Error al eliminar la capacitación')
+      error: (err) => {
+        const mensaje = this.obtenerMensajeErrorEliminar(err);
+        alert(mensaje);
+      }
     });
+  }
+
+  private obtenerMensajeErrorEliminar(err: unknown): string {
+    const defaultMsg = 'Error al eliminar la capacitación';
+
+    if (!(err instanceof HttpErrorResponse)) {
+      return defaultMsg;
+    }
+
+    const rawMessage = String(err?.error?.message || err?.error?.error || err.message || '').toLowerCase();
+    const statusConflict = err.status === 409 || err.status === 400;
+    const hasInscritosHint =
+      rawMessage.includes('inscrit') ||
+      rawMessage.includes('foreign key') ||
+      rawMessage.includes('constraint') ||
+      rawMessage.includes('referenc');
+
+    if (statusConflict || hasInscritosHint) {
+      return 'No se puede eliminar la capacitación porque hay usuarios inscritos a esta capacitación.';
+    }
+
+    return defaultMsg;
   }
 
   cerrarModalEliminarCapacitacion() {
@@ -202,5 +241,25 @@ limpiarFiltros() {
   this.numeroClasesFilter = '';
   this.duracionFilter = '';
   this.cargarCapacitaciones();
+}
+
+onAccionTabla(event: { accion: string; item: Capacitacion }): void {
+  if (event.accion === 'modulos') {
+    this.abrirGestionModulos(event.item);
+  }
+}
+
+abrirGestionModulos(capacitacion: Capacitacion): void {
+  if (!capacitacion?.id) {
+    return;
+  }
+
+  this.router.navigate(['/administrador'], {
+    queryParams: {
+      vista: 'capacitaciones',
+      seccion: 'modulos',
+      capacitacionId: capacitacion.id,
+    },
+  });
 }
 }

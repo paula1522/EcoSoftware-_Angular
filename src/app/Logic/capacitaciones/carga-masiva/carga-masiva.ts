@@ -12,6 +12,7 @@ import { Modal } from '../../../shared/modal/modal';
   selector: 'app-carga-masiva-capacitacion',
   standalone: true,
   templateUrl: './carga-masiva.html',
+  styleUrl: './carga-masiva.css',
   imports: [COMPARTIR_IMPORTS, CommonModule, FormsModule, Boton, Modal],
 })
 export class CargaMasiva {
