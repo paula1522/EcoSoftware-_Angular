@@ -11,7 +11,7 @@ export class RutaRecoleccionService {
     throw new Error('Method not implemented.');
   }
 
-  private readonly URL = 'http://localhost:8082/api/rutas';
+  private readonly URL = 'https://ecosoftware-spring-boot.azurewebsites.net/api/rutas';
 
   constructor(private http: HttpClient) {}
 

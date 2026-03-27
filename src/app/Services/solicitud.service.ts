@@ -35,7 +35,7 @@ export interface SolicitudesEstadoItem {
   providedIn: 'root'
 })
 export class SolicitudRecoleccionService {
-  private apiUrl = `http://localhost:8082/api/solicitudes`;
+  private apiUrl = `https://ecosoftware-spring-boot.azurewebsites.net/api/solicitudes`;
   private adminDashboardUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/admin/dashboard';
 
   constructor(private http: HttpClient) {}
