@@ -1,47 +1,72 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Location } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../auth/auth.service';
 import { CapacitacionesService } from '../../../Services/capacitacion.service';
 import { CapacitacionDTO } from '../../../Models/capacitacion.model';
 import { CapacitacionesModulosApiService } from '../api/capacitaciones-modulos-api.service';
-import { ModuloDTO, ProgresoDTO } from '../models/capacitaciones-modulos.models';
-import { EvaluacionesModuloUsuarioComponent } from '../components/evaluaciones-modulo-usuario.component';
-import { ProgresoCursoComponent } from '../components/progreso-curso.component';
+import { ModuloDTO } from '../models/capacitaciones-modulos.models';
 
 @Component({
   selector: 'app-modulos-usuario-page',
   standalone: true,
-  imports: [CommonModule, EvaluacionesModuloUsuarioComponent, ProgresoCursoComponent],
+  imports: [CommonModule],
   template: `
-    <section>
-      <div class="card border-0 shadow-sm mb-3">
+    <section class="modulos-page">
+      <header class="hero card border-0 shadow-sm mb-3">
         <div class="card-body">
-          <h5 class="mb-3">Mis capacitaciones</h5>
-
-          <small class="text-danger" *ngIf="error">{{ error }}</small>
-
-          <div class="list-group" *ngIf="cursos.length > 0">
-            <button
-              type="button"
-              class="list-group-item list-group-item-action"
-              [class.active]="cursoSeleccionadoId === curso.id"
-              *ngFor="let curso of cursos"
-              (click)="seleccionarCurso(curso)">
-              <div class="d-flex justify-content-between">
-                <strong>{{ curso.nombre }}</strong>
-                <span>{{ curso.duracion }}</span>
-              </div>
-              <small>{{ curso.descripcion }}</small>
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h4 class="mb-0">Módulos de mi capacitación</h4>
+            <button type="button" class="btn btn-outline-success btn-sm" (click)="volverAMisCapacitaciones()">
+              Volver a la lista de capacitaciones inscritas
             </button>
           </div>
+          <p class="mb-0 text-muted">Explora cada módulo, revisa el material PDF y completa las evaluaciones para avanzar en tu ruta formativa.</p>
+        </div>
+      </header>
 
-          <div class="alert alert-warning py-2" *ngIf="!loadingCursos && cursos.length === 0">
-            No tienes capacitaciones inscritas.
+      <div class="alert alert-danger py-2" *ngIf="error">{{ error }}</div>
+
+      <div class="card border-0 shadow-sm mb-3" *ngIf="cursoSeleccionado">
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center gap-3">
+            <img
+              [src]="cursoSeleccionado.imagen || 'assets/default-capacitacion.jpg'"
+              [alt]="cursoSeleccionado.nombre"
+              class="curso-cover"
+            />
+            <div class="flex-grow-1">
+              <h5 class="mb-1">{{ cursoSeleccionado.nombre }}</h5>
+              <p class="text-muted mb-0">{{ cursoSeleccionado.descripcion || 'Capacitación inscrita en tu ruta de aprendizaje.' }}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <app-progreso-curso [progreso]="progresoCurso"></app-progreso-curso>
+      <div class="card border-0 shadow-sm mb-3" *ngIf="cursoSeleccionadoId">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Progreso</strong>
+            <small>{{ formulariosCompletados100 }} / {{ totalFormularios }}</small>
+          </div>
+          <div class="progress" style="height: 10px;">
+            <div
+              class="progress-bar bg-success"
+              role="progressbar"
+              [style.width.%]="porcentajeProgresoFormularios"
+              [attr.aria-valuenow]="porcentajeProgresoFormularios"
+              aria-valuemin="0"
+              aria-valuemax="100">
+            </div>
+          </div>
+          <small class="text-muted mt-2 d-inline-block">{{ porcentajeProgresoFormularios }}% completado</small>
+        </div>
+      </div>
+
+      <div class="alert alert-info py-2" *ngIf="loadingCursos || loadingModulos">
+        Cargando información...
+      </div>
 
       <div class="accordion mt-3" *ngIf="modulos.length > 0">
         <div class="accordion-item" *ngFor="let modulo of modulos; let i = index">
@@ -68,42 +93,108 @@ import { ProgresoCursoComponent } from '../components/progreso-curso.component';
                 </span>
               </div>
 
-              <app-evaluaciones-modulo-usuario
-                [moduloId]="modulo.id || null"
-                [usuarioId]="usuarioId"
-                (intentoRegistrado)="actualizarProgreso()">
-              </app-evaluaciones-modulo-usuario>
+              <div class="mt-2" *ngIf="modulo.evaluacion as ev">
+                <h6 class="mb-2">{{ ev.titulo }}</h6>
+
+                <div class="border rounded p-2 mb-2" *ngFor="let p of ev.preguntas; let pi = index">
+                  <div class="small fw-semibold mb-2">{{ pi + 1 }}. {{ p.texto }}</div>
+
+                  <div class="form-check mb-1" *ngFor="let opcion of p.opciones; let oi = index">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      [name]="'mod-' + (modulo.id || 0) + '-preg-' + pi"
+                      [checked]="seleccionesPorModulo[modulo.id || 0]?.[pi] === opcion"
+                      [disabled]="estaModuloCompletado100(modulo)"
+                      (change)="seleccionarOpcionModulo(modulo.id || 0, pi, opcion)"
+                    />
+                    <label class="form-check-label small">{{ opcion }}</label>
+                  </div>
+                </div>
+
+                <button class="btn btn-success btn-sm" [disabled]="estaModuloCompletado100(modulo)" (click)="calificarModulo(modulo)">
+                  Enviar evaluación
+                </button>
+
+                <div class="small mt-2" *ngIf="resultadoPorModulo[modulo.id || 0] as r">
+                  Resultado: {{ r.puntaje }}% ({{ r.correctas }}/{{ r.total }})
+                </div>
+
+                <div class="small mt-1 text-success" *ngIf="estaModuloCompletado100(modulo)">
+                  Formulario completado al 100%.
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="alert alert-warning py-2" *ngIf="cursoSeleccionadoId && modulos.length === 0 && !loadingModulos">
+      <div class="alert alert-warning py-2" *ngIf="!loadingCursos && cursos.length === 0">
+        No tienes capacitaciones inscritas.
+      </div>
+
+      <div class="alert alert-warning py-2" *ngIf="cursoSeleccionadoId && modulos.length === 0 && !loadingModulos && !loadingCursos">
         Esta capacitación no tiene módulos publicados.
       </div>
     </section>
   `,
+  styles: [
+    `
+      .modulos-page .hero h4 {
+        color: #14532d;
+      }
+
+      .modulos-page .hero {
+        border-radius: 16px;
+        background: linear-gradient(120deg, #ffffff 0%, #f4fbf6 58%, #edf8f1 100%);
+      }
+
+      .modulos-page .curso-cover {
+        width: 108px;
+        height: 74px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid #d7e9dc;
+      }
+    `,
+  ],
 })
 export class ModulosUsuarioPageComponent implements OnInit {
+  @Input() capacitacionIdInput: number | null = null;
+  @Input() modoEmbebido = false;
+  @Output() volverListaCards = new EventEmitter<void>();
+
   usuarioId: number | null = null;
 
   cursos: CapacitacionDTO[] = [];
+  cursoSeleccionado: CapacitacionDTO | null = null;
   cursoSeleccionadoId: number | null = null;
+  capacitacionIdInicial: number | null = null;
 
   modulos: ModuloDTO[] = [];
-  progresoCurso: ProgresoDTO | null = null;
 
   loadingCursos = false;
   loadingModulos = false;
   error = '';
+  seleccionesPorModulo: Record<number, Record<number, string>> = {};
+  resultadoPorModulo: Record<number, { puntaje: number; correctas: number; total: number }> = {};
+  formulariosCompletados100 = 0;
+  totalFormularios = 0;
+  porcentajeProgresoFormularios = 0;
 
   constructor(
+    private readonly location: Location,
+    private readonly route: ActivatedRoute,
     private readonly authService: AuthService,
     private readonly capacitacionesService: CapacitacionesService,
     private readonly api: CapacitacionesModulosApiService
   ) {}
 
   ngOnInit(): void {
+    const cursoIdFromRoute = Number(this.route.snapshot.queryParamMap.get('capacitacionId'));
+    const cursoId = this.capacitacionIdInput ?? (Number.isFinite(cursoIdFromRoute) && cursoIdFromRoute > 0 ? cursoIdFromRoute : null);
+    this.capacitacionIdInicial = cursoId;
+
     this.usuarioId = this.authService.getUserId();
     this.cargarCursosInscritos();
   }
@@ -121,8 +212,12 @@ export class ModulosUsuarioPageComponent implements OnInit {
       next: (data) => {
         this.cursos = data;
         this.loadingCursos = false;
+
         if (data.length > 0) {
-          this.seleccionarCurso(data[0]);
+          const cursoInicial = this.capacitacionIdInicial
+            ? data.find((c) => c.id === this.capacitacionIdInicial) || data[0]
+            : data[0];
+          this.seleccionarCurso(cursoInicial);
         }
       },
       error: (err) => {
@@ -134,25 +229,31 @@ export class ModulosUsuarioPageComponent implements OnInit {
 
   seleccionarCurso(curso: CapacitacionDTO): void {
     this.cursoSeleccionadoId = curso.id ?? null;
+    this.cursoSeleccionado = curso;
     this.modulos = [];
-    this.progresoCurso = null;
 
     if (!this.cursoSeleccionadoId) {
       return;
     }
 
     this.cargarModulosCurso(this.cursoSeleccionadoId);
-    this.actualizarProgreso();
+  }
+
+  volverAMisCapacitaciones(): void {
+    if (this.modoEmbebido) {
+      this.volverListaCards.emit();
+      return;
+    }
+
+    this.location.back();
   }
 
   cargarModulosCurso(cursoId: number): void {
     this.loadingModulos = true;
     this.api.listarModulosPorCapacitacion(cursoId).subscribe({
       next: (data) => {
-        this.modulos = data.map((m) => ({
-          ...m,
-          archivoPdfUrl: this.normalizePdfUrl(m.archivoPdfUrl),
-        }));
+        this.modulos = data;
+        this.recalcularProgresoFormularios();
         this.loadingModulos = false;
       },
       error: (err) => {
@@ -162,24 +263,13 @@ export class ModulosUsuarioPageComponent implements OnInit {
     });
   }
 
-  actualizarProgreso(): void {
-    if (!this.usuarioId || !this.cursoSeleccionadoId) {
-      return;
-    }
-
-    this.api.obtenerProgresoUsuarioPorCurso(this.usuarioId, this.cursoSeleccionadoId).subscribe({
-      next: (progreso) => (this.progresoCurso = progreso),
-      error: () => (this.progresoCurso = null),
-    });
-  }
-
   abrirPdf(url: string | null | undefined): void {
     if (!url) {
       this.error = 'Este módulo aún no tiene PDF.';
       return;
     }
 
-    const originalUrl = this.normalizePdfUrl(url);
+    const originalUrl = String(url || '').trim();
     if (!originalUrl) {
       this.error = 'No se recibió una URL válida para el PDF.';
       return;
@@ -189,7 +279,7 @@ export class ModulosUsuarioPageComponent implements OnInit {
 
     const win = window.open(viewerUrl, '_blank', 'noopener');
     if (!win) {
-      this.error = 'No se pudo abrir la previsualización del PDF. Revisa si el navegador bloqueó la ventana emergente.';
+      window.location.href = viewerUrl;
     }
   }
 
@@ -199,33 +289,116 @@ export class ModulosUsuarioPageComponent implements OnInit {
       return;
     }
 
-    const normalizedUrl = this.normalizePdfUrl(url);
-    if (!normalizedUrl) {
+    const exactUrl = String(url || '').trim();
+    if (!exactUrl) {
       this.error = 'No se recibió una URL válida para el PDF.';
       return;
     }
 
     const link = document.createElement('a');
-    link.href = normalizedUrl;
+    link.href = exactUrl;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.click();
   }
 
-  private normalizePdfUrl(url: string | null | undefined): string | null {
-    const raw = String(url || '').trim();
-    if (!raw) {
-      return null;
+  seleccionarOpcionModulo(moduloId: number, preguntaIndex: number, opcion: string): void {
+    const modulo = this.modulos.find((m) => m.id === moduloId);
+    if (modulo && this.estaModuloCompletado100(modulo)) {
+      return;
     }
 
-    if (!raw.includes('res.cloudinary.com')) {
-      return raw;
+    const actual = this.seleccionesPorModulo[moduloId] || {};
+    this.seleccionesPorModulo[moduloId] = {
+      ...actual,
+      [preguntaIndex]: opcion,
+    };
+  }
+
+  calificarModulo(modulo: ModuloDTO): void {
+    const ev = modulo.evaluacion;
+    if (!this.usuarioId || !modulo.id || !ev || !Array.isArray(ev.preguntas) || ev.preguntas.length === 0) {
+      this.error = 'Este módulo no tiene evaluación disponible.';
+      return;
     }
 
-    if (raw.includes('/image/upload/')) {
-      return raw.replace('/image/upload/', '/raw/upload/');
+    if (this.estaModuloCompletado100(modulo)) {
+      this.error = 'Este formulario ya fue completado al 100% y se encuentra bloqueado.';
+      return;
     }
 
-    return raw;
+    const respuestas = this.seleccionesPorModulo[modulo.id] || {};
+    const total = ev.preguntas.length;
+
+    for (let i = 0; i < total; i += 1) {
+      if (!respuestas[i]) {
+        this.error = 'Debes responder todas las preguntas antes de enviar.';
+        return;
+      }
+    }
+
+    let correctas = 0;
+    for (let i = 0; i < total; i += 1) {
+      if (respuestas[i] === ev.preguntas[i].respuestaCorrecta) {
+        correctas += 1;
+      }
+    }
+
+    const puntaje = Math.round((correctas / total) * 100);
+    this.resultadoPorModulo[modulo.id] = { puntaje, correctas, total };
+    this.error = '';
+
+    const userIdKey = String(this.usuarioId);
+    const progresoUsuarios = {
+      ...(ev.progresoUsuarios || {}),
+      [userIdKey]: {
+        puntaje,
+        completado100: puntaje === 100,
+        ultimaActualizacion: new Date().toISOString(),
+      },
+    };
+
+    const moduloActualizado: ModuloDTO = {
+      ...modulo,
+      evaluacion: {
+        ...ev,
+        progresoUsuarios,
+      },
+    };
+
+    this.api.actualizarModulo(modulo.id, moduloActualizado).subscribe({
+      next: (saved) => {
+        this.modulos = this.modulos.map((m) => (m.id === modulo.id ? { ...m, ...saved, evaluacion: saved.evaluacion || moduloActualizado.evaluacion } : m));
+        this.recalcularProgresoFormularios();
+      },
+      error: () => {
+        this.error = 'No se pudo guardar el progreso de la evaluación en la base de datos.';
+      },
+    });
+  }
+
+  estaModuloCompletado100(modulo: ModuloDTO): boolean {
+    if (!this.usuarioId) {
+      return false;
+    }
+
+    const progress = modulo.evaluacion?.progresoUsuarios?.[String(this.usuarioId)];
+    return !!progress?.completado100;
+  }
+
+  private recalcularProgresoFormularios(): void {
+    if (!this.usuarioId) {
+      this.totalFormularios = 0;
+      this.formulariosCompletados100 = 0;
+      this.porcentajeProgresoFormularios = 0;
+      return;
+    }
+
+    const evaluables = this.modulos.filter((m) => !!m.evaluacion && Array.isArray(m.evaluacion?.preguntas) && (m.evaluacion?.preguntas?.length || 0) > 0);
+    const completos = evaluables.filter((m) => m.evaluacion?.progresoUsuarios?.[String(this.usuarioId)]?.completado100).length;
+
+    this.totalFormularios = evaluables.length;
+    this.formulariosCompletados100 = completos;
+    this.porcentajeProgresoFormularios = this.totalFormularios > 0 ? Math.round((completos / this.totalFormularios) * 100) : 0;
   }
 }

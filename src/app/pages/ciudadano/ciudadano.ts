@@ -11,7 +11,7 @@ import { BarraLateral } from '../../shared/barra-lateral/barra-lateral';
 import { Titulo } from '../../shared/titulo/titulo';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
-import { ModulosUsuarioPageComponent } from '../../features/capacitaciones/pages/modulos-usuario-page.component';
+import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 import { DashboardCiudadanoComponent } from '../../Logic/ciudadano/dashboard-ciudadano/dashboard-ciudadano';
 
@@ -20,7 +20,7 @@ import { DashboardCiudadanoComponent } from '../../Logic/ciudadano/dashboard-ciu
   standalone: true,
   imports: [COMPARTIR_IMPORTS, FormRegistro,
     EditarUsuario,
-    CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, ModulosUsuarioPageComponent, Tabla,
+    CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, MisCapacitacionesComponent, Tabla,
     DashboardCiudadanoComponent],
 
   templateUrl: './ciudadano.html',

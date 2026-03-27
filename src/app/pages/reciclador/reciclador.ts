@@ -10,7 +10,7 @@ import { CardARSolicitud } from '../../Logic/solicitudes-comp/card-a-r-solicitud
 import { CardsRecoleccion } from '../../Logic/recolecciones-comp/cards-recoleccion/cards-recoleccion';
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 import { DashboardRecicladorComponent } from '../../Logic/reciclador/dashboard-reciclador/dashboard-reciclador';
-import { ModulosUsuarioPageComponent } from '../../features/capacitaciones/pages/modulos-usuario-page.component';
+import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
 
 
 interface MenuItem {
@@ -22,7 +22,7 @@ interface MenuItem {
   selector: 'app-reciclador',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, BarraLateral, Titulo, EditarUsuario, CardARSolicitud, CardsRecoleccion, Tabla,
-    DashboardRecicladorComponent, ModulosUsuarioPageComponent],
+    DashboardRecicladorComponent, MisCapacitacionesComponent],
   templateUrl: './reciclador.html',
   styleUrls: ['./reciclador.css']
 })

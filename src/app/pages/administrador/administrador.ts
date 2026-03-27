@@ -3,6 +3,7 @@ import { RegistroAdmin } from './../../auth/registro-admin/registro-admin';
 import { Component, ViewChild, ElementRef, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { UsuarioService } from '../../Services/usuario.service';
 import { UsuarioModel } from '../../Models/usuario';
 import { COMPARTIR_IMPORTS } from '../../shared/imports';
@@ -41,7 +42,8 @@ import { ModulosAdminPageComponent } from '../../features/capacitaciones/pages/m
   imports: [...COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
     EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes,
-    ModulosAdminPageComponent],
+    ModulosAdminPageComponent,
+  ],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -132,6 +134,9 @@ export class Administrador {
   // botones de alternar vistas
   mostrarNuevoUsuario = false;
   capacitaciones = false;
+  mostrarGestionModulosCapacitaciones = false;
+  capacitacionModuloSeleccionadaId: number | null = null;
+  private forzarVistaCapacitaciones = false;
   creandoCapacitacion = false;
   errorCapacitacion = '';
   mensajeCapacitacion = '';
@@ -158,6 +163,7 @@ export class Administrador {
   constructor(
     private usuarioService: UsuarioService,
     private router: Router,
+    private readonly route: ActivatedRoute,
     private authService: AuthService,
     private puntosService: PuntosReciclajeService,
     private reporteService: ReporteService,
@@ -708,6 +714,24 @@ export class Administrador {
 
   ngOnInit(): void {
 
+    this.route.queryParamMap.subscribe((params) => {
+      const vista = (params.get('vista') || '').toLowerCase();
+      const seccion = (params.get('seccion') || '').toLowerCase();
+      const capIdParam = Number(params.get('capacitacionId'));
+
+      if (vista === 'capacitaciones' && seccion === 'modulos') {
+        this.forzarVistaCapacitaciones = true;
+        this.vistaActual = 'capacitaciones';
+        this.capacitaciones = false;
+        this.mostrarGestionModulosCapacitaciones = true;
+        this.capacitacionModuloSeleccionadaId = Number.isNaN(capIdParam) || capIdParam <= 0 ? null : capIdParam;
+      } else {
+        this.forzarVistaCapacitaciones = false;
+        this.mostrarGestionModulosCapacitaciones = false;
+        this.capacitacionModuloSeleccionadaId = null;
+      }
+    });
+
 
 
     this.usuarioService.contarPendientesAdminDashboard().subscribe({
@@ -716,6 +740,10 @@ export class Administrador {
         this.totalUsuariosPendientes = Number(pendientes ?? 0);
 
         // Mantener la navegación existente: si hay pendientes → vista Aceptar/Rechazar
+        if (this.forzarVistaCapacitaciones) {
+          return;
+        }
+
         if (this.totalUsuariosPendientes > 0) {
           this.vistaActual = 'Aceptar-Rechazar-Usuarios';
         } else {
@@ -725,7 +753,9 @@ export class Administrador {
       error: (err) => {
         console.error('Error contando usuarios pendientes (admin dashboard):', err);
         this.usuariosPendientesError = 'No se pudo cargar usuarios pendientes.';
-        this.vistaActual = 'panel';
+        if (!this.forzarVistaCapacitaciones) {
+          this.vistaActual = 'panel';
+        }
       }
     });
     this.consultarUsuarios();
@@ -863,10 +893,31 @@ export class Administrador {
   // ========================
   cambiarVista(vista: 'panel' | 'editar-perfil' | 'Aceptar-Rechazar-Usuarios' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias') {
     this.vistaActual = vista;
+
+    if (vista !== 'capacitaciones') {
+      this.mostrarGestionModulosCapacitaciones = false;
+      this.capacitacionModuloSeleccionadaId = null;
+      this.forzarVistaCapacitaciones = false;
+    }
+
     // Cargar puntos cuando se abre la vista de puntos
     if (vista === 'puntos') {
       this.cargarPuntos();
     }
+  }
+
+  volverAListaCapacitaciones(): void {
+    this.mostrarGestionModulosCapacitaciones = false;
+    this.capacitacionModuloSeleccionadaId = null;
+    this.forzarVistaCapacitaciones = false;
+    this.vistaActual = 'capacitaciones';
+
+    this.router.navigate(['/administrador'], {
+      queryParams: {
+        vista: 'capacitaciones',
+      },
+      replaceUrl: true,
+    });
   }
 
   // ========================

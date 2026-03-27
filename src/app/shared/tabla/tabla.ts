@@ -29,6 +29,7 @@ export class Tabla implements OnChanges {
   @Output() eliminar = new EventEmitter<any>();
   @Output() descargar = new EventEmitter<void>();
   @Output() rechazar = new EventEmitter<any>();
+  @Output() accion = new EventEmitter<{ accion: string; item: any }>();
 
   @Input() iconosAcciones: any = {};   // ← ya existía
 
@@ -47,6 +48,8 @@ export class Tabla implements OnChanges {
   // 🔥 ESTE ES EL CAMBIO MÁS IMPORTANTE (para que iconosAcciones sí funcione)
   ngOnChanges(changes: SimpleChanges) {
     this.acciones = [];
+
+    const accionesBase = new Set(['editar', 'eliminar', 'ver', 'rechazar']);
 
     if (this.accionesVisibles.includes('editar')) {
       this.acciones.push({
@@ -87,6 +90,21 @@ export class Tabla implements OnChanges {
         evento: (item: any) => this.rechazar.emit(item)
       });
     };
+
+    this.accionesVisibles
+      .filter((accion) => !accionesBase.has(accion))
+      .forEach((accion) => {
+        const config = this.iconosAcciones?.[accion] || {};
+        this.acciones.push({
+          nombre: accion,
+          icon: config.icon || 'bi-three-dots',
+          texto: config.texto || '',
+          color: config.color || 'outline-custom-success',
+          hover: config.hover || 'custom-success-filled',
+          evento: (item: any) => this.accion.emit({ accion, item })
+        });
+      });
+
     this.Header = [
       {
         icon: this.iconosAcciones.descargar || 'bi-download',

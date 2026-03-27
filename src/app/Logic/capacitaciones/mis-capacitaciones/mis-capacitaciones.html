@@ -1,92 +1,36 @@
-<section class="mis-capacitaciones">
-  <div class="alerts">
-    <div class="alert alert-success" *ngIf="success">{{ success }}</div>
-    <div class="alert alert-danger" *ngIf="error">{{ error }}</div>
-  </div>
+<section class="mis-capacitaciones-page">
+  <header class="hero-encabezado">
+    <div>
+      <p class="etiqueta">Ruta formativa</p>
+      <h2>Mis Capacitaciones</h2>
+      <p class="subtitulo">Selecciona una capacitación para entrar a su página de módulos, revisar el material y completar evaluaciones.</p>
+    </div>
+  </header>
 
-  <div *ngIf="loading" class="muted">Cargando tus capacitaciones...</div>
+  <p class="estado" *ngIf="loading">Cargando tus capacitaciones...</p>
+  <p class="estado error" *ngIf="!loading && error">{{ error }}</p>
+  <p class="estado" *ngIf="!loading && !error && capacitaciones.length === 0">Aun no tienes capacitaciones inscritas.</p>
 
-  <div *ngIf="!loading && capacitaciones.length === 0" class="empty-state">
-    Aun no estas inscrito en capacitaciones.
-  </div>
+  <div class="cards-grid" *ngIf="!loading && !error && capacitaciones.length > 0 && !capacitacionSeleccionadaId">
+    <article class="curso-card" *ngFor="let curso of capacitaciones" (click)="abrirCurso(curso)">
+      <figure class="curso-media">
+        <img [src]="curso.imagen || 'assets/default-capacitacion.jpg'" [alt]="curso.nombre" />
+      </figure>
 
-  <div class="curso-list" *ngIf="capacitaciones.length > 0">
-    <article class="curso-card" *ngFor="let curso of capacitaciones">
-      <header class="curso-head" (click)="toggleCurso(curso)">
-        <div>
-          <h4>{{ curso.nombre }}</h4>
-          <p>{{ curso.descripcion }}</p>
-          <small>{{ curso.numeroDeClases }} clases | {{ curso.duracion }}</small>
-        </div>
-
-        <button class="btn btn-outline-success btn-sm">{{ cursoExpandidoId === curso.id ? 'Ocultar' : 'Ver' }}</button>
-      </header>
-
-      <div class="progreso" *ngIf="cursoExpandidoId === curso.id">
-        <ng-container *ngIf="progresoPorCurso[curso.id!]; else sinProgreso">
-          <div class="progress-meta">
-            <span>Progreso: {{ progresoPorCurso[curso.id!]?.progresoDelCurso }}</span>
-            <span>Modulos completados: {{ progresoPorCurso[curso.id!]?.modulosCompletados }}</span>
-          </div>
-        </ng-container>
-
-        <ng-template #sinProgreso>
-          <small class="muted">No hay progreso calculado aun para este curso.</small>
-        </ng-template>
-
-        <div class="modulo-list" *ngIf="(modulosPorCurso[curso.id!] || []).length > 0; else sinModulos">
-          <div class="modulo-card" *ngFor="let modulo of modulosPorCurso[curso.id!]">
-            <h5>{{ modulo.descripcion }}</h5>
-            <small>{{ modulo.duracion }}</small>
-
-            <div class="pdf-actions">
-              <button class="btn btn-sm btn-outline-primary" (click)="abrirPdf(modulo.archivoPdfUrl)">
-                Ver PDF
-              </button>
-              <a *ngIf="modulo.archivoPdfUrl" [href]="modulo.archivoPdfUrl" target="_blank" rel="noopener noreferrer">
-                Abrir en nueva pestana
-              </a>
-            </div>
-
-            <div class="evaluaciones" *ngIf="(evaluacionesPorModulo[modulo.id!] || []).length > 0; else sinEvaluaciones">
-              <h6>Evaluaciones</h6>
-
-              <div class="eval-item" *ngFor="let ev of evaluacionesPorModulo[modulo.id!]">
-                <div class="eval-main">
-                  <strong>{{ ev.titulo }}</strong>
-                  <p>{{ ev.descripcion }}</p>
-                  <small>Puntaje minimo: {{ ev.puntajeMinimo }} | {{ ev.activa ? 'Activa' : 'Inactiva' }}</small>
-
-                  <small *ngIf="ultimoIntentoPorEvaluacion[ev.id!]">
-                    Ultimo intento: {{ ultimoIntentoPorEvaluacion[ev.id!]?.puntajeObtenido }}
-                    ({{ ultimoIntentoPorEvaluacion[ev.id!]?.aprobado ? 'Aprobado' : 'No aprobado' }})
-                  </small>
-                </div>
-
-                <div class="eval-form" *ngIf="ev.activa">
-                  <input
-                    class="form-control form-control-sm"
-                    type="number"
-                    min="0"
-                    max="100"
-                    [(ngModel)]="puntajePorEvaluacion[ev.id!]"
-                    placeholder="Puntaje obtenido"
-                  />
-                  <button class="btn btn-success btn-sm" (click)="registrarIntento(ev)">Enviar intento</button>
-                </div>
-              </div>
-            </div>
-
-            <ng-template #sinEvaluaciones>
-              <small class="muted">Este modulo no tiene evaluaciones activas.</small>
-            </ng-template>
-          </div>
-        </div>
-
-        <ng-template #sinModulos>
-          <small class="muted">Este curso no tiene modulos publicados.</small>
-        </ng-template>
+      <div class="curso-info">
+        <h3>{{ curso.nombre }}</h3>
+        <p>{{ curso.descripcion || 'Capacitación activa en tu ruta de aprendizaje.' }}</p>
+        <button type="button" class="btn-abrir" (click)="abrirCurso(curso); $event.stopPropagation()">
+          Ver módulos
+        </button>
       </div>
     </article>
   </div>
+
+  <app-modulos-usuario-page
+    *ngIf="capacitacionSeleccionadaId"
+    [capacitacionIdInput]="capacitacionSeleccionadaId"
+    [modoEmbebido]="true"
+    (volverListaCards)="volverAListaCards()">
+  </app-modulos-usuario-page>
 </section>

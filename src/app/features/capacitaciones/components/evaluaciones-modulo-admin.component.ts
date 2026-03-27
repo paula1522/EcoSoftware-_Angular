@@ -34,7 +34,12 @@ import { EvaluacionFormComponent } from './evaluacion-form.component';
             <div>
               <strong>{{ ev.titulo }}</strong>
               <div class="small text-muted">{{ ev.descripcion }}</div>
-              <div class="small">Puntaje mínimo: {{ ev.puntajeMinimo }} | {{ ev.activa ? 'Activa' : 'Inactiva' }}</div>
+              <div class="small">
+                Puntaje mínimo: {{ ev.puntajeMinimo }} |
+                {{ ev.activa ? 'Activa' : 'Inactiva' }} |
+                Tipo: {{ ev.tipo === 'multiple' ? 'Opción múltiple' : 'Manual' }}
+                <span *ngIf="ev.tipo === 'multiple'">| Preguntas: {{ (ev.preguntas || []).length }}</span>
+              </div>
             </div>
             <div class="d-flex gap-2 align-items-start">
               <button class="btn btn-outline-primary btn-sm" (click)="abrirEditar(ev)">Editar</button>
@@ -86,7 +91,23 @@ export class EvaluacionesModuloAdminComponent implements OnChanges {
   }
 
   abrirCrear(): void {
-    this.editing = { titulo: '', descripcion: '', puntajeMinimo: 70, activa: true, moduloId: this.moduloId ?? undefined };
+    this.editing = {
+      titulo: '',
+      descripcion: '',
+      puntajeMinimo: 70,
+      activa: true,
+      tipo: 'multiple',
+      preguntas: [
+        {
+          enunciado: '',
+          opciones: [
+            { texto: '', esCorrecta: true },
+            { texto: '', esCorrecta: false },
+          ],
+        },
+      ],
+      moduloId: this.moduloId ?? undefined,
+    };
     this.showForm = true;
   }
 
@@ -114,6 +135,8 @@ export class EvaluacionesModuloAdminComponent implements OnChanges {
       descripcion: dto.descripcion,
       puntajeMinimo: dto.puntajeMinimo,
       activa: dto.activa,
+      tipo: 'multiple',
+      preguntas: dto.preguntas ?? [],
       moduloId: this.moduloId,
     };
 

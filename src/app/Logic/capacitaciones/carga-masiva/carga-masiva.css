@@ -1,0 +1,36 @@
+.masiva-launcher {
+	border: 1px solid #dbe8df;
+	border-radius: 14px;
+	padding: 1rem;
+	background: linear-gradient(130deg, #f8fef9 0%, #f0f8f3 60%, #eef6ff 100%);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+}
+
+.masiva-eyebrow {
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #2f7a45;
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+
+.mass-guide {
+	background: #f7faf8;
+	border: 1px dashed #cfe2d3;
+	border-radius: 12px;
+	padding: 0.85rem;
+}
+
+.mass-actions .btn.btn-primary {
+	border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+	.masiva-launcher {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

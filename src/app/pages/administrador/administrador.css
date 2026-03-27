@@ -397,3 +397,55 @@
   margin: 10px 0;
 }
 
+.cap-admin-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.cap-admin-form-card {
+  border: 1px solid #d8e8dc;
+  background: linear-gradient(130deg, #fbfefb 0%, #f2f9f3 62%, #eef7ff 100%);
+  border-radius: 18px;
+}
+
+.cap-admin-mass-card {
+  border: 1px solid #deeadf;
+  border-radius: 18px;
+}
+
+.cap-admin-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.cap-admin-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2f7a45;
+}
+
+.modulos-inline-header {
+  border: 1px solid #d9e8dd;
+  background: linear-gradient(120deg, #f8fef9 0%, #f0f8f3 56%, #eef6ff 100%);
+  border-radius: 14px;
+  padding: 0.95rem 1rem;
+  box-shadow: 0 10px 24px rgba(19, 67, 37, 0.08);
+}
+
+.modulos-inline-header p {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #2f7a45;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.modulos-inline-header h5 {
+  color: #204232;
+}
+

@@ -6,9 +6,10 @@
   align-items: flex-end;    /* Alinea los inputs y botones al fondo */
   gap: 10px;                /* Espacio entre filtros */
   padding: 15px 10px;
-  background-color: #f8f9fa;
+  background: linear-gradient(120deg, #f8fcf8 0%, #f0f8f3 55%, #eef6fb 100%);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px rgba(24, 70, 42, 0.08);
+  border: 1px solid #deeadf;
   margin-bottom: 1.5rem;
   box-sizing: border-box;
 }
@@ -29,6 +30,17 @@
 .filtros-container app-boton {
   min-width: 80px;
   height: 40px !important;
+}
+
+.filtros-container .form-label {
+  font-weight: 700;
+  color: #2f4a37;
+  margin-bottom: 0.3rem;
+}
+
+.filtros-container .form-control {
+  border-radius: 10px;
+  border-color: #cfe2d2;
 }
 
 /* Inputs y selects dentro de filtros */

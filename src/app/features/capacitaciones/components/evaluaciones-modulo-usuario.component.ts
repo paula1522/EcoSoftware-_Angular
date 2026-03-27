@@ -22,28 +22,42 @@ import { EvaluacionDTO, IntentoEvaluacionDTO } from '../models/capacitaciones-mo
             <div>
               <strong>{{ ev.titulo }}</strong>
               <div class="small text-muted">{{ ev.descripcion }}</div>
-              <div class="small">Puntaje mínimo: {{ ev.puntajeMinimo }} | {{ ev.activa ? 'Activa' : 'Inactiva' }}</div>
+              <div class="small">
+                Puntaje mínimo: {{ ev.puntajeMinimo }} |
+                {{ ev.activa ? 'Activa' : 'Inactiva' }} |
+                Tipo: Opción múltiple
+              </div>
               <div class="small text-success" *ngIf="ultimoIntento[ev.id || 0]">
                 Último intento: {{ ultimoIntento[ev.id || 0]?.puntajeObtenido }}
                 ({{ ultimoIntento[ev.id || 0]?.aprobado ? 'Aprobado' : 'No aprobado' }})
               </div>
             </div>
 
-            <div *ngIf="ev.activa" class="d-flex gap-2 align-items-start">
-              <input
-                type="number"
-                min="0"
-                max="100"
-                class="form-control form-control-sm"
-                style="width: 110px;"
-                [(ngModel)]="puntajePorEvaluacion[ev.id || 0]"
-                [disabled]="sending[ev.id || 0]"
-                placeholder="0 - 100"
-              />
-              <button class="btn btn-success btn-sm" [disabled]="sending[ev.id || 0]" (click)="enviarIntento(ev)">
-                {{ sending[ev.id || 0] ? 'Enviando...' : 'Enviar' }}
-              </button>
+            <div *ngIf="ev.activa && (!ev.preguntas || ev.preguntas.length === 0)" class="small text-warning">
+              Esta evaluación aún no tiene preguntas publicadas.
             </div>
+          </div>
+
+          <div class="mt-3" *ngIf="ev.activa && (ev.preguntas || []).length > 0">
+            <div class="border rounded p-2 mb-2" *ngFor="let p of ev.preguntas || []; let pi = index">
+              <div class="small fw-semibold mb-2">{{ pi + 1 }}. {{ p.enunciado }}</div>
+
+              <div class="form-check mb-1" *ngFor="let opcion of p.opciones; let oi = index">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  [name]="'eval-' + (ev.id || 0) + '-preg-' + pi"
+                  [checked]="selecciones[ev.id || 0]?.[pi] === oi"
+                  (change)="seleccionarOpcion(ev.id || 0, pi, oi)"
+                  [disabled]="sending[ev.id || 0]"
+                />
+                <label class="form-check-label small">{{ opcion.texto }}</label>
+              </div>
+            </div>
+
+            <button class="btn btn-success btn-sm" [disabled]="sending[ev.id || 0]" (click)="enviarIntento(ev)">
+              {{ sending[ev.id || 0] ? 'Enviando...' : 'Enviar evaluación' }}
+            </button>
           </div>
         </div>
       </div>
@@ -60,7 +74,7 @@ export class EvaluacionesModuloUsuarioComponent implements OnChanges {
   loading = false;
   error = '';
 
-  puntajePorEvaluacion: Record<number, number | null> = {};
+  selecciones: Record<number, Record<number, number>> = {};
   sending: Record<number, boolean> = {};
   ultimoIntento: Record<number, IntentoEvaluacionDTO | null> = {};
 
@@ -98,9 +112,9 @@ export class EvaluacionesModuloUsuarioComponent implements OnChanges {
       return;
     }
 
-    const puntaje = this.puntajePorEvaluacion[ev.id];
-    if (puntaje == null || Number.isNaN(puntaje) || puntaje < 0 || puntaje > 100) {
-      this.error = 'El puntaje debe estar entre 0 y 100.';
+    const puntaje = this.calcularPuntajeMultiple(ev);
+    if (puntaje == null) {
+      this.error = 'Debes responder todas las preguntas antes de enviar.';
       return;
     }
 
@@ -114,7 +128,7 @@ export class EvaluacionesModuloUsuarioComponent implements OnChanges {
     }).subscribe({
       next: (intento) => {
         this.sending[ev.id!] = false;
-        this.puntajePorEvaluacion[ev.id!] = null;
+        this.selecciones[ev.id!] = {};
         this.ultimoIntento[ev.id!] = intento;
         this.intentoRegistrado.emit();
       },
@@ -123,6 +137,40 @@ export class EvaluacionesModuloUsuarioComponent implements OnChanges {
         this.error = err?.error?.message || 'No fue posible registrar el intento.';
       },
     });
+  }
+
+  seleccionarOpcion(evaluacionId: number, preguntaIndex: number, opcionIndex: number): void {
+    const actual = this.selecciones[evaluacionId] || {};
+    this.selecciones[evaluacionId] = {
+      ...actual,
+      [preguntaIndex]: opcionIndex,
+    };
+  }
+
+  private calcularPuntajeMultiple(ev: EvaluacionDTO): number | null {
+    const preguntas = ev.preguntas || [];
+    if (preguntas.length === 0) {
+      return 0;
+    }
+
+    const selected = this.selecciones[ev.id || 0] || {};
+    let correctas = 0;
+
+    for (let i = 0; i < preguntas.length; i += 1) {
+      const pregunta = preguntas[i];
+      const selectedOption = selected[i];
+
+      if (selectedOption === undefined || selectedOption === null) {
+        return null;
+      }
+
+      const opcion = (pregunta.opciones || [])[selectedOption];
+      if (opcion?.esCorrecta) {
+        correctas += 1;
+      }
+    }
+
+    return Math.round((correctas / preguntas.length) * 100);
   }
 
   private cargarUltimoIntento(evaluacionId?: number): void {

@@ -36,10 +36,12 @@
     [columnas]="columnas" 
     [data]="data" 
     titulo="Capacitaciones"
-    [accionesVisibles]="['ver','editar','eliminar']"
+    [iconosAcciones]="iconosAcciones"
+    [accionesVisibles]="['ver','editar','eliminar','modulos']"
     (ver)="abrirModalVerCapacitacion($event)"
     (editar)="editar($event)"
-    (eliminar)="eliminar($event)">
+    (eliminar)="eliminar($event)"
+    (accion)="onAccionTabla($event)">
   </app-tabla>
 
   <!-- MODAL VER CAPACITACION -->
