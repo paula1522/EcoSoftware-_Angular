@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Service } from '../../../../Services/solicitud.service';
+import { SolicitudRecoleccionService } from '../../../../Services/solicitud.service';
 import { Router } from '@angular/router';
 import { LocalidadNombrePipe } from "../../../../core/pipes/LocalidadNombrePipe";
-import { EstadoPeticion, Localidad, ServiceModel, TipoResiduo } from '../../../../Models/solicitudes.model';
+import { EstadoPeticion, Localidad, SolicitudRecoleccion, TipoResiduo } from '../../../../Models/solicitudes.model';
 import { COMPARTIR_IMPORTS } from '../../../../shared/imports';
 import { forkJoin } from 'rxjs';
 
@@ -24,7 +24,7 @@ export class FormRegistro {
   evidencia: File [] = [];
 
 
-  constructor(private fb: FormBuilder, private Service: Service, private router: Router) {
+  constructor(private fb: FormBuilder, private solicitudService: SolicitudRecoleccionService, private router: Router) {
     const hoyDate = new Date();
     this.hoy = hoyDate.toISOString().split('T')[0];
 
@@ -73,7 +73,7 @@ if (!fechaHora.includes(':')) {
   fechaHora += ':00'; // añade segundos
 }
 
-const nuevaSolicitud: Partial<ServiceModel> = {
+const nuevaSolicitud: Partial<SolicitudRecoleccion> = {
   usuarioId: 3,
   tipoResiduo: raw.tipoResiduo,
   cantidad: raw.cantidad,
@@ -86,7 +86,7 @@ const nuevaSolicitud: Partial<ServiceModel> = {
   fechaProgramada: fechaHora, // ya incluye fecha y hora
 };
 
-  this.Service.crearSolicitud(nuevaSolicitud as ServiceModel).subscribe({
+  this.solicitudService.crearSolicitud(nuevaSolicitud as SolicitudRecoleccion).subscribe({
     next: (resp) => {
       this.mensaje = 'Solicitud registrada correctamente';
       this.error = '';

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { Service, SolicitudesPorLocalidad } from '../../../Services/solicitud.service';
+import { SolicitudesPorLocalidad, SolicitudRecoleccionService } from '../../../Services/solicitud.service';
 
 @Component({
   selector: 'app-solicitudes-localidad-chart',
@@ -20,7 +20,7 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
   };
   public errorMessage: string | null = null;
 
-  constructor(private service: Service) {}
+  constructor(private solicitudService: SolicitudRecoleccionService) {}
 
   ngOnInit() {
     // Obtener TODAS las solicitudes y agrupar por localidad en el frontend
@@ -32,7 +32,7 @@ export class SolicitudesLocalidadChartComponent implements OnInit {
       }
 
     // Así los datos siempre están sincronizados con la BD
-    this.service.listar().subscribe({
+    this.solicitudService.listar().subscribe({
       next: (todasLasSolicitudes: any[]) => {
         console.log('[SolicitudesLocalidad] Todas las solicitudes:', todasLasSolicitudes);
         

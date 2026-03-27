@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { Service, PendientesAceptadas } from '../../../Services/solicitud.service';
+import { PendientesAceptadas, SolicitudRecoleccionService } from '../../../Services/solicitud.service';
 
 @Component({
   selector: 'app-pendientes-aceptadas-chart',
@@ -13,14 +13,14 @@ import { Service, PendientesAceptadas } from '../../../Services/solicitud.servic
 export class PendientesAceptadasChartComponent implements OnInit {
   public chartOptions: any = {};
 
-  constructor(private service: Service) {}
+  constructor(private solicitudService: SolicitudRecoleccionService) {}
 
   ngOnInit() {
     // Inicializar con opciones básicas
     this.initializeEmptyChart();
     
     // Obtener TODAS las solicitudes y contar por estado
-    this.service.listar().subscribe({
+    this.solicitudService.listar().subscribe({
       next: (todasLasSolicitudes: any[]) => {
         console.log('[PendientesAceptadas] Todas las solicitudes:', todasLasSolicitudes);
         

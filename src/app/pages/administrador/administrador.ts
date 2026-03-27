@@ -6,7 +6,6 @@ import { Router } from '@angular/router';
 import { UsuarioService } from '../../Services/usuario.service';
 import { UsuarioModel } from '../../Models/usuario';
 import { COMPARTIR_IMPORTS } from '../../shared/imports';
-import { Solcitudes } from '../../Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes';
 import { Usuario } from "../../Logic/usuarios.comp/listar-filtrar-usuarios/usuario";
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
@@ -23,23 +22,25 @@ import { PendientesAceptadasChartComponent } from '../../Logic/solicitudes-comp/
 import { Titulo } from '../../shared/titulo/titulo';
 import { Modal } from '../../shared/modal/modal';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
-import { Service } from '../../Services/solicitud.service';
 import { ReporteService } from '../../Services/reporte.service';
-import { ServiceModel } from '../../Models/solicitudes.model';
+import { SolicitudRecoleccion } from '../../Models/solicitudes.model';
 import { AceptarRechazarUsuarios } from '../../Logic/usuarios.comp/aceptar-rechazar-usuarios/aceptar-rechazar-usuarios';
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
 import { MapaComponent } from '../mapa/mapa.component';
 import { firstValueFrom } from 'rxjs';
 import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { Boton } from '../../shared/botones/boton/boton';
+import { SolicitudRecoleccionService } from '../../Services/solicitud.service';
+import { Solicitud } from "../solicitud/solicitud";
+import { Solicitudes } from "../../Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes";
 
 
 @Component({
   selector: 'app-administrador',
   imports: [COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios,
     RechazadasMotivoChartComponent, PendientesAceptadasChartComponent, GraficoUsuariosLocalidad,
-    RegistroAdmin, Usuario, ListarTabla, Solcitudes,
-    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton],
+    RegistroAdmin, Usuario, ListarTabla,
+    EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitud, Solicitudes],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -141,14 +142,14 @@ export class Administrador {
   @ViewChild(MapaComponent) mapaComponent?: MapaComponent;
 
   // Lista de solicitudes para reportes
-  solicitudes: ServiceModel[] = [];
+  solicitudes: SolicitudRecoleccion[] = [];
 
   constructor(
     private usuarioService: UsuarioService,
     private router: Router,
     private authService: AuthService,
     private puntosService: PuntosReciclajeService,
-    private solicitudService: Service,
+    private solicitudService: SolicitudRecoleccionService,
     private reporteService: ReporteService,
     private readonly http: HttpClient
   ) { }

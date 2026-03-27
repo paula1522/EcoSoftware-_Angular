@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { UsuarioModel } from '../Models/usuario';
-import { ServiceModel } from '../Models/solicitudes.model';
+import { SolicitudRecoleccion } from '../Models/solicitudes.model';
 
 @Injectable({
   providedIn: 'root'
@@ -60,7 +60,7 @@ export class ReporteService {
    * Genera un reporte PDF de solicitudes
    */
   async generarReporteSolicitudes(
-    solicitudes: ServiceModel[],
+    solicitudes: SolicitudRecoleccion[],
     graficoElements: { [key: string]: HTMLElement | null }
   ): Promise<void> {
     try {
@@ -272,7 +272,7 @@ export class ReporteService {
   /**
    * Agrega estadísticas de solicitudes
    */
-  private agregarSeccionEstadisticasSolicitudes(solicitudes: ServiceModel[]): void {
+  private agregarSeccionEstadisticasSolicitudes(solicitudes: SolicitudRecoleccion[]): void {
     if (!this.pdfDoc) return;
 
     // Verificar espacio
@@ -490,7 +490,7 @@ export class ReporteService {
   /**
    * Agrega tabla de solicitudes
    */
-  private agregarSeccionTablaSolicitudes(solicitudes: ServiceModel[]): void {
+  private agregarSeccionTablaSolicitudes(solicitudes: SolicitudRecoleccion[]): void {
     if (!this.pdfDoc) return;
 
     // Nueva página para la tabla

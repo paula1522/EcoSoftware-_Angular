@@ -1,0 +1,173 @@
+<!-- =============================== -->
+<!-- ALERTAS -->
+<!-- =============================== -->
+<div class="alertas-container">
+  <app-alerta
+    [tipo]="tipoAlerta"
+    [mensaje]="mensajeAlerta"
+    [mostrar]="mostrarAlerta"
+  ></app-alerta>
+</div>
+
+<!-- =============================== -->
+<!-- FILTROS -->
+<!-- =============================== -->
+<form [formGroup]="formFiltros">
+  <div class="filtros-container p-3">
+    <div class="d-flex flex-wrap align-items-end gap-2">
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Nombre</label>
+        <input type="text" class="form-control" formControlName="nombre" placeholder="Nombre de ruta" />
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Estado</label>
+        <select class="form-select" formControlName="estado">
+          <option value="">Todos</option>
+          <option *ngFor="let estado of estadosRuta" [value]="estado">{{ estado }}</option>
+        </select>
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 180px;">
+        <label class="form-label">Recolector</label>
+        <select class="form-select" formControlName="recolectorId">
+          <option value="">Todos</option>
+          <option *ngFor="let rec of recolectores" [value]="rec.id">{{ rec.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Fecha desde</label>
+        <input type="date" class="form-control" formControlName="fechaDesde" />
+      </div>
+
+      <div class="flex-grow-1" style="min-width: 150px;">
+        <label class="form-label">Fecha hasta</label>
+        <input type="date" class="form-control" formControlName="fechaHasta" />
+      </div>
+
+      <div class="d-flex gap-2">
+        <app-boton
+          icono="bi bi-funnel"
+          color="custom-success-filled"
+          (click)="aplicarFiltros()"
+        ></app-boton>
+        <app-boton
+          icono="bi bi-x-circle"
+          color="custom-gray-filled"
+          (click)="limpiarFiltros()"
+        ></app-boton>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- =============================== -->
+<!-- TABLA DE RUTAS -->
+<!-- =============================== -->
+<app-tabla
+  [columnas]="columnas"
+  [data]="rutas"
+  [cellTemplates]="cellTemplates"
+  titulo="Rutas de recolección"
+  (descargar)="abrirModalReportes()"
+  (ver)="abrirModalDetalle($event)"
+  (editar)="abrirModalEditar($event)"
+  (eliminar)="abrirModalEliminar($event)"
+>
+</app-tabla>
+
+<div *ngIf="rutas.length === 0 && !cargando" class="mensaje info">
+  No hay rutas registradas.
+</div>
+
+<!-- =============================== -->
+<!-- MODAL DE REPORTES -->
+<!-- =============================== -->
+<app-modal
+  #modalReportes
+  [title]="'Reportes de rutas'"
+  [headerColor]="'#6c757d'"
+  [isOpen]="false"
+>
+  <div class="mb-3">Seleccione el formato de reporte a descargar:</div>
+  <div class="d-flex gap-2 justify-content-center flex-wrap">
+    <app-boton
+      *ngFor="let btn of botonesReporte"
+      [texto]="btn.texto"
+      [icono]="btn.icono"
+      [color]="btn.color"
+      (click)="btn.accion()"
+    ></app-boton>
+  </div>
+</app-modal>
+
+<!-- =============================== -->
+<!-- MODAL DETALLE (MAPA) -->
+<!-- =============================== -->
+<app-modal
+  #modalDetalle
+  [title]="'Detalle de ruta: ' + (rutaSeleccionada?.nombre || '')"
+  [headerColor]="'#4f69d9'"
+  [isOpen]="false"
+>
+  <div class="p-3">
+    <app-mapa-ruta-gestion
+      *ngIf="rutaSeleccionada"
+      [rutaId]="rutaSeleccionada.idRuta"
+      [modoGestion]="false"
+    ></app-mapa-ruta-gestion>
+  </div>
+</app-modal>
+
+<!-- =============================== -->
+<!-- MODAL EDITAR NOMBRE -->
+<!-- =============================== -->
+<app-modal
+  #modalEditar
+  [title]="'Editar ruta'"
+  [headerColor]="'#ffc107'"
+  [isOpen]="false"
+>
+  <div class="p-3">
+    <app-form-comp
+      [formGroup]="formEditar"
+      [fields]="fieldsEditar"
+      [submitButtonText]="'Guardar'"
+      [submitButtonIcon]="'bi bi-save'"
+      [submitButtonColor]="'custom-success-filled'"
+      (submitForm)="guardarEdicion()"
+    ></app-form-comp>
+  </div>
+</app-modal>
+
+<!-- =============================== -->
+<!-- MODAL ELIMINAR -->
+<!-- =============================== -->
+<app-modal
+  #modalEliminar
+  [title]="'Eliminar ruta'"
+  [headerColor]="'#d9534f'"
+  [isOpen]="false"
+>
+  <div class="p-2">
+    <p>¿Estás seguro que deseas eliminar la ruta <strong>{{ rutaSeleccionada?.nombre }}</strong>?</p>
+    <p class="text-muted small">Esta acción no se puede deshacer.</p>
+  </div>
+  <ng-container footer>
+    <div class="d-flex justify-content-end gap-2">
+      <app-boton
+        texto="Cancelar"
+        icono="bi-x-circle"
+        color="cancelar"
+        (click)="cerrarModalEliminar()"
+      ></app-boton>
+      <app-boton
+        texto="Eliminar"
+        icono="bi-trash"
+        color="danger"
+        (click)="confirmarEliminar()"
+      ></app-boton>
+    </div>
+  </ng-container>
+</app-modal>

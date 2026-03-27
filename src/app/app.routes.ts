@@ -12,7 +12,6 @@ import { MapaComponent } from './pages/mapa/mapa.component';
 
 // Paginas de modulos
 import { Usuario } from './Logic/usuarios.comp/listar-filtrar-usuarios/usuario';
-import { Solcitudes } from './Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes';
 
 import { CardsSolicitud } from './Logic/solicitudes-comp/cards-solicitud/cards-solicitud';
 import { CardARSolicitud } from './Logic/solicitudes-comp/card-a-r-solicitud/card-a-r-solicitud';
@@ -34,6 +33,10 @@ import { CardInscripcion } from './Logic/capacitaciones/card-inscripcion/card-in
 import { Solicitud } from './pages/solicitud/solicitud';
 import { MapaRutas } from './Logic/rutas/mapa-rutas/mapa-rutas';
 import { ListarRutas } from './Logic/rutas/listar-rutas/listar-rutas';
+import { RecolectorRutas } from './Logic/rutas/recolector-rutas/recolector-rutas';
+import { AdminRutas } from './Logic/rutas/admin-rutas/admin-rutas';
+import { MapaRutaGestion } from './Logic/rutas/mapa-ruta-gestion/mapa-ruta-gestion';
+import { Solicitudes } from './Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes';
 
 
 
@@ -74,7 +77,7 @@ export const routes: Routes = [
 
   {
     path: 'solicitudes',
-    component: Solcitudes,
+    component: Solicitudes,
     canActivate: [AuthGuard],
     data: { roles: ['Administrador'] }
   },
@@ -100,6 +103,9 @@ export const routes: Routes = [
   {path: 'Solicitud', component: Solicitud},
   {path: 'mapaRutas', component:MapaRutas},
   {path:'listarRutas',component:ListarRutas},
+  {path:'recolectorRutas',component:RecolectorRutas},
+  {path:'adminRutas',component:AdminRutas},
+  {path:'mapaRutasGestion',component:MapaRutaGestion},
 
   { path: '**', component: Error }
 

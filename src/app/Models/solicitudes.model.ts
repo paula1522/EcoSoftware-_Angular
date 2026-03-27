@@ -30,7 +30,6 @@ export enum EstadoPeticion {
   Rechazada = 'Rechazada'
 }
 
-
 export enum TipoResiduo {
   Plastico = 'Plastico',
   Papel = 'Papel',
@@ -44,25 +43,21 @@ export enum TipoResiduo {
 
 
 
-
-export interface ServiceModel {
-   idSolicitud: number;
+export interface SolicitudRecoleccion {
+  idSolicitud: number;
   usuarioId: number;
   aceptadaPorId?: number;
-
-  tipoResiduo: string;
+  tipoResiduo: TipoResiduo;
   cantidad: string;
-  estadoPeticion: string;
+  estadoPeticion: EstadoPeticion;
   descripcion?: string;
-  localidad: string;
+  localidad: Localidad;
   ubicacion?: string;
   latitude?: number;
   longitude?: number;
   evidencia?: string;
-  fechaCreacionSolicitud?: string; // ISO string
-  fechaProgramada?: string;        // yyyy-MM-dd
-
+  fechaCreacionSolicitud?: string;
+  fechaProgramada?: string;
   recoleccionId?: number;
   motivoRechazo?: string;
 }
-

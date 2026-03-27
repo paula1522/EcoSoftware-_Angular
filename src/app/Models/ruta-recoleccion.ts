@@ -1,3 +1,5 @@
+import { EstadoRecoleccion } from "./modelo-recoleccion";
+
 export enum EstadoRuta {
   PLANIFICADA = 'PLANIFICADA',
   EN_PROGRESO = 'EN_PROGRESO',
@@ -5,32 +7,38 @@ export enum EstadoRuta {
   CANCELADA = 'CANCELADA'
 }
 
+export interface Parada {
+  recoleccionId: number;
+  ordenParada: number;
+  latitud: number;
+  longitud: number;
+  estado: EstadoRecoleccion; 
+}
 
 export interface RutaRecoleccion {
   idRuta: number;
   nombre: string;
   estado: EstadoRuta;
-  recoleccionIds: number[];
+  recoleccionIds?: number[];
   recolectorId: number;
   distanciaTotal: number;
   tiempoEstimado: number;
   geometriaRuta: string;
-  fechaCreacion: string; // OffsetDateTime -> ISO string
+  fechaCreacion: string;
+  paradas: Parada[];
 }
 
-export interface Punto {
-  lat: number;
-  lng: number;
-  ordenParada: number;
-  tipoResiduo?: string;
-  estado?: string;
-  evidencia?: string;
+export interface CrearRutaDTO {
+  nombre: string;
+  recoleccionIds: number[];
 }
+
 export interface RutaParaMapa {
   idRuta: number;
   nombre: string;
   estado: string;
-  puntos: Punto[];
+  paradas: Parada[];
+  geometriaRuta?: string;
   distanciaTotal?: number;
   tiempoEstimado?: number;
 }
