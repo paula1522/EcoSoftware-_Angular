@@ -70,7 +70,8 @@
     <ng-container *ngIf="vistaActual === 'recolecciones'">
       <app-titulo
         titulo="Recolecciones"
-        subtitulo="Gestión de tus recolecciones">
+        subtitulo="Gestión de tus recolecciones"
+        [mostrarBoton]="false">
       </app-titulo>
 
       <app-cards-recoleccion-ciudadano></app-cards-recoleccion-ciudadano>
