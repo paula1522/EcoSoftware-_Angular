@@ -14,6 +14,8 @@ import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-notici
 import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 import { DashboardCiudadanoComponent } from '../../Logic/ciudadano/dashboard-ciudadano/dashboard-ciudadano';
+import { AuthService } from '../../auth/auth.service';
+
 
 @Component({
   selector: 'app-ciudadano',
@@ -53,7 +55,8 @@ export class Ciudadano {
   constructor(
     private usuarioService: UsuarioService,
     private router: Router,
-    private puntosService: PuntosReciclajeService
+    private puntosService: PuntosReciclajeService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -159,7 +162,7 @@ editarPerfil(): void {
   //  CERRAR SESIÓN
   // ========================
   cerrarSesion(): void {
-    this.usuarioService.logout(); // limpia el localStorage
+    this.authService.logout(); // limpia el localStorage
     this.router.navigate(['/']); // redirige al index
 
     // Opcional: mensaje de confirmación

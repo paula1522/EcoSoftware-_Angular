@@ -501,7 +501,7 @@ export class Empresa {
    * Cierra la sesión del usuario y redirige al inicio.
    */
   cerrarSesion(): void {
-    this.usuarioService.logout(); // limpia el localStorage
+    this.authService.logout(); // limpia el localStorage
     this.router.navigate(['/']); // redirige al index
 
     // Opcional: mensaje de confirmación
