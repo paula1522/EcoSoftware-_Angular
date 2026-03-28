@@ -1,168 +1,290 @@
-<!-- recolector.component.html -->
-<div class="wrap">
-  
-  <!-- Cabecera -->
-  <div class="page-head">
-    <div>
-      <h2 class="page-title">Mis Rutas</h2>
-      <p class="page-sub">Gestiona y visualiza tus rutas activas</p>
-    </div>
-    <button class="btn-create" (click)="crearRuta()">
-      <i class="bi bi-plus-circle-fill"></i> Crear Ruta
-    </button>
-  </div>
+<div class="rr-root">
 
-  <!-- Filtros -->
-  <div class="filtros">
-    <div class="f-group">
-      <span class="f-label">Estado</span>
-      <select class="f-input" [(ngModel)]="filtroEstado" (change)="filtrarPorEstado()">
-        <option value="">Todos los estados</option>
+
+
+  <!-- FILTROS -->
+  <div class="rr-filtros">
+    <div class="rr-fgroup">
+      <span class="rr-flabel">Estado</span>
+      <select class="rr-fselect" [(ngModel)]="filtroEstado" (change)="filtrarPorEstado()">
+        <option value="">Todos</option>
         <option *ngFor="let est of estados" [value]="est">{{ est }}</option>
       </select>
     </div>
-    <div class="f-group">
-      <span class="f-label">Ordenar por</span>
-      <select class="f-input">
+    <div class="rr-fgroup">
+      <span class="rr-flabel">Ordenar</span>
+      <select class="rr-fselect">
         <option>Más recientes</option>
         <option>Más antiguas</option>
       </select>
     </div>
-    <div class="f-btns">
-      <button class="btn-filter"><i class="bi bi-funnel-fill"></i></button>
-      <button class="btn-clear"><i class="bi bi-x-circle"></i></button>
+    <div class="rr-fbtns">
+      <button class="rr-fbtn" title="Filtrar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </svg>
+      </button>
+      <button class="rr-fbtn" title="Limpiar filtros"
+              (click)="filtroEstado=''; filtrarPorEstado()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <!-- Layout dos columnas -->
-  <div class="layout">
+  <!-- LAYOUT -->
+  <div class="rr-layout" [class.expanded]="mapaExpandido">
 
-    <!-- Lista de rutas -->
-    <div class="rutas-col">
-      <div *ngIf="cargando" class="text-center p-4">
-        <div class="spinner-border text-success"></div>
+    <!-- COLUMNA RUTAS -->
+    <div class="rr-col">
+
+      <!-- Cargando -->
+      <div *ngIf="cargando" class="rr-empty">
+        <div class="rr-spinner"></div>
+        Cargando rutas...
       </div>
-      <div *ngIf="!cargando && rutas.length === 0" class="empty-state">
-        <i class="bi bi-map" style="font-size:2rem;color:#22c55e"></i>
-        <p>No tienes rutas creadas. ¡Crea una!</p>
+
+      <!-- Sin rutas -->
+      <div *ngIf="!cargando && rutasFiltradas.length === 0" class="rr-empty">
+        <div class="rr-mplacer">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+        </div>
+        No hay rutas. ¡Crea una nueva!
       </div>
 
-      <div *ngFor="let ruta of rutasPaginadas"
-           class="ruta-card"
-           [class.active]="rutaSeleccionada?.idRuta === ruta.idRuta"
-           (click)="verRuta(ruta.idRuta)">
+      <!-- Cards -->
+      <div
+        *ngFor="let ruta of rutasPaginadas"
+        class="rr-card"
+        [class.active]="rutaSeleccionada?.idRuta === ruta.idRuta"
+        (click)="verRuta(ruta.idRuta)"
+      >
+        <div class="rr-accent" [ngStyle]="{'background': accentColor(ruta.estado)}"></div>
+        <div class="rr-cbody">
 
-        <div class="card-accent" [ngStyle]="{'background': accentColor(ruta.estado)}"></div>
-        <div class="card-body-inner">
-          <div class="card-top">
-            <div class="card-id">
-              <div class="icon-box" [ngStyle]="{'background': accentColor(ruta.estado)}">
-                <i class="bi bi-signpost-2-fill" style="color:#fff;font-size:18px"></i>
+          <!-- Top -->
+          <div class="rr-ctop">
+            <div class="rr-cid">
+              <div class="rr-iconbox" [ngStyle]="{'background': accentColor(ruta.estado) + '20'}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     [attr.stroke]="accentColor(ruta.estado)" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                </svg>
               </div>
               <div>
-                <div class="id-main">{{ ruta.nombre }}</div>
-                <div class="id-date">{{ ruta.fechaCreacion | date:'dd MMM, yyyy' }}</div>
+                <div class="rr-idmain">{{ ruta.nombre }}</div>
+                <div class="rr-iddate">{{ ruta.fechaCreacion | date:'dd MMM, yyyy' }}</div>
               </div>
             </div>
-            <span class="badge" [ngClass]="estadoBadgeClass(ruta.estado)">{{ ruta.estado }}</span>
+            <span class="badge" [ngClass]="estadoBadgeClass(ruta.estado)">
+              {{ ruta.estado }}
+            </span>
           </div>
 
-          <div class="info-grid">
-            <div class="info-item">
-              <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+          <!-- Info grid -->
+          <div class="rr-igrid">
+            <div class="rr-iitem">
+              <div class="rr-iicon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
               <div>
-                <div class="info-lbl">Paradas</div>
-                <div class="info-val">{{ ruta.paradas?.length ?? 0 }} paradas</div>
+                <div class="rr-ilbl">Paradas</div>
+                <div class="rr-ival">{{ ruta.paradas?.length ?? 0 }}</div>
               </div>
             </div>
-            <div class="info-item">
-              <div class="info-icon"><i class="bi bi-rulers"></i></div>
+            <div class="rr-iitem">
+              <div class="rr-iicon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
               <div>
-                <div class="info-lbl">Distancia</div>
-                <div class="info-val">{{ ruta.distanciaTotal ?? 0 | number:'1.1-1' }} km</div>
+                <div class="rr-ilbl">Tiempo est.</div>
+                <div class="rr-ival">{{ ruta.tiempoEstimado ?? 0 | number:'1.0-0' }} min</div>
               </div>
             </div>
-            <div class="info-item">
-              <div class="info-icon"><i class="bi bi-clock-fill"></i></div>
+            <div class="rr-iitem">
+              <div class="rr-iicon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </div>
               <div>
-                <div class="info-lbl">Tiempo est.</div>
-                <div class="info-val">{{ ruta.tiempoEstimado ?? 0 | number:'1.0-0' }} min</div>
+                <div class="rr-ilbl">Distancia</div>
+                <div class="rr-ival">{{ ruta.distanciaTotal ?? 0 | number:'1.1-1' }} km</div>
               </div>
             </div>
-            <div class="info-item" *ngIf="ruta.estado === 'EN_PROGRESO'">
-              <div class="info-icon"><i class="bi bi-check2-circle"></i></div>
+            <div class="rr-iitem" *ngIf="ruta.estado === 'EN_PROGRESO'">
+              <div class="rr-iicon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
               <div>
-                <div class="info-lbl">Completadas</div>
-                <div class="info-val">{{ getParadasCompletadas(ruta) }} / {{ ruta.paradas?.length ?? 0 }}</div>
+                <div class="rr-ilbl">Completadas</div>
+                <div class="rr-ival">{{ getParadasCompletadas(ruta) }}/{{ ruta.paradas?.length ?? 0 }}</div>
               </div>
             </div>
           </div>
 
-          <div class="card-footer-inner">
-            <span class="tag"><i class="bi bi-map"></i> {{ ruta.nombre }}</span>
-            <div class="btns">
+          <!-- Footer -->
+          <div class="rr-cfooter">
+            <span class="rr-tag">{{ ruta.nombre }}</span>
+            <div class="rr-btns">
               <button *ngIf="ruta.estado === 'PLANIFICADA'"
-                      class="btn-icon btn-go"
+                      class="rr-ibtn ib-go"
                       (click)="iniciarRuta(ruta.idRuta); $event.stopPropagation()"
                       title="Iniciar">
-                <i class="bi bi-play-fill"></i>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
               </button>
-              <button class="btn-icon btn-del"
+              <button class="rr-ibtn ib-del"
                       (click)="eliminarRuta(ruta.idRuta); $event.stopPropagation()"
                       title="Eliminar">
-                <i class="bi bi-x-circle-fill"></i>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
-              <button class="btn-icon btn-edit"
+              <button class="rr-ibtn ib-edit"
                       (click)="editarRuta(ruta); $event.stopPropagation()"
                       title="Editar">
-                <i class="bi bi-pencil-fill"></i>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
               </button>
-              <button class="btn-icon btn-view"
+              <button class="rr-ibtn ib-view"
                       (click)="verRuta(ruta.idRuta); $event.stopPropagation()"
                       title="Ver mapa">
-                <i class="bi bi-eye-fill"></i>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Paginación -->
-      <div class="pag" *ngIf="paginas.length > 1">
-        <button class="pg" [disabled]="paginaActual === 1" (click)="paginaActual = paginaActual - 1">‹</button>
-        <button *ngFor="let p of paginas" class="pg" [class.on]="p === paginaActual" (click)="paginaActual = p">{{ p }}</button>
-        <button class="pg" (click)="paginaActual = paginaActual + 1">›</button>
+      <!-- PAGINACIÓN -->
+      <div class="rr-pag" *ngIf="paginas.length > 1">
+        <button class="rr-pg" [disabled]="paginaActual === 1"
+                (click)="paginaActual = paginaActual - 1; actualizarPaginas()">‹</button>
+        <button *ngFor="let p of paginas"
+                class="rr-pg" [class.on]="p === paginaActual"
+                (click)="paginaActual = p">{{ p }}</button>
+        <button class="rr-pg" [disabled]="paginaActual === paginas.length"
+                (click)="paginaActual = paginaActual + 1; actualizarPaginas()">›</button>
       </div>
+
+    </div><!-- /rr-col -->
+
+    <!-- COLUMNA MAPA -->
+    <div class="rr-mapa">
+
+      <!-- Sin ruta seleccionada -->
+      <div *ngIf="!rutaSeleccionada" class="rr-mempty">
+        <div class="rr-mplacer">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+          </svg>
+        </div>
+        Selecciona una ruta para verla en el mapa
+      </div>
+
+      <!-- Con ruta seleccionada -->
+      <ng-container *ngIf="rutaSeleccionada">
+        <div class="rr-mhead">
+          <div class="rr-mhead-left">
+            <span class="rr-mname">{{ rutaSeleccionada.nombre }}</span>
+            <span class="badge" [ngClass]="estadoBadgeClass(rutaSeleccionada.estado)">
+              {{ rutaSeleccionada.estado }}
+            </span>
+          </div>
+          <div class="rr-mactions">
+            <button *ngIf="rutaSeleccionada.estado === 'EN_PROGRESO'"
+                    class="rr-mabtn ma-danger"
+                    (click)="cancelarRuta(rutaSeleccionada.idRuta)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+              Cancelar
+            </button>
+            <button *ngIf="rutaSeleccionada.estado === 'EN_PROGRESO'"
+                    class="rr-mabtn ma-success"
+                    (click)="finalizarRutaDesdeMapa()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Finalizar
+            </button>
+            <!-- BOTÓN EXPANDIR MAPA -->
+            <button class="rr-expand-btn"
+                    (click)="mapaExpandido = !mapaExpandido"
+                    [title]="mapaExpandido ? 'Contraer mapa' : 'Expandir mapa'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ng-container *ngIf="!mapaExpandido">
+                  <polyline points="9 18 15 12 9 6"/>
+                </ng-container>
+                <ng-container *ngIf="mapaExpandido">
+                  <polyline points="15 18 9 12 15 6"/>
+                </ng-container>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <app-mapa-ruta-gestion
+          [rutaId]="rutaSeleccionada.idRuta"
+          [modoGestion]="rutaSeleccionada.estado === 'EN_PROGRESO'"
+          (rutaFinalizada)="onRutaFinalizada()">
+        </app-mapa-ruta-gestion>
+      </ng-container>
+
     </div>
 
-    <!-- Columna mapa -->
-    <div class="mapa-col">
-      <div class="mapa-head" *ngIf="rutaSeleccionada">
-        <span class="mapa-name">{{ rutaSeleccionada.nombre }}</span>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span class="badge" [ngClass]="estadoBadgeClass(rutaSeleccionada.estado)">{{ rutaSeleccionada.estado }}</span>
-          <button *ngIf="rutaSeleccionada.estado === 'EN_PROGRESO'"
-                  class="btn-icon btn-del" style="width:auto;padding:5px 12px"
-                  (click)="cancelarRuta(rutaSeleccionada.idRuta)">
-            <i class="bi bi-x-circle"></i> Cancelar
-          </button>
-          <button *ngIf="rutaSeleccionada.estado === 'EN_PROGRESO'"
-                  class="btn-icon btn-go" style="width:auto;padding:5px 12px"
-                  (click)="finalizarRutaDesdeMapa()">
-            <i class="bi bi-check-circle"></i> Finalizar
-          </button>
-        </div>
-      </div>
-      <div *ngIf="!rutaSeleccionada" class="mapa-empty">
-        <div class="mapa-placeholder-icon"><i class="bi bi-map" style="font-size:2rem;color:#22c55e"></i></div>
-        <p>Selecciona una ruta para verla en el mapa</p>
-      </div>
-      <app-mapa-ruta-gestion
-        *ngIf="rutaSeleccionada"
-        [rutaId]="rutaSeleccionada.idRuta"
-        [modoGestion]="rutaSeleccionada.estado === 'EN_PROGRESO'"
-        (rutaFinalizada)="onRutaFinalizada()">
-      </app-mapa-ruta-gestion>
+  </div>
+  <!-- Modal Editar Ruta -->
+<div *ngIf="mostrarModalEditar" class="rr-modal-overlay" (click)="cerrarModalEditar()">
+  <div class="rr-modal" (click)="$event.stopPropagation()">
+    <div class="rr-modal-header">
+      <h4>Editar ruta</h4>
+      <button class="rr-modal-close" (click)="cerrarModalEditar()">×</button>
+    </div>
+    <div class="rr-modal-body">
+      <label for="nombreRuta" class="rr-modal-label">Nombre de la ruta</label>
+      <input type="text" id="nombreRuta" class="rr-modal-input" [(ngModel)]="nuevoNombre" placeholder="Ingrese nuevo nombre" />
+    </div>
+    <div class="rr-modal-footer">
+      <button class="rr-btn rr-btn-secondary" (click)="cerrarModalEditar()">Cancelar</button>
+      <button class="rr-btn rr-btn-primary" (click)="guardarEdicion()">Guardar</button>
     </div>
   </div>
+</div>
+
 </div>

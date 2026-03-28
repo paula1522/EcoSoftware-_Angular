@@ -3,11 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CdkDragDrop, moveItemInArray, DragDropModule } from '@angular/cdk/drag-drop';
-import { firstValueFrom } from 'rxjs';
 import { RecoleccionService } from '../../../Services/recoleccion.service';
 import { RutaRecoleccionService } from '../../../Services/ruta-recoleccion';
-import { RouteService, OSRMTripResponse } from '../../../Services/route.service';
-import { Recoleccion } from '../../../Models/modelo-recoleccion';
 
 @Component({
   selector: 'app-crear-ruta',
@@ -17,21 +14,17 @@ import { Recoleccion } from '../../../Models/modelo-recoleccion';
   styleUrls: ['./crear-ruta.css']
 })
 export class CrearRuta implements OnInit {
-  recoleccionesPendientes: Recoleccion[] = [];
-  seleccionadas: Recoleccion[] = [];
+  recoleccionesPendientes: any[] = [];
+  seleccionadas: any[] = [];
   nombreRuta = '';
   cargando = false;
   errorMsg = '';
+    mensajeExito = '';
 
-  mostrandoAlternativas = false;
-  alternativa1: { recolecciones: Recoleccion[]; distancia: number | null; duracion: number | null } | null = null;
-  alternativa2: { recolecciones: Recoleccion[]; distancia: number; duracion: number } | null = null;
-  alternativaSeleccionada: 1 | 2 | null = null;
 
   constructor(
     private recoleccionService: RecoleccionService,
     private rutaService: RutaRecoleccionService,
-    private routeService: RouteService,
     private router: Router
   ) {}
 
@@ -40,96 +33,96 @@ export class CrearRuta implements OnInit {
   }
 
   cargarPendientes(): void {
+    this.cargando = true;
     this.recoleccionService.listarPendientes().subscribe({
-      next: (data) => this.recoleccionesPendientes = data,
-      error: (err) => console.error(err)
+      next: (data) => {
+        console.log('Datos recibidos (crear-ruta):', data);
+        this.recoleccionesPendientes = data;
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorMsg = 'Error al cargar las recolecciones pendientes.';
+        this.cargando = false;
+      }
     });
   }
 
-  toggleSeleccion(rec: Recoleccion, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.checked) {
-      this.seleccionadas.push(rec);
+  /** Texto a mostrar para cada recolección */
+  obtenerTexto(rec: any): string {
+    if (rec?.direccion) return rec.direccion;
+    if (rec?.solicitud?.direccion) return rec.solicitud.direccion;
+    if (rec?.solicitud?.ubicacion) return rec.solicitud.ubicacion;
+    return `Recolección #${rec?.idRecoleccion ?? '?'}`;
+  }
+
+  /** Verifica si una recolección está seleccionada */
+  estaSeleccionada(rec: any): boolean {
+    return this.seleccionadas.some(s => s.idRecoleccion === rec.idRecoleccion);
+  }
+
+  /** Toggle al hacer clic directo en el item (sin necesitar el evento del checkbox) */
+  toggleSeleccionClick(rec: any): void {
+    this.errorMsg = '';
+    if (this.estaSeleccionada(rec)) {
+      this.seleccionadas = this.seleccionadas.filter(
+        r => r.idRecoleccion !== rec.idRecoleccion
+      );
     } else {
-      this.seleccionadas = this.seleccionadas.filter(r => r.idRecoleccion !== rec.idRecoleccion);
+      this.seleccionadas.push(rec);
     }
   }
 
-  drop(event: CdkDragDrop<Recoleccion[]>): void {
+  /** Quitar una recolección desde el panel de orden */
+  quitarSeleccion(rec: any): void {
+    this.seleccionadas = this.seleccionadas.filter(
+      r => r.idRecoleccion !== rec.idRecoleccion
+    );
+  }
+
+  /** Limpiar toda la selección */
+  limpiarSeleccion(): void {
+    this.seleccionadas = [];
+    this.errorMsg = '';
+  }
+
+  /** CDK drag & drop */
+  drop(event: CdkDragDrop<any[]>): void {
     moveItemInArray(this.seleccionadas, event.previousIndex, event.currentIndex);
   }
 
-  async calcularAlternativas(): Promise<void> {
-    if (this.seleccionadas.length < 2) {
-      this.errorMsg = 'Selecciona al menos 2 recolecciones';
-      return;
-    }
-    if (!this.nombreRuta.trim()) {
-      this.errorMsg = 'Ingresa un nombre para la ruta';
-      return;
-    }
+  /** Crear la ruta */
 
-    this.cargando = true;
-    this.mostrandoAlternativas = true;
-    this.errorMsg = '';
+crearRuta(): void {
+  if (this.seleccionadas.length < 2) {
+    this.errorMsg = 'Selecciona al menos 2 recolecciones.';
+    return;
+  }
+  if (!this.nombreRuta.trim()) {
+    this.errorMsg = 'Ingresa un nombre para la ruta.';
+    return;
+  }
 
-    const coordsActual = this.seleccionadas.map(r => [r.solicitud.latitude, r.solicitud.longitude] as [number, number]);
+  this.errorMsg = '';
+  this.mensajeExito = '';
+  const ids = this.seleccionadas.map(r => r.idRecoleccion);
+  this.cargando = true;
 
-    try {
-      const response = await firstValueFrom(this.routeService.getRutaOptimizada(coordsActual));
-      if (!response || !response.trips || response.trips.length === 0) {
-        throw new Error('No se pudo calcular la ruta');
-      }
-
-      const trip = response.trips[0];
-      const waypoints = response.waypoints;
-
-      const ordenOptimizado = waypoints.map(wp => wp.waypoint_index);
-      const recoleccionesOptimizadas = ordenOptimizado.map(idx => this.seleccionadas[idx]);
-
-      const distancia = trip.distance / 1000;
-      const duracion = trip.duration / 60;
-
-      this.alternativa1 = {
-        recolecciones: [...this.seleccionadas],
-        distancia: null,
-        duracion: null
-      };
-      this.alternativa2 = {
-        recolecciones: recoleccionesOptimizadas,
-        distancia,
-        duracion
-      };
-
-      this.alternativaSeleccionada = 2;
-
-    } catch (err) {
+  this.rutaService.crearRuta({ nombre: this.nombreRuta, recoleccionIds: ids }).subscribe({
+    next: () => {
+      this.mensajeExito = '¡Ruta creada exitosamente!';
+      // Opcional: limpiar selección y nombre para crear otra
+      this.seleccionadas = [];
+      this.nombreRuta = '';
+      this.cargando = false;
+      // Después de 3 segundos, opcionalmente limpiar mensaje
+      setTimeout(() => this.mensajeExito = '', 3000);
+    },
+    error: (err) => {
       console.error(err);
-      this.errorMsg = 'Error al calcular rutas alternativas';
-      this.mostrandoAlternativas = false;
-    } finally {
+      this.errorMsg = err.error?.message || 'Error al crear la ruta. Inténtalo de nuevo.';
       this.cargando = false;
     }
-  }
-
-  crearConAlternativa(): void {
-    if (!this.alternativaSeleccionada) return;
-    const recs = this.alternativaSeleccionada === 1 ? this.alternativa1!.recolecciones : this.alternativa2!.recolecciones;
-    const ids = recs.map(r => r.idRecoleccion);
-    this.rutaService.crearRuta({ nombre: this.nombreRuta, recoleccionIds: ids }).subscribe({
-      next: () => {
-        this.router.navigate(['/recolector/mis-rutas']);
-      },
-      error: (err) => {
-        this.errorMsg = err.error?.message || 'Error al crear ruta';
-      }
-    });
-  }
-
-  volverASeleccion(): void {
-    this.mostrandoAlternativas = false;
-    this.alternativa1 = null;
-    this.alternativa2 = null;
-    this.alternativaSeleccionada = null;
-  }
+  });
+}
 }

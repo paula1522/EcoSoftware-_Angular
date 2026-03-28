@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { RutaRecoleccionService } from '../../../Services/ruta-recoleccion';
 import { RutaRecoleccion, EstadoRuta } from '../../../Models/ruta-recoleccion';
 import { UsuarioService } from '../../../Services/usuario.service';
@@ -104,6 +104,8 @@ export class AdminRutas implements OnInit {
   ngOnInit(): void {
     this.initFormFiltros();
     this.cargarRecolectores();
+    this.initFormEditar();  
+
     this.cargarRutas();
   }
 
@@ -116,6 +118,12 @@ export class AdminRutas implements OnInit {
       fechaHasta: new FormControl(''),
     });
   }
+
+  initFormEditar(): void {
+  this.formEditar = new FormGroup({
+    nombre: new FormControl('', Validators.required)  // Añade validación si es necesario
+  });
+}
 
   /**
    * Cargar usuarios con roles 3 (Empresa) y 4 (Reciclador) para el filtro.
@@ -202,21 +210,21 @@ export class AdminRutas implements OnInit {
   }
 
   abrirModalEditar(ruta: RutaRecoleccion): void {
-    this.rutaSeleccionada = ruta;
-    this.formEditar.patchValue({ nombre: ruta.nombre });
-    this.modalEditar.isOpen = true;
-  }
+  this.rutaSeleccionada = ruta;
+  this.formEditar.patchValue({ nombre: ruta.nombre });
+  this.modalEditar.isOpen = true;
+}
 
   abrirModalEliminar(ruta: RutaRecoleccion): void {
     this.rutaSeleccionada = ruta;
     this.modalEliminar.isOpen = true;
   }
 
-  cerrarModalEditar(): void {
-    this.modalEditar.isOpen = false;
-    this.rutaSeleccionada = null;
-    this.formEditar.reset();
-  }
+ cerrarModalEditar(): void {
+  this.modalEditar.isOpen = false;
+  this.rutaSeleccionada = null;
+  this.formEditar.reset();  
+}
 
   cerrarModalEliminar(): void {
     this.modalEliminar.isOpen = false;
@@ -224,19 +232,19 @@ export class AdminRutas implements OnInit {
   }
 
   guardarEdicion(): void {
-    if (!this.rutaSeleccionada) return;
-    const nuevoNombre = this.formEditar.value.nombre;
-    if (!nuevoNombre) return;
+  if (!this.rutaSeleccionada) return;
+  const nuevoNombre = this.formEditar.value.nombre;
+  if (!nuevoNombre) return;
 
-    this.rutaService.actualizarRuta(this.rutaSeleccionada.idRuta, { nombre: nuevoNombre }).subscribe({
-      next: () => {
-        this.mostrarAlertaGlobal('Ruta actualizada', 'success');
-        this.cerrarModalEditar();
-        this.cargarRutas();
-      },
-      error: () => this.mostrarAlertaGlobal('Error al actualizar ruta', 'error'),
-    });
-  }
+  this.rutaService.actualizarRuta(this.rutaSeleccionada.idRuta, { nombre: nuevoNombre }).subscribe({
+    next: () => {
+      this.mostrarAlertaGlobal('Ruta actualizada', 'success');
+      this.cerrarModalEditar();
+      this.cargarRutas();
+    },
+    error: () => this.mostrarAlertaGlobal('Error al actualizar ruta', 'error'),
+  });
+}
 
   confirmarEliminar(): void {
     if (!this.rutaSeleccionada) return;

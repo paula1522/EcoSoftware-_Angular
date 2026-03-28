@@ -42,7 +42,6 @@ import { ModulosUsuarioPageComponent } from './features/capacitaciones/pages/mod
 import { CrearRuta } from './Logic/rutas/crear-ruta/crear-ruta';
 
 
-
 export const routes: Routes = [
 
   { path: '', component: Inicio },

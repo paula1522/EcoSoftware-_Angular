@@ -21,12 +21,19 @@ export class RecolectorRutas implements OnInit {
   filtroEstado: EstadoRuta | '' = '';
   estados = Object.values(EstadoRuta);
 
+  // Variables para el modal de edición
+mostrarModalEditar = false;
+rutaEditando: RutaRecoleccion | null = null;
+nuevoNombre = '';
+
   // Paginación
   paginaActual = 1;
-  itemsPorPagina = 6;
+  itemsPorPagina = 2;
   paginas: number[] = [];
 
-  // Exponer el enum para usarlo en el template (aunque aquí no se usa directamente, se necesita para la función getParadasCompletadas)
+  // Mapa expandible
+  mapaExpandido = false;
+
   EstadoRecoleccion = EstadoRecoleccion;
 
   constructor(
@@ -45,7 +52,6 @@ export class RecolectorRutas implements OnInit {
         this.rutas = data;
         this.cargando = false;
         this.actualizarPaginas();
-        // Si había una ruta seleccionada, actualizar su referencia
         if (this.rutaSeleccionada) {
           const actualizada = this.rutas.find(r => r.idRuta === this.rutaSeleccionada!.idRuta);
           this.rutaSeleccionada = actualizada || null;
@@ -61,15 +67,16 @@ export class RecolectorRutas implements OnInit {
   actualizarPaginas(): void {
     const total = Math.ceil(this.rutasFiltradas.length / this.itemsPorPagina);
     this.paginas = Array.from({ length: total }, (_, i) => i + 1);
-    if (this.paginaActual > total) this.paginaActual = total || 1;
+    if (this.paginaActual > total) this.paginaActual = Math.max(1, total);
   }
 
   get rutasFiltradas(): RutaRecoleccion[] {
     let filtradas = this.filtroEstado
       ? this.rutas.filter(r => r.estado === this.filtroEstado)
       : [...this.rutas];
-    // Ordenar por fecha más reciente
-    filtradas.sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime());
+    filtradas.sort((a, b) =>
+      new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime()
+    );
     return filtradas;
   }
 
@@ -87,35 +94,30 @@ export class RecolectorRutas implements OnInit {
     this.router.navigate(['/recolector/crear-ruta']);
   }
 
-  // Selecciona una ruta para mostrar en el mapa
   verRuta(id: number): void {
     const ruta = this.rutas.find(r => r.idRuta === id);
     if (ruta) {
-      this.rutaSeleccionada = ruta;
-    }
-  }
-
-iniciarRuta(id: number): void {
-  this.rutaService.iniciarRuta(id).subscribe({
-    next: () => {
-      this.cargarRutas();
+      // Si se hace clic en la ya seleccionada, deseleccionar
       if (this.rutaSeleccionada?.idRuta === id) {
-        this.verRuta(id);
+        this.rutaSeleccionada = null;
+        this.mapaExpandido = false;
+      } else {
+        this.rutaSeleccionada = ruta;
       }
-    },
-    error: (err) => console.error(err)
-  });
-}
-
-  editarRuta(ruta: RutaRecoleccion): void {
-    const nuevoNombre = prompt('Nuevo nombre de la ruta:', ruta.nombre);
-    if (nuevoNombre && nuevoNombre.trim()) {
-      this.rutaService.actualizarRuta(ruta.idRuta, { nombre: nuevoNombre }).subscribe({
-        next: () => this.cargarRutas(),
-        error: (err) => console.error(err)
-      });
     }
   }
+
+  iniciarRuta(id: number): void {
+    this.rutaService.iniciarRuta(id).subscribe({
+      next: () => {
+        this.cargarRutas();
+        if (this.rutaSeleccionada?.idRuta === id) this.verRuta(id);
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  
 
   eliminarRuta(id: number): void {
     if (confirm('¿Eliminar esta ruta? Esta acción no se puede deshacer.')) {
@@ -124,6 +126,7 @@ iniciarRuta(id: number): void {
           this.cargarRutas();
           if (this.rutaSeleccionada?.idRuta === id) {
             this.rutaSeleccionada = null;
+            this.mapaExpandido = false;
           }
         },
         error: (err) => console.error(err)
@@ -136,11 +139,9 @@ iniciarRuta(id: number): void {
       this.rutaService.cancelarRuta(id).subscribe({
         next: () => {
           this.cargarRutas();
-          if (this.rutaSeleccionada?.idRuta === id) {
-            this.verRuta(id);
-          }
+          if (this.rutaSeleccionada?.idRuta === id) this.verRuta(id);
         },
-        error: (err:any) => console.error(err)
+        error: (err: any) => console.error(err)
       });
     }
   }
@@ -150,9 +151,7 @@ iniciarRuta(id: number): void {
       this.rutaService.finalizarRuta(this.rutaSeleccionada.idRuta).subscribe({
         next: () => {
           this.cargarRutas();
-          if (this.rutaSeleccionada) {
-            this.verRuta(this.rutaSeleccionada.idRuta);
-          }
+          if (this.rutaSeleccionada) this.verRuta(this.rutaSeleccionada.idRuta);
         },
         error: (err) => console.error(err)
       });
@@ -161,35 +160,65 @@ iniciarRuta(id: number): void {
 
   onRutaFinalizada(): void {
     this.cargarRutas();
-    if (this.rutaSeleccionada) {
-      this.verRuta(this.rutaSeleccionada.idRuta);
-    }
+    if (this.rutaSeleccionada) this.verRuta(this.rutaSeleccionada.idRuta);
   }
 
-  // Calcula cuántas paradas están completadas
   getParadasCompletadas(ruta: RutaRecoleccion): number {
     return ruta.paradas?.filter(p => p.estado === EstadoRecoleccion.Completada).length || 0;
   }
 
-  // Color del acento según estado
   accentColor(estado: string): string {
     switch (estado) {
-      case 'PLANIFICADA': return '#0f9d58';
-      case 'EN_PROGRESO': return '#ffb300';
-      case 'FINALIZADA': return '#0f9d58';
-      case 'CANCELADA': return '#dc3545';
-      default: return '#6c757d';
+      case 'PLANIFICADA':  return '#22c55e';
+      case 'EN_PROGRESO':  return '#f59e0b';
+      case 'FINALIZADA':   return '#3b82f6';
+      case 'CANCELADA':    return '#ef4444';
+      default:             return '#94a3b8';
     }
   }
 
-  // Clase CSS para la badge
   estadoBadgeClass(estado: string): string {
     switch (estado) {
-      case 'PLANIFICADA': return 'badge-planificada';
-      case 'EN_PROGRESO': return 'badge-progreso';
-      case 'FINALIZADA': return 'badge-finalizada';
-      case 'CANCELADA': return 'badge-cancelada';
-      default: return '';
+      case 'PLANIFICADA':  return 'badge-planificada';
+      case 'EN_PROGRESO':  return 'badge-progreso';
+      case 'FINALIZADA':   return 'badge-finalizada';
+      case 'CANCELADA':    return 'badge-cancelada';
+      default:             return '';
     }
   }
+
+
+
+
+
+// Método para abrir el modal de edición
+editarRuta(ruta: RutaRecoleccion): void {
+  this.rutaEditando = ruta;
+  this.nuevoNombre = ruta.nombre;
+  this.mostrarModalEditar = true;
+}
+
+// Método para cerrar el modal
+cerrarModalEditar(): void {
+  this.mostrarModalEditar = false;
+  this.rutaEditando = null;
+  this.nuevoNombre = '';
+}
+
+// Método para guardar la edición
+guardarEdicion(): void {
+  if (!this.rutaEditando) return;
+  if (!this.nuevoNombre.trim()) {
+    alert('El nombre no puede estar vacío');
+    return;
+  }
+
+  this.rutaService.actualizarRuta(this.rutaEditando.idRuta, { nombre: this.nuevoNombre }).subscribe({
+    next: () => {
+      this.cargarRutas();
+      this.cerrarModalEditar();
+    },
+    error: (err) => console.error(err)
+  });
+}
 }

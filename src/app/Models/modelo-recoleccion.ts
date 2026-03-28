@@ -22,12 +22,8 @@ export interface ModeloRecoleccion {
 
 export interface Recoleccion {
   idRecoleccion: number;
-  estado: EstadoRecoleccion;
-  ordenParada?: number;
-  solicitud: {
-    idSolicitud: number;
-    direccion: string;
-    latitude: number;
-    longitude: number;
-  };
+  estado: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
 }

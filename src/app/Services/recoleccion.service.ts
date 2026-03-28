@@ -9,7 +9,7 @@ import { ModeloRecoleccion, EstadoRecoleccion, Recoleccion } from '../Models/mod
 export class RecoleccionService {
   
 
-  private readonly URL = 'http://localhost:8082/api/recolecciones';
+  private readonly URL = 'https://ecosoftware-spring-boot.azurewebsites.net/api/recolecciones';
 
   constructor(private http: HttpClient) {}
 
