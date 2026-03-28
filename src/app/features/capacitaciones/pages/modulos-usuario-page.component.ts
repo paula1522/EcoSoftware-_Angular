@@ -153,6 +153,14 @@ import { ModuloDTO } from '../models/capacitaciones-modulos.models';
             </div>
           </div>
 
+          <div class="evaluation-panel__approved" *ngIf="estaModuloCompletado100(modulo)">
+            <i class="bi bi-patch-check-fill"></i>
+            <div>
+              <strong>Evaluación aprobada</strong>
+              <span>Ya alcanzaste el 100%. Esta evaluación quedó bloqueada y no puede volver a responderse.</span>
+            </div>
+          </div>
+
           <div class="question-block" *ngFor="let p of ev.preguntas; let pi = index">
             <div class="question-block__title">{{ pi + 1 }}. {{ p.texto }}</div>
 
@@ -175,7 +183,7 @@ import { ModuloDTO } from '../models/capacitaciones-modulos.models';
 
           <div class="evaluation-panel__footer">
             <button class="btn btn-success" [disabled]="estaModuloCompletado100(modulo)" (click)="calificarModulo(modulo)">
-              {{ estaModuloCompletado100(modulo) ? 'Evaluación completada' : 'Enviar evaluación' }}
+              {{ estaModuloCompletado100(modulo) ? 'Evaluación aprobada' : 'Enviar evaluación' }}
             </button>
 
             <div class="evaluation-panel__result" *ngIf="resultadoPorModulo[modulo.id || 0] as r">
@@ -183,7 +191,7 @@ import { ModuloDTO } from '../models/capacitaciones-modulos.models';
             </div>
 
             <div class="evaluation-panel__result evaluation-panel__result--success" *ngIf="estaModuloCompletado100(modulo)">
-              Formulario completado al 100%.
+              Ya fue aprobada con 100% y quedó bloqueada.
             </div>
           </div>
         </section>
@@ -580,6 +588,38 @@ import { ModuloDTO } from '../models/capacitaciones-modulos.models';
         color: #1d5d39;
       }
 
+      .evaluation-panel__approved {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.85rem;
+        align-items: start;
+        padding: 0.95rem 1rem;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #ebf8ef 0%, #e1f4e7 100%);
+        border: 1px solid #b9dfc5;
+      }
+
+      .evaluation-panel__approved i {
+        font-size: 1.25rem;
+        color: #1d6a3d;
+        margin-top: 0.1rem;
+      }
+
+      .evaluation-panel__approved strong,
+      .evaluation-panel__approved span {
+        display: block;
+      }
+
+      .evaluation-panel__approved strong {
+        color: #15492b;
+      }
+
+      .evaluation-panel__approved span {
+        color: #4f6e5d;
+        margin-top: 0.15rem;
+        line-height: 1.45;
+      }
+
       .question-block {
         display: grid;
         gap: 0.75rem;
@@ -624,6 +664,8 @@ import { ModuloDTO } from '../models/capacitaciones-modulos.models';
       .option-pill--disabled {
         cursor: default;
         opacity: 0.82;
+        pointer-events: none;
+        background: #f3f7f4;
       }
 
       .evaluation-panel__footer {
@@ -868,7 +910,7 @@ export class ModulosUsuarioPageComponent implements OnInit {
     }
 
     if (this.estaModuloCompletado100(modulo)) {
-      this.error = 'Este formulario ya fue completado al 100% y se encuentra bloqueado.';
+      this.error = 'Esta evaluación ya fue aprobada al 100% y quedó bloqueada.';
       return;
     }
 
@@ -989,7 +1031,7 @@ export class ModulosUsuarioPageComponent implements OnInit {
 
   getEstadoModulo(modulo: ModuloDTO): string {
     if (this.estaModuloCompletado100(modulo)) {
-      return 'Evaluación completada';
+      return 'Evaluación aprobada';
     }
 
     if (!modulo.archivoPdfUrl) {
