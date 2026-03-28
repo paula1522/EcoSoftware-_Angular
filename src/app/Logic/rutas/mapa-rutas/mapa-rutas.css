@@ -1,0 +1,18 @@
+.leaflet-control-custom i {
+  font-size: 18px;
+  vertical-align: middle;
+}
+
+.marker-pulse {
+  animation: pulse 1s infinite;
+}
+
+.mapa-container {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.2); }
+}

@@ -1,0 +1,11 @@
+.card.border-success {
+  border: 2px solid #22c55e !important;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+  cursor: pointer;
+}
+.card:not(.border-success) {
+  cursor: pointer;
+}
+.card:not(.border-success):hover {
+  border-color: #86efac;
+}

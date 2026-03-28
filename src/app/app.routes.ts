@@ -39,7 +39,7 @@ import { MapaRutaGestion } from './Logic/rutas/mapa-ruta-gestion/mapa-ruta-gesti
 import { Solicitudes } from './Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes';
 import { ModulosAdminPageComponent } from './features/capacitaciones/pages/modulos-admin-page.component';
 import { ModulosUsuarioPageComponent } from './features/capacitaciones/pages/modulos-usuario-page.component';
-
+import { CrearRuta } from './Logic/rutas/crear-ruta/crear-ruta';
 
 
 
@@ -122,6 +122,7 @@ export const routes: Routes = [
   {path:'recolectorRutas',component:RecolectorRutas},
   {path:'adminRutas',component:AdminRutas},
   {path:'mapaRutasGestion',component:MapaRutaGestion},
+  {path:'crearRuta',component:CrearRuta},
 
   { path: '**', component: Error }
 

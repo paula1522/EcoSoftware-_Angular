@@ -18,3 +18,16 @@ export interface ModeloRecoleccion {
   evidencia?: string;
   fechaCreacionRecoleccion?: string;
 }
+
+
+export interface Recoleccion {
+  idRecoleccion: number;
+  estado: EstadoRecoleccion;
+  ordenParada?: number;
+  solicitud: {
+    idSolicitud: number;
+    direccion: string;
+    latitude: number;
+    longitude: number;
+  };
+}

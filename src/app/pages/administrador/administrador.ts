@@ -36,6 +36,7 @@ import { Solicitudes } from "../../Logic/solicitudes-comp/listar-filtrar-solicit
 import { CapacitacionesService } from '../../Services/capacitacion.service';
 import { CapacitacionDTO } from '../../Models/capacitacion.model';
 import { ModulosAdminPageComponent } from '../../features/capacitaciones/pages/modulos-admin-page.component';
+import { AdminRutas } from "../../Logic/rutas/admin-rutas/admin-rutas";
 
 
 @Component({
@@ -44,8 +45,7 @@ import { ModulosAdminPageComponent } from '../../features/capacitaciones/pages/m
   imports: [...COMPARTIR_IMPORTS, SolicitudesLocalidadChartComponent, AceptarRechazarUsuarios, GraficoUsuariosLocalidad,
     RegistroAdmin, Usuario, ListarTabla,
     EditarUsuario, CapacitacionesLista, CargaMasiva, BarraLateral, Titulo, Modal, CardsNoticias, Tabla, Boton, Solicitudes,
-    ModulosAdminPageComponent,
-  ],
+    ModulosAdminPageComponent, AdminRutas],
   templateUrl: './administrador.html',
   styleUrl: './administrador.css'
 })
@@ -89,7 +89,7 @@ export class Administrador implements OnDestroy {
     }, 5000);
   }
 
-  vistaActual: 'panel' | 'editar-perfil' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'Aceptar-Rechazar-Usuarios' | 'puntos' | 'capacitaciones' | 'noticias' = 'noticias';
+  vistaActual: 'panel' | 'editar-perfil' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'rutas' | 'Aceptar-Rechazar-Usuarios' | 'puntos' | 'capacitaciones' | 'noticias' = 'noticias';
 
   menuAbierto = true;
   perfilMenuAbierto = false;
@@ -682,7 +682,7 @@ export class Administrador implements OnDestroy {
   }
 
   menu: {
-    vista: 'panel' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias' |
+    vista: 'panel' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'rutas' | 'puntos' | 'capacitaciones' | 'noticias' |
     'Aceptar-Rechazar-Usuarios',
     label: string,
     icon: string
@@ -691,6 +691,7 @@ export class Administrador implements OnDestroy {
       { vista: 'usuarios', label: 'Usuarios', icon: 'bi bi-people' },
       { vista: 'solicitudes', label: 'Solicitudes', icon: 'bi bi-bar-chart-line' },
       { vista: 'recolecciones', label: 'Recolecciones', icon: 'bi bi-truck' },
+      { vista: 'rutas', label: 'Rutas', icon: 'bi bi-map' },
       { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
       { vista: 'capacitaciones', label: 'Capacitaciones', icon: 'bi bi-mortarboard-fill' },
       { vista: 'noticias', label: 'Noticias', icon: 'bi bi-newspaper' },
@@ -1010,7 +1011,7 @@ export class Administrador implements OnDestroy {
   // ========================
   // CAMBIAR VISTA
   // ========================
-  cambiarVista(vista: 'panel' | 'editar-perfil' | 'Aceptar-Rechazar-Usuarios' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias') {
+  cambiarVista(vista: 'panel' | 'editar-perfil' | 'Aceptar-Rechazar-Usuarios' | 'usuarios' | 'solicitudes' | 'recolecciones' | 'rutas' | 'puntos' | 'capacitaciones' | 'noticias') {
     this.vistaActual = vista;
 
     if (vista === 'panel') {

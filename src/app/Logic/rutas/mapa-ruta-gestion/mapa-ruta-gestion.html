@@ -1,17 +1,58 @@
-<div class="mapa-container">
-  <div id="map-gestion" class="mapa"></div>
+<div class="mapa-shell">
+  <div class="mapa-shell__map">
+    <div #mapContainer class="map-wrapper"></div>
+  </div>
 
-  <div class="panel-lateral" *ngIf="ruta && modoGestion">
-    <h3>Gestión de paradas</h3>
-    <div class="paradas-lista">
-      <div *ngFor="let parada of ruta.paradas" class="parada-item" [class.completada]="parada.estado === EstadoRecoleccion.Completada">
-        <span class="orden">{{ parada.ordenParada }}</span>
-        <span class="estado">{{ parada.estado }}</span>
-        <div class="acciones" *ngIf="parada.estado !== EstadoRecoleccion.Completada">
-          <button (click)="completarParada(parada.recoleccionId)" class="btn-completar">✓ Completar</button>
-          <button (click)="marcarFallida(parada.recoleccionId)" class="btn-fallida">✗ Fallida</button>
+  <aside class="mapa-shell__sidebar">
+    <!-- Cabecera de la ruta -->
+    <div class="panel" *ngIf="ruta">
+      <div class="panel-header">
+        <h2>{{ ruta.nombre }}</h2>
+        <span class="badge" [ngClass]="estadoBadgeClass(ruta.estado)">{{ ruta.estado }}</span>
+      </div>
+      <div class="info-row">
+        <span>📏 Distancia: {{ ruta.distanciaTotal | number:'1.1-1' }} km</span>
+        <span>⏱️ Tiempo: {{ ruta.tiempoEstimado | number:'1.0-0' }} min</span>
+      </div>
+    </div>
+
+    <!-- Lista de paradas con dirección y botones -->
+    <div class="panel paradas-list" *ngIf="ruta">
+      <div class="panel-header">
+        <h3>Paradas</h3>
+      </div>
+      <div *ngFor="let parada of ruta.paradas"
+           class="parada-item"
+           [class.parada-seleccionada]="paradaSeleccionadaId === parada.recoleccionId"
+           (click)="seleccionarParada(parada.recoleccionId)">
+        <div class="parada-info">
+          <div class="orden">#{{ parada.ordenParada }}</div>
+          <div class="estado" [ngClass]="{
+            'completada': parada.estado === EstadoRecoleccion.Completada,
+            'fallida': parada.estado === EstadoRecoleccion.Fallida
+          }">
+            {{ parada.estado }}
+          </div>
+        </div>
+        <div class="parada-address">
+          <i class="bi bi-geo-alt-fill"></i>
+          <span>{{ obtenerDireccionParada(parada) }}</span>
+        </div>
+        <div class="parada-actions" *ngIf="modoGestion && ruta.estado === 'EN_PROGRESO' && parada.estado !== EstadoRecoleccion.Completada && parada.estado !== EstadoRecoleccion.Fallida">
+          <button class="btn-completar" (click)="completarParadaDesdeLista(parada); $event.stopPropagation()">
+            <i class="bi bi-check-circle-fill"></i> Completar
+          </button>
+          <button class="btn-fallida" (click)="marcarFallidaDesdeLista(parada); $event.stopPropagation()">
+            <i class="bi bi-x-circle-fill"></i> Fallida
+          </button>
         </div>
       </div>
     </div>
-  </div>
+
+    <app-alerta
+      [tipo]="tipoAlerta"
+      [mensaje]="mensajeAlerta"
+      [mostrar]="mostrarAlerta"
+    ></app-alerta>
+  </aside>
 </div>

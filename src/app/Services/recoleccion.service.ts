@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ModeloRecoleccion, EstadoRecoleccion } from '../Models/modelo-recoleccion';
+import { map, Observable } from 'rxjs';
+import { ModeloRecoleccion, EstadoRecoleccion, Recoleccion } from '../Models/modelo-recoleccion';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RecoleccionService {
+  
 
-  private readonly URL = 'https://ecosoftware-spring-boot.azurewebsites.net/api/recolecciones';
+  private readonly URL = 'http://localhost:8082/api/recolecciones';
 
   constructor(private http: HttpClient) {}
 
@@ -51,12 +52,17 @@ listarMisRecoleccionesCiudadano(): Observable<ModeloRecoleccion[]> {
   return this.http.get<ModeloRecoleccion[]>(`${this.URL}/mis-recolecciones-ciudadano`);
 }
 
-  // Cambiar el estado de una recolección (validado por backend)
-  actualizarEstado(id: number, estado: EstadoRecoleccion): Observable<ModeloRecoleccion> {
-    const params = new HttpParams().set('estado', estado);
-    return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}/estado`, null, { params });
+
+ listarPendientes(): Observable<Recoleccion[]> {
+    const params = new HttpParams().set('estado', 'Pendiente');
+    return this.http.get<Recoleccion[]>(`${this.URL}/mis-recolecciones`, { params });
   }
 
+  // Cambiar el estado de una recolección (validado por backend)
+    actualizarEstado(id: number, estado: EstadoRecoleccion): Observable<Recoleccion> {
+    const params = new HttpParams().set('estado', estado);
+    return this.http.put<Recoleccion>(`${this.URL}/${id}/estado`, null, { params });
+  }
   
   actualizarRecoleccion(id: number, recoleccion: Partial<ModeloRecoleccion>): Observable<ModeloRecoleccion> {
     return this.http.put<ModeloRecoleccion>(`${this.URL}/${id}`, recoleccion);
@@ -67,11 +73,11 @@ listarMisRecoleccionesCiudadano(): Observable<ModeloRecoleccion[]> {
   }
 
   // Métodos de conveniencia para cambios de estado comunes
-  completarRecoleccion(id: number): Observable<ModeloRecoleccion> {
+  completarRecoleccion(id: number): Observable<Recoleccion> {
     return this.actualizarEstado(id, EstadoRecoleccion.Completada);
   }
 
-  marcarFallida(id: number): Observable<ModeloRecoleccion> {
+  marcarFallida(id: number): Observable<Recoleccion> {
     return this.actualizarEstado(id, EstadoRecoleccion.Fallida);
   }
 }

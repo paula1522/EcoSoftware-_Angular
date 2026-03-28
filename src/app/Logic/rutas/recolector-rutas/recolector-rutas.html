@@ -1,38 +1,168 @@
-<div class="recolector-container">
-  <h2>Mis Rutas</h2>
-  <div class="cards-container">
-    <div *ngFor="let ruta of rutas" class="card">
-      <h3>{{ ruta.nombre }}</h3>
-      <p>Estado: {{ ruta.estado }}</p>
-      <p>Paradas: {{ ruta.paradas.length }}</p>
-      <p>Distancia: {{ ruta.distanciaTotal | number:'1.2-2' }} km</p>
-      <p>Tiempo estimado: {{ ruta.tiempoEstimado | number:'1.0-0' }} min</p>
-      <div class="actions">
-        <button *ngIf="ruta.estado === 'PLANIFICADA'" (click)="iniciarRuta(ruta.idRuta)">Iniciar</button>
-        <button (click)="verInfo(ruta.idRuta)">Ver Info</button>
-        <button (click)="actualizarRuta(ruta)">Actualizar</button>
-        <button (click)="eliminarRuta(ruta.idRuta)">Eliminar</button>
+<!-- recolector.component.html -->
+<div class="wrap">
+  
+  <!-- Cabecera -->
+  <div class="page-head">
+    <div>
+      <h2 class="page-title">Mis Rutas</h2>
+      <p class="page-sub">Gestiona y visualiza tus rutas activas</p>
+    </div>
+    <button class="btn-create" (click)="crearRuta()">
+      <i class="bi bi-plus-circle-fill"></i> Crear Ruta
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <div class="f-group">
+      <span class="f-label">Estado</span>
+      <select class="f-input" [(ngModel)]="filtroEstado" (change)="filtrarPorEstado()">
+        <option value="">Todos los estados</option>
+        <option *ngFor="let est of estados" [value]="est">{{ est }}</option>
+      </select>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Ordenar por</span>
+      <select class="f-input">
+        <option>Más recientes</option>
+        <option>Más antiguas</option>
+      </select>
+    </div>
+    <div class="f-btns">
+      <button class="btn-filter"><i class="bi bi-funnel-fill"></i></button>
+      <button class="btn-clear"><i class="bi bi-x-circle"></i></button>
+    </div>
+  </div>
+
+  <!-- Layout dos columnas -->
+  <div class="layout">
+
+    <!-- Lista de rutas -->
+    <div class="rutas-col">
+      <div *ngIf="cargando" class="text-center p-4">
+        <div class="spinner-border text-success"></div>
+      </div>
+      <div *ngIf="!cargando && rutas.length === 0" class="empty-state">
+        <i class="bi bi-map" style="font-size:2rem;color:#22c55e"></i>
+        <p>No tienes rutas creadas. ¡Crea una!</p>
+      </div>
+
+      <div *ngFor="let ruta of rutasPaginadas"
+           class="ruta-card"
+           [class.active]="rutaSeleccionada?.idRuta === ruta.idRuta"
+           (click)="verRuta(ruta.idRuta)">
+
+        <div class="card-accent" [ngStyle]="{'background': accentColor(ruta.estado)}"></div>
+        <div class="card-body-inner">
+          <div class="card-top">
+            <div class="card-id">
+              <div class="icon-box" [ngStyle]="{'background': accentColor(ruta.estado)}">
+                <i class="bi bi-signpost-2-fill" style="color:#fff;font-size:18px"></i>
+              </div>
+              <div>
+                <div class="id-main">{{ ruta.nombre }}</div>
+                <div class="id-date">{{ ruta.fechaCreacion | date:'dd MMM, yyyy' }}</div>
+              </div>
+            </div>
+            <span class="badge" [ngClass]="estadoBadgeClass(ruta.estado)">{{ ruta.estado }}</span>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+              <div>
+                <div class="info-lbl">Paradas</div>
+                <div class="info-val">{{ ruta.paradas?.length ?? 0 }} paradas</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="bi bi-rulers"></i></div>
+              <div>
+                <div class="info-lbl">Distancia</div>
+                <div class="info-val">{{ ruta.distanciaTotal ?? 0 | number:'1.1-1' }} km</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon"><i class="bi bi-clock-fill"></i></div>
+              <div>
+                <div class="info-lbl">Tiempo est.</div>
+                <div class="info-val">{{ ruta.tiempoEstimado ?? 0 | number:'1.0-0' }} min</div>
+              </div>
+            </div>
+            <div class="info-item" *ngIf="ruta.estado === 'EN_PROGRESO'">
+              <div class="info-icon"><i class="bi bi-check2-circle"></i></div>
+              <div>
+                <div class="info-lbl">Completadas</div>
+                <div class="info-val">{{ getParadasCompletadas(ruta) }} / {{ ruta.paradas?.length ?? 0 }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer-inner">
+            <span class="tag"><i class="bi bi-map"></i> {{ ruta.nombre }}</span>
+            <div class="btns">
+              <button *ngIf="ruta.estado === 'PLANIFICADA'"
+                      class="btn-icon btn-go"
+                      (click)="iniciarRuta(ruta.idRuta); $event.stopPropagation()"
+                      title="Iniciar">
+                <i class="bi bi-play-fill"></i>
+              </button>
+              <button class="btn-icon btn-del"
+                      (click)="eliminarRuta(ruta.idRuta); $event.stopPropagation()"
+                      title="Eliminar">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+              <button class="btn-icon btn-edit"
+                      (click)="editarRuta(ruta); $event.stopPropagation()"
+                      title="Editar">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="btn-icon btn-view"
+                      (click)="verRuta(ruta.idRuta); $event.stopPropagation()"
+                      title="Ver mapa">
+                <i class="bi bi-eye-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pag" *ngIf="paginas.length > 1">
+        <button class="pg" [disabled]="paginaActual === 1" (click)="paginaActual = paginaActual - 1">‹</button>
+        <button *ngFor="let p of paginas" class="pg" [class.on]="p === paginaActual" (click)="paginaActual = p">{{ p }}</button>
+        <button class="pg" (click)="paginaActual = paginaActual + 1">›</button>
       </div>
     </div>
-  </div>
 
-  <!-- Modal para editar nombre -->
-  <div class="modal" *ngIf="mostrarModalEdicion">
-    <div class="modal-content">
-      <span class="close" (click)="mostrarModalEdicion = false">&times;</span>
-      <h3>Editar Ruta</h3>
-      <input [(ngModel)]="rutaEditando!.nombre" placeholder="Nombre" />
-      <button (click)="guardarEdicion()">Guardar</button>
+    <!-- Columna mapa -->
+    <div class="mapa-col">
+      <div class="mapa-head" *ngIf="rutaSeleccionada">
+        <span class="mapa-name">{{ rutaSeleccionada.nombre }}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge" [ngClass]="estadoBadgeClass(rutaSeleccionada.estado)">{{ rutaSeleccionada.estado }}</span>
+          <button *ngIf="rutaSeleccionada.estado === 'EN_PROGRESO'"
+                  class="btn-icon btn-del" style="width:auto;padding:5px 12px"
+                  (click)="cancelarRuta(rutaSeleccionada.idRuta)">
+            <i class="bi bi-x-circle"></i> Cancelar
+          </button>
+          <button *ngIf="rutaSeleccionada.estado === 'EN_PROGRESO'"
+                  class="btn-icon btn-go" style="width:auto;padding:5px 12px"
+                  (click)="finalizarRutaDesdeMapa()">
+            <i class="bi bi-check-circle"></i> Finalizar
+          </button>
+        </div>
+      </div>
+      <div *ngIf="!rutaSeleccionada" class="mapa-empty">
+        <div class="mapa-placeholder-icon"><i class="bi bi-map" style="font-size:2rem;color:#22c55e"></i></div>
+        <p>Selecciona una ruta para verla en el mapa</p>
+      </div>
+      <app-mapa-ruta-gestion
+        *ngIf="rutaSeleccionada"
+        [rutaId]="rutaSeleccionada.idRuta"
+        [modoGestion]="rutaSeleccionada.estado === 'EN_PROGRESO'"
+        (rutaFinalizada)="onRutaFinalizada()">
+      </app-mapa-ruta-gestion>
     </div>
-  </div>
-
-  <!-- Mapa de gestión -->
-  <div *ngIf="rutaEnGestion" class="mapa-gestion-container">
-    <button class="close-map" (click)="cerrarMapa()">Cerrar Mapa</button>
-    <app-mapa-ruta-gestion 
-      [rutaId]="rutaEnGestion" 
-      [modoGestion]="true" 
-      (rutaFinalizada)="onRutaFinalizada()">
-    </app-mapa-ruta-gestion>
   </div>
 </div>

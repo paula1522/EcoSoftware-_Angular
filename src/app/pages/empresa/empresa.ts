@@ -18,11 +18,13 @@ import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { AuthService } from '../../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
 import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
+import { RecolectorRutas } from '../../Logic/rutas/recolector-rutas/recolector-rutas';
+import { CrearRuta } from "../../Logic/rutas/crear-ruta/crear-ruta";
 /**
  * Interfaz para los elementos del menú lateral.
  */
 interface MenuItem {
-  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias'|'editar-perfil';
+  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'rutas' | 'puntos' | 'capacitaciones' | 'noticias'|'editar-perfil';
   label: string;
   icon: string;
 }
@@ -35,7 +37,7 @@ interface MenuItem {
   selector: 'app-empresa',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, CardARSolicitud, CardsRecoleccion, DashboardEmpresaComponent,
-    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent],
+    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent, RecolectorRutas, CrearRuta],
   templateUrl: './empresa.html',
   styleUrls: ['./empresa.css']
 })
@@ -97,10 +99,12 @@ export class Empresa {
     { vista: 'panel', label: 'Panel de Control', icon: 'bi bi-speedometer2' },
     { vista: 'solicitudes', label: 'Solicitudes', icon: 'bi bi-bar-chart-line' },
     { vista: 'recolecciones', label: 'Recolecciones', icon: 'bi bi-truck' },
+    { vista: 'rutas', label: 'Rutas', icon: 'bi bi-map' },
     { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
     { vista: 'capacitaciones', label: 'Capacitaciones', icon: 'bi bi-mortarboard-fill' },
     { vista: 'noticias', label: 'Noticias', icon: 'bi bi-newspaper' },
   ];
+mostrarNuevaSolicitud: any;
 
   /**
    * Dependencias inyectadas por el constructor:
@@ -118,6 +122,11 @@ export class Empresa {
 
   ngOnInit(): void {
     this.cargarPuntos();
+  }
+
+  
+  toggleVista(): void {
+    this.mostrarNuevaSolicitud = !this.mostrarNuevaSolicitud;
   }
 
   cargarPuntos(): void {

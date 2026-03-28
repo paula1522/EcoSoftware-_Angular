@@ -1,0 +1,85 @@
+<div class="container mt-4">
+  <h2>Crear nueva ruta</h2>
+
+  <!-- Paso 1: Selección de recolecciones -->
+  <div *ngIf="!mostrandoAlternativas">
+    <div class="mb-3">
+      <label>Nombre de la ruta</label>
+      <input type="text" class="form-control" [(ngModel)]="nombreRuta">
+    </div>
+
+    <h5>Recolecciones pendientes</h5>
+    <div class="list-group mb-3">
+      <div *ngFor="let rec of recoleccionesPendientes" class="list-group-item">
+        <input type="checkbox" (change)="toggleSeleccion(rec, $event)">
+        <span class="ms-2">{{ rec.solicitud.direccion }}</span>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <h5 *ngIf="seleccionadas.length">Orden de las paradas (arrastra para cambiar)</h5>
+      <div cdkDropList class="list-group" (cdkDropListDropped)="drop($event)">
+        <div *ngFor="let rec of seleccionadas; let i = index" cdkDrag class="list-group-item">
+          <i class="bi bi-grip-vertical me-2"></i>
+          <strong>{{ i+1 }}.</strong> {{ rec.solicitud.direccion }}
+        </div>
+      </div>
+      <div *ngIf="seleccionadas.length === 0" class="text-muted">
+        No has seleccionado ninguna recolección.
+      </div>
+    </div>
+
+    <div *ngIf="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
+    <button class="btn btn-success" (click)="calcularAlternativas()" [disabled]="cargando || seleccionadas.length < 2">
+      {{ cargando ? 'Calculando...' : 'Calcular rutas sugeridas' }}
+    </button>
+  </div>
+
+  <!-- Paso 2: Mostrar alternativas -->
+  <div *ngIf="mostrandoAlternativas">
+    <h3>Elige la mejor ruta</h3>
+    <div class="row">
+      <!-- Opción 1: Orden actual -->
+      <div class="col-md-6 mb-3">
+        <div class="card h-100" [class.border-success]="alternativaSeleccionada === 1" (click)="alternativaSeleccionada = 1">
+          <div class="card-header">
+            <strong>Orden actual</strong>
+            <span class="float-end" *ngIf="alternativaSeleccionada === 1">✔️ Seleccionada</span>
+          </div>
+          <div class="card-body">
+            <ul>
+              <li *ngFor="let rec of alternativa1?.recolecciones; let i = index">
+                {{ i+1 }}. {{ rec.solicitud.direccion }}
+              </li>
+            </ul>
+            <p class="text-muted" *ngIf="!alternativa1?.distancia">Distancia/tiempo no calculado</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Opción 2: Orden optimizado -->
+      <div class="col-md-6 mb-3">
+        <div class="card h-100" [class.border-success]="alternativaSeleccionada === 2" (click)="alternativaSeleccionada = 2">
+          <div class="card-header">
+            <strong>Ruta optimizada</strong>
+            <span class="float-end" *ngIf="alternativaSeleccionada === 2">✔️ Seleccionada</span>
+          </div>
+          <div class="card-body">
+            <ul>
+              <li *ngFor="let rec of alternativa2?.recolecciones; let i = index">
+                {{ i+1 }}. {{ rec.solicitud.direccion }}
+              </li>
+            </ul>
+            <p>📏 {{ alternativa2?.distancia | number:'1.1-1' }} km | ⏱️ {{ alternativa2?.duracion | number:'1.0-0' }} min</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn btn-secondary" (click)="volverASeleccion()">Volver</button>
+      <button class="btn btn-success" (click)="crearConAlternativa()">Crear ruta con esta opción</button>
+    </div>
+    <div *ngIf="errorMsg" class="alert alert-danger mt-2">{{ errorMsg }}</div>
+  </div>
+</div>

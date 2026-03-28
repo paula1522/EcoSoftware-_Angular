@@ -86,15 +86,9 @@
               {{ usuariosPendientesError }}
             </div>
             <div class="donut-card" *ngIf="!usuariosPendientesError">
-              <div
-                #pendientesGraficoContainer
-                class="donut-card-chart donut-card-chart-clickable"
-                role="button"
-                tabindex="0"
-                aria-label="Ir a usuarios pendientes"
-                (click)="irAUsuariosPendientes()"
-                (keydown.enter)="irAUsuariosPendientes()"
-                (keydown.space)="irAUsuariosPendientes()">
+              <div #pendientesGraficoContainer class="donut-card-chart donut-card-chart-clickable" role="button"
+                tabindex="0" aria-label="Ir a usuarios pendientes" (click)="irAUsuariosPendientes()"
+                (keydown.enter)="irAUsuariosPendientes()" (keydown.space)="irAUsuariosPendientes()">
                 <canvas #usuariosPendientesChart></canvas>
                 <div class="donut-card-center">
                   <strong>{{ formatMetric(totalUsuariosPendientes) }}</strong>
@@ -283,6 +277,15 @@
       <app-listar-tabla></app-listar-tabla>
     </ng-container>
 
+
+    <!-- RUTAS-->
+    <ng-container *ngIf="vistaActual === 'rutas'">
+      <app-titulo titulo="Rutas" subtitulo="Gestión de rutas" [mostrarBoton]="false">
+      </app-titulo>
+
+      <app-admin-rutas></app-admin-rutas>
+    </ng-container>
+
     <!-- PUNTOS DE RECICLAJE -->
     <ng-container *ngIf="vistaActual === 'puntos'">
       <app-titulo titulo="Puntos de Reciclaje" subtitulo="Consulta y filtra los puntos registrados"
@@ -324,8 +327,8 @@
 
       <div class="puntos-admin-list mt-3">
         <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
-          [mostrarAcciones]="true" (descargar)="generarReportePuntos()" (editar)="editarPuntoDesdeTabla($event)" (eliminar)="eliminarPuntoDesdeTabla($event)"
-          (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
+          [mostrarAcciones]="true" (descargar)="generarReportePuntos()" (editar)="editarPuntoDesdeTabla($event)"
+          (eliminar)="eliminarPuntoDesdeTabla($event)" (ver)="verPuntoDesdeTabla($event)" titulo="Puntos de reciclaje">
         </app-tabla>
       </div>
 
@@ -405,7 +408,8 @@
                   <div>
                     <p class="cap-admin-eyebrow mb-1">Gestión académica</p>
                     <h5 class="card-title mb-1">Añadir Capacitación</h5>
-                    <small class="text-muted">Completa la información general y publica el curso para inscripciones.</small>
+                    <small class="text-muted">Completa la información general y publica el curso para
+                      inscripciones.</small>
                   </div>
                   <span class="badge text-bg-success">Administrador</span>
                 </div>
@@ -431,7 +435,8 @@
 
                   <div class="col-12 col-md-6">
                     <label class="form-label">Imagen (opcional)</label>
-                    <input type="file" class="form-control" accept="image/*" (change)="onImagenCapacitacionSeleccionada($event)">
+                    <input type="file" class="form-control" accept="image/*"
+                      (change)="onImagenCapacitacionSeleccionada($event)">
                   </div>
 
                   <div class="col-12">
@@ -441,10 +446,12 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 mt-3">
-                  <button class="btn btn-outline-secondary" type="button" [disabled]="creandoCapacitacion" (click)="cancelarCreacionCapacitacion()">
+                  <button class="btn btn-outline-secondary" type="button" [disabled]="creandoCapacitacion"
+                    (click)="cancelarCreacionCapacitacion()">
                     Cancelar
                   </button>
-                  <button class="btn btn-success" [disabled]="creandoCapacitacion" (click)="crearCapacitacionDesdeAdmin()">
+                  <button class="btn btn-success" [disabled]="creandoCapacitacion"
+                    (click)="crearCapacitacionDesdeAdmin()">
                     {{ creandoCapacitacion ? 'Creando...' : 'Crear capacitación' }}
                   </button>
                 </div>
@@ -504,4 +511,4 @@
 
   </main>
 
-</div>// correcciones para graficas
+</div>

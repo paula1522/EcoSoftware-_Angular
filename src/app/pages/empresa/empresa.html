@@ -31,9 +31,7 @@
       <app-titulo 
         titulo="Gestión de Solicitudes" 
         subtitulo="Gestiona las solicitudes pendientes"
-        iconoBoton="bi bi-plus-lg"
-        colorBoton="outline-custom-success" 
-        hoverColorBoton="custom-success-filled">
+        [mostrarBoton]="false">
       </app-titulo>
 
       <app-card-a-r-solicitud></app-card-a-r-solicitud>
@@ -55,13 +53,48 @@
       <app-titulo 
         titulo="Mis Recolecciones" 
         subtitulo="Gestiona tus recolecciones activas"
-        iconoBoton="bi bi-plus-lg"
-        colorBoton="outline-custom-success" 
-        hoverColorBoton="custom-success-filled">
+        [mostrarBoton]="false">
       </app-titulo>
 
       <app-cards-recoleccion></app-cards-recoleccion>
     </ng-container>
+
+   <!-- RUTAS -->
+<ng-container *ngIf="vistaActual === 'rutas'">
+  
+  <app-titulo 
+    titulo="Rutas" 
+    subtitulo="Gestión de rutas" 
+    [textoBoton]="mostrarNuevaSolicitud ? 'Mostrar rutas' : 'Hacer nueva solicitud'"
+    iconoBoton="bi bi-plus-circle"
+    colorBoton="outline-custom-success"
+    hoverColorBoton="custom-success-filled"
+    (clickBoton)="toggleVista()">
+  </app-titulo>
+
+  <div class="contenedor-toggle">
+
+    <!-- FORMULARIO CREAR RUTA -->
+    <ng-container *ngIf="mostrarNuevaSolicitud">
+      <div class="contenido-solicitud">
+        <app-crear-ruta></app-crear-ruta>
+      </div>
+    </ng-container>
+
+    <!-- LISTADO DE RUTAS -->
+    <ng-container *ngIf="!mostrarNuevaSolicitud">
+      <div class="contenido-solicitud">
+        <app-recolector-rutas></app-recolector-rutas>
+      </div>
+    </ng-container>
+
+  </div>
+
+</ng-container>
+
+
+    
+
 
     <!-- PUNTOS DE RECICLAJE -->
     <ng-container *ngIf="vistaActual === 'puntos'">
@@ -177,7 +210,8 @@
     <ng-container *ngIf="vistaActual === 'noticias'">
       <app-titulo
         titulo="Noticias"
-        subtitulo="Entérate de las últimas novedades">
+        subtitulo="Entérate de las últimas novedades"
+        [mostrarBoton]="false">
       </app-titulo>
 
       <cards-noticias></cards-noticias>
