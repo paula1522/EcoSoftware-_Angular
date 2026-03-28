@@ -1,36 +1,50 @@
 <section class="mis-capacitaciones-page">
-  <header class="hero-encabezado">
-    <div>
-      <p class="etiqueta">Ruta formativa</p>
-      <h2>Mis Capacitaciones</h2>
-      <p class="subtitulo">Selecciona una capacitación para entrar a su página de módulos, revisar el material y completar evaluaciones.</p>
-    </div>
-  </header>
+
 
   <p class="estado" *ngIf="loading">Cargando tus capacitaciones...</p>
   <p class="estado error" *ngIf="!loading && error">{{ error }}</p>
-  <p class="estado" *ngIf="!loading && !error && capacitaciones.length === 0">Aun no tienes capacitaciones inscritas.</p>
+  <p class="estado" *ngIf="!loading && !error && capacitaciones.length === 0">Aun no tienes capacitaciones inscritas.
+  </p>
 
   <div class="cards-grid" *ngIf="!loading && !error && capacitaciones.length > 0 && !capacitacionSeleccionadaId">
     <article class="curso-card" *ngFor="let curso of capacitaciones" (click)="abrirCurso(curso)">
       <figure class="curso-media">
         <img [src]="curso.imagen || 'assets/default-capacitacion.jpg'" [alt]="curso.nombre" />
+        <span class="curso-badge">Inscrito</span>
+        <span class="curso-progress-badge">{{ getProgresoCurso(curso.id) }}%</span>
       </figure>
 
       <div class="curso-info">
-        <h3>{{ curso.nombre }}</h3>
-        <p>{{ curso.descripcion || 'Capacitación activa en tu ruta de aprendizaje.' }}</p>
+        <div class="curso-copy">
+          <span class="curso-eyebrow">Ruta activa de aprendizaje</span>
+          <h3>{{ curso.nombre }}</h3>
+          <p>{{ curso.descripcion || 'Capacitación activa en tu ruta de aprendizaje.' }}</p>
+        </div>
+
+        <div class="curso-meta">
+          <span class="curso-chip" *ngIf="curso.numeroDeClases">
+            <i class="bi bi-journal-richtext"></i>
+            {{ curso.numeroDeClases }} clases
+          </span>
+          <span class="curso-chip" *ngIf="curso.duracion">
+            <i class="bi bi-clock-history"></i>
+            {{ curso.duracion }}
+          </span>
+          <span class="curso-chip" *ngIf="curso.modulos?.length">
+            <i class="bi bi-collection-play"></i>
+            {{ curso.modulos?.length }} módulos
+          </span>
+        </div>
+
         <button type="button" class="btn-abrir" (click)="abrirCurso(curso); $event.stopPropagation()">
-          Ver módulos
+          <span>Ver módulos</span>
+          <i class="bi bi-arrow-right-circle"></i>
         </button>
       </div>
     </article>
   </div>
 
-  <app-modulos-usuario-page
-    *ngIf="capacitacionSeleccionadaId"
-    [capacitacionIdInput]="capacitacionSeleccionadaId"
-    [modoEmbebido]="true"
-    (volverListaCards)="volverAListaCards()">
+  <app-modulos-usuario-page *ngIf="capacitacionSeleccionadaId" [capacitacionIdInput]="capacitacionSeleccionadaId"
+    [modoEmbebido]="true" (volverListaCards)="volverAListaCards()">
   </app-modulos-usuario-page>
 </section>

@@ -1,5 +1,5 @@
 import { AuthService } from './../../../auth/auth.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CapacitacionesService } from '../../../Services/capacitacion.service';
 import { Capacitacion } from '../../../Models/capacitacion.model';
 import { CommonModule } from '@angular/common';
@@ -14,6 +14,7 @@ import { Boton } from '../../../shared/botones/boton/boton';
   styleUrls: ['./card-crud-capacitacion.css']
 })
 export class CapacitacionesCrudComponent implements OnInit {
+  @Output() inscripcionExitosa = new EventEmitter<number>();
 
   capacitaciones: Capacitacion[] = [];
 
@@ -28,6 +29,7 @@ inscripcionesIds: number[] = [];
 
 capSeleccionada: Capacitacion | null = null;
 modalConfirmacion = false;
+inscribiendoCursoId: number | null = null;
 
 
   constructor(
@@ -77,13 +79,25 @@ modalConfirmacion = false;
 confirmarInscripcion() {
   if (!this.capSeleccionada) return;
 
+  if (this.inscribiendoCursoId === this.capSeleccionada.id) {
+    return;
+  }
+
   const usuarioId = this.authService.getUserId();
+  if (!usuarioId || !this.capSeleccionada.id) {
+    return;
+  }
+
+  this.inscribiendoCursoId = this.capSeleccionada.id;
 
   this.capacitacionesService
-.inscribirse(usuarioId!, this.capSeleccionada.id!)    .subscribe({
+    .inscribirse(usuarioId, this.capSeleccionada.id)    .subscribe({
 
       next: () => {
-        this.inscripcionesIds.push(this.capSeleccionada!.id!);
+        const cursoId = this.capSeleccionada!.id!;
+        this.inscripcionesIds.push(cursoId);
+        this.inscribiendoCursoId = null;
+        this.inscripcionExitosa.emit(cursoId);
 
         this.abrirModal(
           "Inscripción exitosa",
@@ -94,6 +108,7 @@ confirmarInscripcion() {
       },
 
       error: (err) => {
+        this.inscribiendoCursoId = null;
         this.modalConfirmacion = false;
 
         if (err.error?.message === "YA_INSCRITO" || err.error === "YA_INSCRITO") {
@@ -110,6 +125,10 @@ confirmarInscripcion() {
       }
 
     });
+}
+
+estaInscribiendo(cursoId?: number): boolean {
+  return !!cursoId && this.inscribiendoCursoId === cursoId;
 }
 
 get capacitacionesPaginadas(): Capacitacion[] {

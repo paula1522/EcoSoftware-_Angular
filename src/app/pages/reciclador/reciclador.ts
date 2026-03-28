@@ -12,6 +12,7 @@ import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 import { DashboardRecicladorComponent } from '../../Logic/reciclador/dashboard-reciclador/dashboard-reciclador';
 import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
 import { RecolectorRutas } from "../../Logic/rutas/recolector-rutas/recolector-rutas";
+import { CapacitacionesCrudComponent } from '../../Logic/capacitaciones/card-crud-capacitacion/card-crud-capacitacion';
 
 
 interface MenuItem {
@@ -23,7 +24,7 @@ interface MenuItem {
   selector: 'app-reciclador',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, BarraLateral, Titulo, EditarUsuario, CardARSolicitud, CardsRecoleccion, Tabla,
-    DashboardRecicladorComponent, MisCapacitacionesComponent, RecolectorRutas],
+    DashboardRecicladorComponent, MisCapacitacionesComponent, RecolectorRutas, CapacitacionesCrudComponent],
   templateUrl: './reciclador.html',
   styleUrls: ['./reciclador.css']
 })
@@ -35,6 +36,8 @@ export class Reciclador {
   menuAbierto: boolean = true;
   perfilMenuAbierto: boolean = false;
   vistaActual: MenuItem['vista'] = 'panel'; // vista por defecto
+  mostrarInscripcionCapacitacion = false;
+  detalleModulosCapacitacionAbierto = false;
   nombreUsuario: string = localStorage.getItem('nombreUsuario') ?? 'Usuario';
   nombreRol: string = localStorage.getItem('nombreRol') ?? 'Rol';
   puntos: PuntoReciclaje[] = [];
@@ -56,7 +59,7 @@ export class Reciclador {
     { vista: 'panel', label: 'Panel de Control', icon: 'bi bi-speedometer2' },
     { vista: 'solicitudes', label: 'Solicitudes', icon: 'bi bi-bar-chart-line' },
     { vista: 'recolecciones', label: 'Recolecciones', icon: 'bi bi-truck' },
-          { vista: 'rutas', label: 'Rutas', icon: 'bi bi-map' },
+    { vista: 'rutas', label: 'Rutas', icon: 'bi bi-map' },
 
     { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
     { vista: 'capacitaciones', label: 'Capacitaciones', icon: 'bi bi-mortarboard-fill' },
@@ -101,6 +104,21 @@ export class Reciclador {
 
   mostrarTodosLosPuntos(): void {
     this.vistaPuntos = 'todos';
+  }
+
+  toggleVistaCapacitaciones(): void {
+    this.mostrarInscripcionCapacitacion = !this.mostrarInscripcionCapacitacion;
+    if (this.mostrarInscripcionCapacitacion) {
+      this.detalleModulosCapacitacionAbierto = false;
+    }
+  }
+
+  onCapacitacionInscrita(): void {
+    this.mostrarInscripcionCapacitacion = false;
+  }
+
+  onDetalleModulosChange(abierto: boolean): void {
+    this.detalleModulosCapacitacionAbierto = abierto;
   }
 
   irAPaginaMapa(): void {
@@ -152,6 +170,10 @@ export class Reciclador {
    */
   cambiarVista(vista: MenuItem['vista']): void {
     this.vistaActual = vista;
+    if (vista !== 'capacitaciones') {
+      this.mostrarInscripcionCapacitacion = false;
+      this.detalleModulosCapacitacionAbierto = false;
+    }
     this.perfilMenuAbierto = false;
   }
 
@@ -175,5 +197,5 @@ export class Reciclador {
 
   editarPerfil(): void {
     this.vistaActual = 'editar-perfil';
-}
   }
+}

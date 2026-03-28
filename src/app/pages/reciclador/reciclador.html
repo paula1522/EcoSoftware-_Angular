@@ -113,10 +113,21 @@
       <app-titulo
         titulo="Capacitaciones"
         subtitulo="Consulta tus capacitaciones inscritas y avance del curso"
-        [mostrarBoton]="false">
+        [textoBoton]="mostrarInscripcionCapacitacion ? 'Mostrar mis capacitaciones' : 'Inscribirse a capacitación'"
+        iconoBoton="bi bi-plus-circle"
+        colorBoton="outline-custom-success"
+        hoverColorBoton="custom-success-filled"
+        [mostrarBoton]="!detalleModulosCapacitacionAbierto"
+        (clickBoton)="toggleVistaCapacitaciones()">
       </app-titulo>
 
-      <app-mis-capacitaciones></app-mis-capacitaciones>
+      <ng-container *ngIf="!mostrarInscripcionCapacitacion; else inscripcionCapacitacionesReciclador">
+        <app-mis-capacitaciones (detalleModulosChange)="onDetalleModulosChange($event)"></app-mis-capacitaciones>
+      </ng-container>
+
+      <ng-template #inscripcionCapacitacionesReciclador>
+        <app-card-crud-capacitacion (inscripcionExitosa)="onCapacitacionInscrita()"></app-card-crud-capacitacion>
+      </ng-template>
     </ng-container>
 
     <!-- NOTICIAS -->

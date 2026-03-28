@@ -138,6 +138,7 @@ export class Administrador implements OnDestroy {
   capacitaciones = false;
   mostrarGestionModulosCapacitaciones = false;
   capacitacionModuloSeleccionadaId: number | null = null;
+  nombreCapacitacionModuloSeleccionada = '';
   private forzarVistaCapacitaciones = false;
   creandoCapacitacion = false;
   errorCapacitacion = '';
@@ -843,10 +844,12 @@ export class Administrador implements OnDestroy {
         this.capacitaciones = false;
         this.mostrarGestionModulosCapacitaciones = true;
         this.capacitacionModuloSeleccionadaId = Number.isNaN(capIdParam) || capIdParam <= 0 ? null : capIdParam;
+        this.cargarNombreCapacitacionSeleccionada();
       } else {
         this.forzarVistaCapacitaciones = false;
         this.mostrarGestionModulosCapacitaciones = false;
         this.capacitacionModuloSeleccionadaId = null;
+        this.nombreCapacitacionModuloSeleccionada = '';
       }
     });
 
@@ -1021,6 +1024,7 @@ export class Administrador implements OnDestroy {
     if (vista !== 'capacitaciones') {
       this.mostrarGestionModulosCapacitaciones = false;
       this.capacitacionModuloSeleccionadaId = null;
+      this.nombreCapacitacionModuloSeleccionada = '';
       this.forzarVistaCapacitaciones = false;
     }
 
@@ -1033,6 +1037,7 @@ export class Administrador implements OnDestroy {
   volverAListaCapacitaciones(): void {
     this.mostrarGestionModulosCapacitaciones = false;
     this.capacitacionModuloSeleccionadaId = null;
+    this.nombreCapacitacionModuloSeleccionada = '';
     this.forzarVistaCapacitaciones = false;
     this.vistaActual = 'capacitaciones';
 
@@ -1071,6 +1076,24 @@ export class Administrador implements OnDestroy {
         this.cargando = false;
         setTimeout(() => this.error = '', 2500);
       }
+    });
+  }
+
+  private cargarNombreCapacitacionSeleccionada(): void {
+    const capacitacionId = this.capacitacionModuloSeleccionadaId;
+
+    if (!capacitacionId) {
+      this.nombreCapacitacionModuloSeleccionada = '';
+      return;
+    }
+
+    this.capacitacionesService.obtenerCapacitacionPorId(capacitacionId).subscribe({
+      next: (capacitacion) => {
+        this.nombreCapacitacionModuloSeleccionada = capacitacion?.nombre?.trim() || 'Capacitación seleccionada';
+      },
+      error: () => {
+        this.nombreCapacitacionModuloSeleccionada = 'Capacitación seleccionada';
+      },
     });
   }
 

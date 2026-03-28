@@ -97,6 +97,36 @@
     transform: translateY(-2px);
 }
 
+.inscripcion-estado,
+.inscripcion-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  color: #16613d;
+  font-weight: 700;
+}
+
+.spinner-mini {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(22, 97, 61, 0.22);
+  border-top-color: #16613d;
+  animation: spin-mini .8s linear infinite;
+}
+
+.spinner-mini--lg {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes spin-mini {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 .pag {
   display: flex;

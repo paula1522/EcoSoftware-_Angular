@@ -41,11 +41,16 @@
             </div>
           </div>
 
-          <app-boton [texto]="estaInscrito(cap.id!) ? 'Inscrito' : 'Inscribirme'"
-            [icono]="estaInscrito(cap.id!) ? 'bi bi-check-circle' : 'bi bi-person-plus'"
+          <app-boton [texto]="estaInscrito(cap.id!) ? 'Inscrito' : estaInscribiendo(cap.id!) ? 'Inscribiéndote...' : 'Inscribirme'"
+            [icono]="estaInscrito(cap.id!) ? 'bi bi-check-circle' : estaInscribiendo(cap.id!) ? 'bi bi-hourglass-split' : 'bi bi-person-plus'"
             [color]="estaInscrito(cap.id!) ? 'custom-success-filled' : 'custom-success-filled' " 
-            [deshabilitado]="estaInscrito(cap.id!)"
+            [deshabilitado]="estaInscrito(cap.id!) || estaInscribiendo(cap.id!)"
             (click)="inscribirse(cap)"> </app-boton>
+
+          <div class="inscripcion-estado" *ngIf="estaInscribiendo(cap.id!)">
+            <span class="spinner-mini"></span>
+            <span>Inscribiéndose a esta capacitación...</span>
+          </div>
 
         </div>
       </div>
@@ -99,15 +104,23 @@
     <strong>{{ capSeleccionada?.nombre }}</strong>?
   </p>
 
+  <div class="inscripcion-loading" *ngIf="estaInscribiendo(capSeleccionada?.id)">
+    <span class="spinner-mini spinner-mini--lg"></span>
+    <span>Inscribiéndose a esta capacitación...</span>
+  </div>
+
   <div modal-footer class="d-flex gap-2 justify-content-end">
 
     <!-- Botón cancelar -->
-    <app-boton texto="Cancelar" color="secondary" (click)="modalConfirmacion = false">
+    <app-boton texto="Cancelar" color="secondary" [deshabilitado]="estaInscribiendo(capSeleccionada?.id)" (click)="modalConfirmacion = false">
     </app-boton>
 
     <!-- Botón confirmar -->
-    <app-boton texto="Sí, inscribirme" icono="bi bi-check" color="success" (click)="confirmarInscripcion()">
-    </app-boton>
+    <button class="btn btn-success d-inline-flex align-items-center gap-2" type="button" [disabled]="estaInscribiendo(capSeleccionada?.id)" (click)="confirmarInscripcion()">
+      <span class="spinner-border spinner-border-sm" aria-hidden="true" *ngIf="estaInscribiendo(capSeleccionada?.id)"></span>
+      <i class="bi bi-check" *ngIf="!estaInscribiendo(capSeleccionada?.id)"></i>
+      <span>{{ estaInscribiendo(capSeleccionada?.id) ? 'Inscribiéndote...' : 'Sí, inscribirme' }}</span>
+    </button>
 
   </div>
 

@@ -392,10 +392,23 @@
 
     <!-- CAPACITACIONES -->
     <ng-container *ngIf="vistaActual === 'capacitaciones'">
-      <app-titulo titulo="Capacitaciones y Módulos" subtitulo="Gestión de capacitaciones y módulos"
-        iconoBoton="bi bi-plus-circle" colorBoton="outline-custom-success" textoBoton="Nueva Capacitacion"
-        hoverColorBoton="custom-success-filled" (clickBoton)="toggleVista()">
-      </app-titulo>
+      <div class="capacitaciones-page-header" [class.capacitaciones-page-header--with-back]="mostrarGestionModulosCapacitaciones">
+        <button
+          *ngIf="mostrarGestionModulosCapacitaciones"
+          type="button"
+          class="capacitaciones-page-header__back"
+          (click)="volverAListaCapacitaciones()"
+          title="Volver a la lista"
+          aria-label="Volver a la lista">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+
+        <app-titulo titulo="Capacitaciones y Módulos" subtitulo="Gestión de capacitaciones y módulos"
+          iconoBoton="bi bi-plus-circle" colorBoton="outline-custom-success" textoBoton="Nueva Capacitacion"
+          hoverColorBoton="custom-success-filled" [mostrarBoton]="!mostrarGestionModulosCapacitaciones"
+          (clickBoton)="toggleVista()">
+        </app-titulo>
+      </div>
 
       <div class="contenedor-toggle">
 
@@ -478,17 +491,6 @@
             </ng-container>
 
             <ng-container *ngIf="mostrarGestionModulosCapacitaciones">
-              <div class="modulos-inline-header mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div>
-                  <p class="mb-1">Administración de módulos</p>
-                  <h5 class="mb-0">Gestiona módulos y evaluaciones de esta capacitación</h5>
-                </div>
-
-                <button class="btn btn-outline-success" (click)="volverAListaCapacitaciones()">
-                  Volver a la lista
-                </button>
-              </div>
-
               <app-modulos-admin-page></app-modulos-admin-page>
             </ng-container>
           </div>

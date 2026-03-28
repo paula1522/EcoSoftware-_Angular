@@ -20,6 +20,8 @@ import { firstValueFrom } from 'rxjs';
 import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
 import { RecolectorRutas } from '../../Logic/rutas/recolector-rutas/recolector-rutas';
 import { CrearRuta } from "../../Logic/rutas/crear-ruta/crear-ruta";
+import { CapacitacionesCrudComponent } from '../../Logic/capacitaciones/card-crud-capacitacion/card-crud-capacitacion';
+
 /**
  * Interfaz para los elementos del menú lateral.
  */
@@ -37,7 +39,9 @@ interface MenuItem {
   selector: 'app-empresa',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, CardARSolicitud, CardsRecoleccion, DashboardEmpresaComponent,
-    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent, RecolectorRutas, CrearRuta],
+
+    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent, RecolectorRutas, CrearRuta, CapacitacionesCrudComponent],
+
   templateUrl: './empresa.html',
   styleUrls: ['./empresa.css']
 })
@@ -51,6 +55,8 @@ export class Empresa {
   vistaActual: MenuItem['vista'] = 'panel'; // vista por defecto
   nombreUsuario: string = localStorage.getItem('nombreUsuario') ?? 'Usuario';
   nombreRol: string = localStorage.getItem('nombreRol') ?? 'Rol';
+  mostrarInscripcionCapacitacion = false;
+  detalleModulosCapacitacionAbierto = false;
 
 
   puntos: PuntoReciclaje[] = [];
@@ -183,6 +189,21 @@ mostrarNuevaSolicitud: any;
   mostrarTodosLosPuntos(): void {
     this.vistaPuntos = 'todos';
     this.actualizarPuntosFiltrados();
+  }
+
+  toggleVistaCapacitaciones(): void {
+    this.mostrarInscripcionCapacitacion = !this.mostrarInscripcionCapacitacion;
+    if (this.mostrarInscripcionCapacitacion) {
+      this.detalleModulosCapacitacionAbierto = false;
+    }
+  }
+
+  onCapacitacionInscrita(): void {
+    this.mostrarInscripcionCapacitacion = false;
+  }
+
+  onDetalleModulosChange(abierto: boolean): void {
+    this.detalleModulosCapacitacionAbierto = abierto;
   }
 
   filtrarPorTipoResiduo(): void {
@@ -496,6 +517,10 @@ mostrarNuevaSolicitud: any;
    */
   cambiarVista(vista: MenuItem['vista']): void {
     this.vistaActual = vista;
+    if (vista !== 'capacitaciones') {
+      this.mostrarInscripcionCapacitacion = false;
+      this.detalleModulosCapacitacionAbierto = false;
+    }
     this.perfilMenuAbierto = false;
   }
 
