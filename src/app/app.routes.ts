@@ -39,6 +39,7 @@ import { MapaRutaGestion } from './Logic/rutas/mapa-ruta-gestion/mapa-ruta-gesti
 import { Solicitudes } from './Logic/solicitudes-comp/listar-filtrar-solicitudes/solcitudes';
 import { ModulosAdminPageComponent } from './features/capacitaciones/pages/modulos-admin-page.component';
 import { ModulosUsuarioPageComponent } from './features/capacitaciones/pages/modulos-usuario-page.component';
+import { RecuperarContrasena } from './Logic/recuperar-contrasena/recuperar-contrasena';
 
 
 
@@ -98,6 +99,7 @@ export const routes: Routes = [
     data: { roles: ['Ciudadano', 'Empresa', 'Reciclador'] }
   },
 
+  { path: 'recuperar-contraseña', component: RecuperarContrasena},
   { path: 'usuarios', component: Usuario },
   { path: 'grafica', component: GraficoUsuariosBarrios },
   { path: 'grafica2', component: PendientesAceptadasChartComponent },

@@ -1,0 +1,69 @@
+<app-modal
+  [isOpen]="isOpen"
+  title="Recuperar contraseña"
+  (closed)="cerrar()"
+>
+
+  <!-- PASO 1: CORREO -->
+  <div *ngIf="paso === 'correo'">
+
+    <label>Correo</label>
+    <input [(ngModel)]="correo"
+           (blur)="validarCorreo()"
+           class="form-control"
+           type="email">
+
+    <!-- ERROR CORREO -->
+    <div *ngIf="!correoValido" class="text-danger mt-1">
+      Ingresa un correo válido
+    </div>
+
+    <button class="btn btn-success mt-3 w-100"
+            (click)="enviarCorreo()"
+            [disabled]="loading">
+      {{ loading ? 'Enviando...' : 'Enviar código' }}
+    </button>
+  </div>
+
+  <!-- PASO 2: RESET -->
+  <div *ngIf="paso === 'reset'">
+
+    <div class="alert alert-success">{{ mensaje }}</div>
+
+    <label>Código (token)</label>
+    <input [(ngModel)]="token" class="form-control">
+
+    <label class="mt-2">Nueva contraseña</label>
+    <input [(ngModel)]="nuevaPassword"
+           (input)="validarPassword()"
+           class="form-control"
+           type="password">
+
+    <!-- ERRORES PASSWORD -->
+    <div *ngIf="passwordErrores.length > 0" class="text-danger mt-1">
+      <div *ngFor="let err of passwordErrores">
+        • {{ err }}
+      </div>
+    </div>
+
+    <button class="btn btn-primary mt-3 w-100"
+            (click)="resetearPassword()"
+            [disabled]="loading || passwordErrores.length > 0">
+      {{ loading ? 'Procesando...' : 'Restablecer contraseña' }}
+    </button>
+  </div>
+
+  <!-- PASO 3: RESULTADO -->
+  <div *ngIf="paso === 'resultado'">
+
+    <div class="alert"
+         [ngClass]="error ? 'alert-danger' : 'alert-success'">
+      {{ mensaje }}
+    </div>
+
+    <button class="btn btn-dark w-100" (click)="finalizar()">
+      Volver al login
+    </button>
+  </div>
+
+</app-modal>

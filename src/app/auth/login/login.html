@@ -32,16 +32,18 @@
         </div>
 
         <ng-container *ngIf="formGroup">
-          <app-form-comp
-            [fields]="campos"
-            [formGroup]="formGroup"
-            [submitButtonText]="'Iniciar Sesión'"
-            [submitButtonIcon]="'bi bi-box-arrow-in-right'"
-            [showSubmitButton]="true"
-            (submitForm)="onLogin($event)">
+          <app-form-comp [fields]="campos" [formGroup]="formGroup" [submitButtonText]="'Iniciar Sesión'"
+            [submitButtonIcon]="'bi bi-box-arrow-in-right'" [showSubmitButton]="true" (submitForm)="onLogin($event)">
 
             <div form-footer class="mt-3 text-center">
-              <p><a routerLink="/recuperar" class="auth-link">¿Olvidaste tu contraseña?</a></p>
+              <p>
+                <a (click)="abrirRecuperacion()" class="auth-link" style="cursor:pointer">
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </p>
+              <app-recuperar-contrasena></app-recuperar-contrasena>
+
+
               <p>¿Aún no tienes una cuenta?
                 <a routerLink="/registro" class="auth-link">Regístrate aquí</a>
               </p>
@@ -50,9 +52,7 @@
           </app-form-comp>
         </ng-container>
 
-        <div *ngIf="errorMessage"
-          class="alert alert-danger mt-3 text-center w-100"
-          style="max-width: 400px;">
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3 text-center w-100" style="max-width: 400px;">
           {{ errorMessage }}
         </div>
 

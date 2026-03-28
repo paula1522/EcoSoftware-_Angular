@@ -18,7 +18,7 @@ export class UsuarioService {
   private apiUrlSpringboot = 'https://ecosoftware-spring-boot.azurewebsites.net/api/personas';
   private adminDashboardUrl = 'https://ecosoftware-spring-boot.azurewebsites.net/api/admin/dashboard';
 
-  constructor(private http: HttpClient, private api: ApiService) {}
+  constructor(private http: HttpClient, private api: ApiService) { }
 
   // ============================================================
   // 1. LISTADOS GENERALES
@@ -65,22 +65,22 @@ export class UsuarioService {
 
   /** Login API (autenticación real) */
   loginApi(credentials: { correo: string; contrasena: string }): Observable<AuthResponse> {
-  return this.api.post<AuthResponse>('/api/auth/login', credentials).pipe(
-    map(response => {
+    return this.api.post<AuthResponse>('/api/auth/login', credentials).pipe(
+      map(response => {
 
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('roles', response.rol);
-      localStorage.setItem('correo', response.correo);
-      localStorage.setItem('idUsuario', response.idUsuario.toString());
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('roles', response.rol);
+        localStorage.setItem('correo', response.correo);
+        localStorage.setItem('idUsuario', response.idUsuario.toString());
 
-      return response;
-    }),
-    catchError(err => {
-      console.error('Error en login API', err);
-      return throwError(() => err);
-    })
-  );
-}
+        return response;
+      }),
+      catchError(err => {
+        console.error('Error en login API', err);
+        return throwError(() => err);
+      })
+    );
+  }
 
   // ============================================================
   // 3. FILTROS DE USUARIO
@@ -127,7 +127,7 @@ export class UsuarioService {
     );
   }
 
-  
+
 
   /** Actualizar usuario */
   actualizar(id: number, usuario: UsuarioModel): Observable<UsuarioModel> {
@@ -145,36 +145,58 @@ export class UsuarioService {
 
   /** Eliminación lógica */
   eliminarLogico(id: number): Observable<string> {
-  return this.http.patch<string>(`${this.apiUrlSpringboot}/eliminar/${id}`, null, {
-    responseType: 'text' as 'json'
-  }).pipe(catchError(err => throwError(() => err)));
-}
-
-
-  cambiarPassword(id: number, actual: string, nueva: string) {
-  return this.http.put(`${this.apiUrlSpringboot}/cambiar-password/${id}`, {
-    actual,
-    nueva
-  });
-}
-
-   recuperarPassword(correo: string): Observable<any> {
-    return this.http.post(`${this.apiUrlSpringboot}/recuperar`, {
-      correo
-    });
+    return this.http.patch<string>(`${this.apiUrlSpringboot}/eliminar/${id}`, null, {
+      responseType: 'text' as 'json'
+    }).pipe(catchError(err => throwError(() => err)));
   }
 
-  resetPassword(token: string, nueva: string): Observable<any> {
-    return this.http.post(`${this.apiUrlSpringboot}/reset-password`, {
-      token,
-      nueva
-    });
+
+  cambiarPassword(id: number, actual: string, nueva: string): Observable<string> {
+    return this.http.put(
+      `${this.apiUrlSpringboot}/cambiar-password/${id}`,
+      { actual, nueva },
+      { responseType: 'text' }
+    ).pipe(
+      catchError(err => {
+        console.error('Error cambiando contraseña', err);
+        return throwError(() => err);
+      })
+    );
   }
+
+
+  recuperarPassword(correo: string): Observable<string> {
+    return this.http.post(
+      `${this.apiUrlSpringboot}/recuperar`,
+      { correo },
+      { responseType: 'text' }
+    ).pipe(
+      catchError(err => {
+        console.error('Error enviando correo', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+
+  resetPassword(token: string, nueva: string): Observable<string> {
+    return this.http.post(
+      `${this.apiUrlSpringboot}/reset-password`,
+      { token, nueva },
+      { responseType: 'text' }
+    ).pipe(
+      catchError(err => {
+        console.error('Error reseteando contraseña', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
 
 
   cambiarEstado(id: number) {
-  return this.http.put(`${this.apiUrlSpringboot}/estado/${id}`, {});
-}
+    return this.http.put(`${this.apiUrlSpringboot}/estado/${id}`, {});
+  }
 
 
   // ============================================================
@@ -216,7 +238,7 @@ export class UsuarioService {
   obtenerBarriosPorLocalidades(): Observable<any> {
     return this.http.get<any>(`${this.apiUrlSpringboot}/estadisticas/barrios-localidades`);
   }
-  
+
   // ============================================================
   // 7. AUTOGESTIÓN DE SESIÓN
   // ============================================================
@@ -227,11 +249,11 @@ export class UsuarioService {
   }
 
   logout(): void {
-  localStorage.removeItem('token');
-  localStorage.removeItem('rol');
-  localStorage.removeItem('correo');
-  localStorage.removeItem('idUsuario');
-}
+    localStorage.removeItem('token');
+    localStorage.removeItem('rol');
+    localStorage.removeItem('correo');
+    localStorage.removeItem('idUsuario');
+  }
 
   isTokenExpired(): boolean {
     const expiresIn = Number(localStorage.getItem('expiresIn'));
@@ -262,14 +284,14 @@ export class UsuarioService {
 
   /** Cargar archivo Excel por rol */
   cargarExcel(file: File, rol: string): Observable<any> {
-  const formData = new FormData();
-  formData.append('archivo', file);
+    const formData = new FormData();
+    formData.append('archivo', file);
 
-  return this.http.post(`${this.apiUrlSpringboot}/cargar/${rol}`, formData, {
-    reportProgress: true,
-    observe: 'events'
-  });
-}
+    return this.http.post(`${this.apiUrlSpringboot}/cargar/${rol}`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
 
   /** Endpoint test público */
   testPublic(): Observable<string> {
@@ -296,10 +318,10 @@ export class UsuarioService {
   }
 
   obtenerUsuariosAprobados(): Observable<UsuarioModel[]> {
-  return this.http.get<UsuarioModel[]>(
-    `${this.apiUrlSpringboot}/aceptados`
-  );
-}
+    return this.http.get<UsuarioModel[]>(
+      `${this.apiUrlSpringboot}/aceptados`
+    );
+  }
 
   /** Contador de usuarios pendientes (Admin Dashboard) */
   contarPendientesAdminDashboard(): Observable<number> {

@@ -1,13 +1,8 @@
 <div class="d-flex">
 
   <!-- SIDEBAR -->
-  <app-barra-lateral
-    [menu]="menu"
-    [vistaActual]="vistaActual"
-    [nombreUsuario]="nombreUsuario"
-    (vistaChange)="cambiarVista($event)"
-    (logout)="cerrarSesion()"
-    (edit)="editarPerfil()">
+  <app-barra-lateral [menu]="menu" [vistaActual]="vistaActual" [nombreUsuario]="nombreUsuario"
+    (vistaChange)="cambiarVista($event)" (logout)="cerrarSesion()" (edit)="editarPerfil()">
   </app-barra-lateral>
 
   <!-- CONTENIDO PRINCIPAL -->
@@ -15,12 +10,8 @@
 
     <!-- PANEL -->
     <ng-container *ngIf="vistaActual === 'panel'">
-      <app-titulo
-        titulo="Panel de Control"
-        subtitulo="Toda la información relevante de un vistazo"
-        iconoBoton="bi bi-bell"
-        colorBoton="outline-custom-success"
-        hoverColorBoton="custom-success-filled"
+      <app-titulo titulo="Panel de Control" subtitulo="Toda la información relevante de un vistazo"
+        iconoBoton="bi bi-bell" colorBoton="outline-custom-success" hoverColorBoton="custom-success-filled"
         [mostrarBoton]="false">
       </app-titulo>
 
@@ -29,10 +20,7 @@
 
     <!-- EDITAR PERFIL -->
     <ng-container *ngIf="vistaActual === 'editar-perfil'">
-      <app-titulo
-        titulo="Editar Perfil"
-        subtitulo="Actualiza tu información personal"
-        iconoBoton="bi bi-eye"
+      <app-titulo titulo="Editar Perfil" subtitulo="Actualiza tu información personal" iconoBoton="bi bi-eye"
         colorBoton="outline-custom-success">
       </app-titulo>
 
@@ -41,13 +29,9 @@
 
     <!-- SOLICITUDES -->
     <ng-container *ngIf="vistaActual === 'solicitudes'">
-      <app-titulo
-        titulo="Solicitudes"
-        subtitulo="Consulta tus solicitudes"
+      <app-titulo titulo="Solicitudes" subtitulo="Consulta tus solicitudes"
         [textoBoton]="mostrarNuevaSolicitud ? 'Mostrar solicitudes' : 'Hacer nueva solicitud'"
-        iconoBoton="bi bi-plus-circle"
-        colorBoton="outline-custom-success"
-        hoverColorBoton="custom-success-filled"
+        iconoBoton="bi bi-plus-circle" colorBoton="outline-custom-success" hoverColorBoton="custom-success-filled"
         (clickBoton)="toggleVista()">
       </app-titulo>
 
@@ -68,10 +52,7 @@
 
     <!-- RECOLECCIONES -->
     <ng-container *ngIf="vistaActual === 'recolecciones'">
-      <app-titulo
-        titulo="Recolecciones"
-        subtitulo="Gestión de tus recolecciones"
-        [mostrarBoton]="false">
+      <app-titulo titulo="Recolecciones" subtitulo="Gestión de tus recolecciones" [mostrarBoton]="false">
       </app-titulo>
 
       <app-cards-recoleccion-ciudadano></app-cards-recoleccion-ciudadano>
@@ -79,10 +60,7 @@
 
     <!-- CAPACITACIONES -->
     <ng-container *ngIf="vistaActual === 'capacitaciones'">
-      <app-titulo
-        titulo="Capacitaciones"
-        subtitulo="Consulta tus capacitaciones"
-        [mostrarBoton]="false">
+      <app-titulo titulo="Capacitaciones" subtitulo="Consulta tus capacitaciones" [mostrarBoton]="false">
       </app-titulo>
 
       <app-mis-capacitaciones></app-mis-capacitaciones>
@@ -90,10 +68,7 @@
 
     <!-- NOTICIAS -->
     <ng-container *ngIf="vistaActual === 'noticias'">
-      <app-titulo
-        titulo="Noticias"
-        subtitulo="Entérate de las últimas novedades"
-        [mostrarBoton]="false">
+      <app-titulo titulo="Noticias" subtitulo="Entérate de las últimas novedades" [mostrarBoton]="false">
       </app-titulo>
 
       <cards-noticias></cards-noticias>
@@ -102,38 +77,25 @@
     <!-- PUNTOS DE RECICLAJE -->
     <ng-container *ngIf="vistaActual === 'puntos'">
       <div class="contenido-solicitud">
-        <app-titulo
-          titulo="Puntos de Reciclaje"
-          subtitulo="Consulta el mapa y el listado de puntos disponibles"
+        <app-titulo titulo="Puntos de Reciclaje" subtitulo="Consulta el mapa y el listado de puntos disponibles"
           [mostrarBoton]="false">
         </app-titulo>
 
         <div class="puntos-admin-toolbar mt-3">
           <div class="puntos-admin-actions">
-            <button
-              class="btn btn-outline-success"
-              [class.active]="vistaPuntos === 'todos'"
-              (click)="mostrarTodosLosPuntos()"
-              type="button">
+            <button class="btn btn-outline-success" [class.active]="vistaPuntos === 'todos'"
+              (click)="mostrarTodosLosPuntos()" type="button">
               Todos los puntos
             </button>
-            <button
-              class="btn btn-success"
-              (click)="irAPaginaMapa()"
-              type="button">
+            <button class="btn btn-success" (click)="irAPaginaMapa()" type="button">
               Mapa
             </button>
           </div>
         </div>
 
         <div class="puntos-admin-list mt-3">
-          <app-tabla
-            [columnas]="columnasPuntos"
-            [data]="puntosFiltrados"
-            [cellTemplates]="puntosCellTemplates"
-            [mostrarAcciones]="true"
-            [accionesVisibles]="['ver']"
-            (ver)="verPuntoDesdeTabla($event)"
+          <app-tabla [columnas]="columnasPuntos" [data]="puntosFiltrados" [cellTemplates]="puntosCellTemplates"
+            [mostrarAcciones]="true" [accionesVisibles]="['ver']" (ver)="verPuntoDesdeTabla($event)"
             titulo="Todos los puntos">
           </app-tabla>
         </div>
