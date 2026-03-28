@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RutaRecoleccionService } from '../../../Services/ruta-recoleccion';
-import { RecoleccionService } from '../../../Services/recoleccion.service';
-import { RutaParaMapa, Parada, RutaRecoleccion } from '../../../Models/ruta-recoleccion';
+import { RutaParaMapa, Parada } from '../../../Models/ruta-recoleccion';
 import { MapaRutas } from '../mapa-rutas/mapa-rutas';
 import { EstadoRecoleccion } from '../../../Models/modelo-recoleccion';
 
@@ -14,22 +13,18 @@ import { EstadoRecoleccion } from '../../../Models/modelo-recoleccion';
   imports: [MapaRutas, CommonModule]
 })
 export class ListarRutas implements OnInit {
-
   rutas: RutaParaMapa[] = [];
-  EstadoRecoleccion = EstadoRecoleccion; // para usar en el template
+  EstadoRecoleccion = EstadoRecoleccion;
 
-  constructor(
-    private rutaService: RutaRecoleccionService,
-    private recoleccionService: RecoleccionService
-  ) {}
+  constructor(private rutaService: RutaRecoleccionService) {}
 
   ngOnInit(): void {
-    this.recargarRutas();
+    this.cargarRutas();
   }
 
-  recargarRutas(): void {
+  cargarRutas(): void {
     this.rutaService.listarTodas().subscribe({
-      next: (data: RutaRecoleccion[]) => {
+      next: (data) => {
         this.rutas = data.map(ruta => ({
           idRuta: ruta.idRuta,
           nombre: ruta.nombre,
@@ -42,53 +37,11 @@ export class ListarRutas implements OnInit {
             ordenParada: p.ordenParada,
             latitud: p.latitud,
             longitud: p.longitud,
-            estado: p.estado  // ya es EstadoRecoleccion
+            estado: p.estado
           }))
         }));
       },
-      error: (err) => console.error(err)
-    });
-  }
-
-  obtenerSiguienteParada(ruta: RutaParaMapa): Parada | null {
-    if (!ruta.paradas) return null;
-    const pendientes = ruta.paradas.filter(p => p.estado !== EstadoRecoleccion.Completada);
-    if (pendientes.length === 0) return null;
-    return pendientes.sort((a, b) => a.ordenParada - b.ordenParada)[0];
-  }
-
-  completarParada(parada: Parada, ruta: RutaParaMapa): void {
-    if (!parada.recoleccionId) return;
-    this.recoleccionService.actualizarEstado(parada.recoleccionId, EstadoRecoleccion.Completada).subscribe({
-      next: () => {
-        // Actualizar estado localmente
-        parada.estado = EstadoRecoleccion.Completada;
-        // Si ya no hay paradas pendientes, finalizar ruta
-        if (this.obtenerSiguienteParada(ruta) === null) {
-          this.rutaService.finalizarRuta(ruta.idRuta).subscribe({
-            next: () => this.recargarRutas(),
-            error: err => console.error(err)
-          });
-        } else {
-          // Recargar para actualizar visualización
-          this.recargarRutas();
-        }
-      },
-      error: (err: any) => console.error('Error completando', err)
-    });
-  }
-
-  iniciarRuta(id: number): void {
-    this.rutaService.iniciarRuta(id).subscribe({
-      next: () => this.recargarRutas(),
-      error: (err: any) => console.error(err)
-    });
-  }
-
-  finalizarRuta(id: number): void {
-    this.rutaService.finalizarRuta(id).subscribe({
-      next: () => this.recargarRutas(),
-      error: (err: any) => console.error(err)
+      error: err => console.error(err)
     });
   }
 }

@@ -1,0 +1,176 @@
+<div class="cr-root">
+
+  
+
+  <!-- NOMBRE DE LA RUTA -->
+  <div class="cr-card" style="margin-bottom: 1.25rem;">
+    
+    <div class="cr-card-body">
+      <div class="cr-field">
+        <label for="nombreRuta">Nombre de la ruta</label>
+        <input
+          id="nombreRuta"
+          class="cr-input"
+          type="text"
+          placeholder="Ej: Ruta norte — sector 3"
+          [(ngModel)]="nombreRuta"
+          (input)="errorMsg = ''"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- GRID DOS COLUMNAS -->
+  <div class="cr-grid">
+
+    <!-- PENDIENTES -->
+    <div class="cr-card">
+      <div class="cr-card-title">
+        <div class="cr-card-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <span class="cr-card-label">Pendientes</span>
+        <span class="cr-count-pill">{{ recoleccionesPendientes.length }}</span>
+      </div>
+      <div class="cr-card-body">
+
+        <!-- Loading -->
+        <div *ngIf="cargando" class="cr-empty">
+          <div class="cr-spinner"></div>
+          Cargando recolecciones...
+        </div>
+
+        <!-- Lista -->
+        <div *ngIf="!cargando" class="cr-list">
+          <div
+            *ngFor="let rec of recoleccionesPendientes"
+            class="cr-list-item"
+            [class.checked]="estaSeleccionada(rec)"
+            (click)="toggleSeleccionClick(rec)"
+          >
+            <div class="cr-checkbox">
+              <svg *ngIf="estaSeleccionada(rec)" width="10" height="10"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <span class="cr-item-text">{{ obtenerTexto(rec) }}</span>
+          </div>
+
+          <div *ngIf="recoleccionesPendientes.length === 0" class="cr-empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            No hay recolecciones pendientes
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ORDEN DE PARADAS -->
+    <div class="cr-card">
+      <div class="cr-card-title">
+        <div class="cr-card-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <span class="cr-card-label">Orden de paradas</span>
+        <span class="cr-count-pill">{{ seleccionadas.length }}</span>
+      </div>
+      <div class="cr-card-body">
+
+        <div
+          cdkDropList
+          class="cr-drag-list"
+          (cdkDropListDropped)="drop($event)"
+        >
+          <div
+            *ngFor="let rec of seleccionadas; let i = index"
+            cdkDrag
+            class="cr-drag-item"
+          >
+            <!-- Drag preview personalizado -->
+            <div *cdkDragPlaceholder class="cr-drag-placeholder"></div>
+
+            <div class="cr-drag-handle" cdkDragHandle>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="cr-order-badge">{{ i + 1 }}</div>
+            <span class="cr-item-text">{{ obtenerTexto(rec) }}</span>
+
+            <!-- Botón quitar -->
+            <button class="cr-remove-btn" (click)="quitarSeleccion(rec)" title="Quitar">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+
+          <div *ngIf="seleccionadas.length === 0" class="cr-empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 12h8M12 8v8"/>
+            </svg>
+            Selecciona recolecciones para ordenarlas
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /cr-grid -->
+
+  <!-- ERROR -->
+  <div *ngIf="errorMsg" class="cr-error">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ errorMsg }}
+  </div>
+
+  <!-- ACCIONES -->
+  <div class="cr-actions">
+    <button class="cr-btn cr-btn-ghost" (click)="limpiarSeleccion()">
+      Limpiar selección
+    </button>
+    <button
+      class="cr-btn cr-btn-primary"
+      (click)="crearRuta()"
+      [disabled]="cargando || seleccionadas.length < 2"
+    >
+      <svg *ngIf="!cargando" width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+      </svg>
+      <div *ngIf="cargando" class="cr-spinner cr-spinner-sm"></div>
+      {{ cargando ? 'Creando...' : 'Crear ruta' }}
+    </button>
+  </div>
+
+ <div class="success-message m-5" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+
+</div>

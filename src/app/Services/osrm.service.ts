@@ -41,4 +41,16 @@ export class OsrmService {
       { params }
     );
   }
+
+calcularTrip(points: { lat: number; lng: number }[]): Observable<any> {
+  const coords = points.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `${this.baseApiUrl}/trip/v1/driving/${coords}`;
+  const params = new HttpParams()
+    .set('overview', 'full')
+    .set('geometries', 'geojson')
+    .set('steps', 'true')
+    .set('source', 'first')
+    .set('destination', 'last');
+  return this.http.get(url, { params });
+}
 }

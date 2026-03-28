@@ -18,11 +18,15 @@ import { Tabla, ColumnaTabla } from '../../shared/tabla/tabla';
 import { AuthService } from '../../auth/auth.service';
 import { firstValueFrom } from 'rxjs';
 import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
+import { RecolectorRutas } from '../../Logic/rutas/recolector-rutas/recolector-rutas';
+import { CrearRuta } from "../../Logic/rutas/crear-ruta/crear-ruta";
+import { CapacitacionesCrudComponent } from '../../Logic/capacitaciones/card-crud-capacitacion/card-crud-capacitacion';
+
 /**
  * Interfaz para los elementos del menú lateral.
  */
 interface MenuItem {
-  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'puntos' | 'capacitaciones' | 'noticias'|'editar-perfil';
+  vista: 'panel' | 'solicitudes' | 'recolecciones' | 'rutas' | 'puntos' | 'capacitaciones' | 'noticias'|'editar-perfil';
   label: string;
   icon: string;
 }
@@ -35,7 +39,9 @@ interface MenuItem {
   selector: 'app-empresa',
   standalone: true,
   imports: [COMPARTIR_IMPORTS, CardARSolicitud, CardsRecoleccion, DashboardEmpresaComponent,
-    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent],
+
+    EditarUsuario, BarraLateral, Titulo, CardsNoticias, Modal, Tabla, MisCapacitacionesComponent, RecolectorRutas, CrearRuta, CapacitacionesCrudComponent],
+
   templateUrl: './empresa.html',
   styleUrls: ['./empresa.css']
 })
@@ -49,6 +55,8 @@ export class Empresa {
   vistaActual: MenuItem['vista'] = 'panel'; // vista por defecto
   nombreUsuario: string = localStorage.getItem('nombreUsuario') ?? 'Usuario';
   nombreRol: string = localStorage.getItem('nombreRol') ?? 'Rol';
+  mostrarInscripcionCapacitacion = false;
+  detalleModulosCapacitacionAbierto = false;
 
 
   puntos: PuntoReciclaje[] = [];
@@ -97,10 +105,12 @@ export class Empresa {
     { vista: 'panel', label: 'Panel de Control', icon: 'bi bi-speedometer2' },
     { vista: 'solicitudes', label: 'Solicitudes', icon: 'bi bi-bar-chart-line' },
     { vista: 'recolecciones', label: 'Recolecciones', icon: 'bi bi-truck' },
+    { vista: 'rutas', label: 'Rutas', icon: 'bi bi-map' },
     { vista: 'puntos', label: 'Puntos de Reciclaje', icon: 'bi bi-geo-alt' },
     { vista: 'capacitaciones', label: 'Capacitaciones', icon: 'bi bi-mortarboard-fill' },
     { vista: 'noticias', label: 'Noticias', icon: 'bi bi-newspaper' },
   ];
+mostrarNuevaSolicitud: any;
 
   /**
    * Dependencias inyectadas por el constructor:
@@ -118,6 +128,11 @@ export class Empresa {
 
   ngOnInit(): void {
     this.cargarPuntos();
+  }
+
+  
+  toggleVista(): void {
+    this.mostrarNuevaSolicitud = !this.mostrarNuevaSolicitud;
   }
 
   cargarPuntos(): void {
@@ -174,6 +189,21 @@ export class Empresa {
   mostrarTodosLosPuntos(): void {
     this.vistaPuntos = 'todos';
     this.actualizarPuntosFiltrados();
+  }
+
+  toggleVistaCapacitaciones(): void {
+    this.mostrarInscripcionCapacitacion = !this.mostrarInscripcionCapacitacion;
+    if (this.mostrarInscripcionCapacitacion) {
+      this.detalleModulosCapacitacionAbierto = false;
+    }
+  }
+
+  onCapacitacionInscrita(): void {
+    this.mostrarInscripcionCapacitacion = false;
+  }
+
+  onDetalleModulosChange(abierto: boolean): void {
+    this.detalleModulosCapacitacionAbierto = abierto;
   }
 
   filtrarPorTipoResiduo(): void {
@@ -487,6 +517,10 @@ export class Empresa {
    */
   cambiarVista(vista: MenuItem['vista']): void {
     this.vistaActual = vista;
+    if (vista !== 'capacitaciones') {
+      this.mostrarInscripcionCapacitacion = false;
+      this.detalleModulosCapacitacionAbierto = false;
+    }
     this.perfilMenuAbierto = false;
   }
 

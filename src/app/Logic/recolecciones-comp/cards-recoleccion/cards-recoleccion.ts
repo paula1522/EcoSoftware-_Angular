@@ -36,7 +36,7 @@ export class CardsRecoleccion implements OnInit {
 
   // Paginación
   paginaActual: number = 1;
-  itemsPorPagina: number = 12;
+  itemsPorPagina: number = 4;
 
   // Modal de edición
   @ViewChild('modalEditar') modalEditar!: Modal;

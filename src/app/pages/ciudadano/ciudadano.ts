@@ -11,9 +11,13 @@ import { BarraLateral } from '../../shared/barra-lateral/barra-lateral';
 import { Titulo } from '../../shared/titulo/titulo';
 import { EditarUsuario } from '../../Logic/usuarios.comp/editar-usuario/editar-usuario';
 import { CardsNoticias } from "../../Logic/cards-noticias.component/cards-noticias.component";
+
 import { MisCapacitacionesComponent } from '../../Logic/capacitaciones/mis-capacitaciones/mis-capacitaciones';
+import { CapacitacionesCrudComponent } from '../../Logic/capacitaciones/card-crud-capacitacion/card-crud-capacitacion';
+
 import { ColumnaTabla, Tabla } from '../../shared/tabla/tabla';
 import { DashboardCiudadanoComponent } from '../../Logic/ciudadano/dashboard-ciudadano/dashboard-ciudadano';
+
 import { AuthService } from '../../auth/auth.service';
 
 
@@ -22,8 +26,10 @@ import { AuthService } from '../../auth/auth.service';
   standalone: true,
   imports: [COMPARTIR_IMPORTS, FormRegistro,
     EditarUsuario,
+
+
     CardsSolicitud, CardsRecoleccionCiudadano, BarraLateral, Titulo, CardsNoticias, MisCapacitacionesComponent, Tabla,
-    DashboardCiudadanoComponent],
+    DashboardCiudadanoComponent, CapacitacionesCrudComponent],
 
   templateUrl: './ciudadano.html',
   styleUrls: ['./ciudadano.css']
@@ -35,6 +41,8 @@ export class Ciudadano {
   vistaActual: 'panel' | 'solicitudes' | 'recolecciones' | 'capacitaciones' | 
   'noticias' | 'editar-perfil'| 'puntos' = 'panel'; 
   mostrarNuevaSolicitud = false;
+  mostrarInscripcionCapacitacion = false;
+  detalleModulosCapacitacionAbierto = false;
   nombreUsuario: string = localStorage.getItem('nombreUsuario') ?? 'Usuario';
   nombreRol: string = localStorage.getItem('nombreRol') ?? 'Rol';
   puntos: PuntoReciclaje[] = [];
@@ -99,6 +107,21 @@ export class Ciudadano {
     this.mostrarNuevaSolicitud = !this.mostrarNuevaSolicitud;
   }
 
+  toggleVistaCapacitaciones(): void {
+    this.mostrarInscripcionCapacitacion = !this.mostrarInscripcionCapacitacion;
+    if (this.mostrarInscripcionCapacitacion) {
+      this.detalleModulosCapacitacionAbierto = false;
+    }
+  }
+
+  onCapacitacionInscrita(): void {
+    this.mostrarInscripcionCapacitacion = false;
+  }
+
+  onDetalleModulosChange(abierto: boolean): void {
+    this.detalleModulosCapacitacionAbierto = abierto;
+  }
+
   get puntosFiltrados(): PuntoReciclaje[] {
     return this.puntos;
   }
@@ -148,6 +171,13 @@ export class Ciudadano {
   // ========================
   cambiarVista(vista: 'panel'|'solicitudes'|'recolecciones'|'capacitaciones'|'noticias'|'puntos'| 'editar-perfil'): void {
     this.vistaActual = vista;
+    if (vista !== 'solicitudes') {
+      this.mostrarNuevaSolicitud = false;
+    }
+    if (vista !== 'capacitaciones') {
+      this.mostrarInscripcionCapacitacion = false;
+      this.detalleModulosCapacitacionAbierto = false;
+    }
   }
 
   togglePerfilMenu(): void {
